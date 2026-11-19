@@ -18,7 +18,7 @@ what is not in scope are set by decisions. All of it is compiled from `tasks/` a
 - [pr-measures-from-the-fork-point](../tasks/pr-measures-from-the-fork-point.md) — `--pr` measures a pull request from where it forked · done
 - [run-the-gate-under-cmd-exe](../tasks/run-the-gate-under-cmd-exe.md) — Run the gate where the shell is `cmd.exe`
 - [the-essay-says-whose-idea-this-is](../tasks/the-essay-says-whose-idea-this-is.md) — The essay says whose idea this is · done
-- [the-form-has-its-own-version](../tasks/the-form-has-its-own-version.md) — The form has its own version
+- [the-form-has-its-own-version](../tasks/the-form-has-its-own-version.md) — The form has its own version · done
 - [the-gate-does-not-require-a-record](../tasks/the-gate-does-not-require-a-record.md) — The gate does not require a record
 - [the-runbook-is-source](../tasks/the-runbook-is-source.md) — The runbook and the skill are source in this repository · done
 - [the-scripts-as-files](../tasks/the-scripts-as-files.md) — Ship the scripts as files, not as listings · done

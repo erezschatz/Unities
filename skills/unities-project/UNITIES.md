@@ -1,4 +1,4 @@
-<!-- UNITIES.md 2026-11-19 · 0.6.2. Master copy: the unities-project skill folder (plugin `unities`). -->
+<!-- UNITIES.md 2026-11-19 · 0.6.3. Master copy: the unities-project skill folder (plugin `unities`). -->
 
 # UNITIES.md — adopting the Unities in a repository
 
@@ -34,6 +34,25 @@ here; Phase 4.9 creates those files from what the code already is.
 ## 0. The form
 
 The work, its record and its location are the same thing at the same time.
+
+**The form, version 1.0** (since plugin 0.6.3, 2026-11-19, when it was first numbered;
+nothing in it changed then). It is that sentence and one statement for each unity,
+quoted from the essay *The Unities*
+(<https://github.com/erezschatz/Unities/blob/main/docs/the-unities.md>):
+
+- Place: "Everything the work consists of lives in the repository as files."
+- Time: "The record of the work and the work itself happen in the same moment." A change
+  without its record is a scene that did not happen.
+- Action: "there is one record, and anything else is derived from it, never kept in
+  parallel", and "the check belongs in the same gesture as the writing."
+
+The form has its own number. The version on this file's first line is the plugin's, and
+it moves whenever the gate, the compilers, the bindings or this procedure change. When
+the plugin version named beside the form's is not this file's, the form did not change
+in this version. A staging (§1) is not part of the form: it says how much of the form a
+repository holds to, and the adapted one gives up part of the unity of time. Everything
+else in this file, the three paragraphs below included, is tooling: how the form is
+applied with git and an agent.
 
 - **Place.** Everything the work consists of is a file in this repository. If `git diff`
   cannot see it, it is not on stage. The test that makes the files appear: a fresh

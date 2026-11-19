@@ -17,7 +17,7 @@ by a checklist.
 What it does:
 
 - **The essay**, `docs/the-unities.md`: the form, where it comes from, what it forces,
-  what it costs. It names no tools.
+  what it costs. The tools it mentions are examples; it prescribes none.
 - **The skill**, `skills/unities-project/SKILL.md`: the front door. For a new project it
   runs the kickoff interview and writes `CLAUDE.md`, `docs/SPEC.md` and the task files;
   for an existing repository it plants the runbook and carries it out.
@@ -32,7 +32,7 @@ What it does:
   `make-manifest.mjs` rewrites the manifest and is not planted.
 - **The plugin manifest**, `.claude-plugin/plugin.json`.
 
-What it explicitly does not do, as of 0.6.2:
+What it explicitly does not do, as of 0.6.3:
 
 - It is not installable by name; there is no marketplace file yet
   (`tasks/a-marketplace-file.md`).
@@ -57,6 +57,16 @@ scene that touches one (runbook Appendix A).
 first line, the same version in `.claude-plugin/plugin.json`, and a regenerated
 `manifest.json`, which carries it, in the same commit. The
 version changes with the work, not at a separate release step.
+
+**The form's version.** The form is four statements quoted from the essay: the principle
+and one for each unity. They are read, with the version, in the runbook's §0; the README states
+the version and points there. The form is at 1.0, since
+plugin 0.6.3 (2026-11-19), when it was first numbered. A change to the form is a change
+to one of the four statements. It is made only by a decision that names the new form
+version, in a task Erez opened for it, and §0 and the README then name the plugin
+version it arrived in. A staging says how much of the form a repository holds to and is
+not part of it. Everything else the plugin ships is tooling and moves the plugin's
+version only.
 
 **Releases.** The compiled `CHANGELOG.md` starts at the adoption; its boundary is the
 local tag `v0.5.5` on the last commit before it. A release is

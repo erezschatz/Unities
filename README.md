@@ -15,6 +15,14 @@ time, one action.
 Taken together: the work, its record and its location are the same thing at the same
 time.
 
+**The form is at version 1.0**, since plugin 0.6.3 (2026-11-19), when it was first
+numbered. The form is four statements quoted from the essay: that sentence and one for
+each unity. They are written out in the runbook's
+[§0](skills/unities-project/UNITIES.md#0-the-form). The form has a version of its own,
+apart from the plugin's: the plugin's number moves with the gate, the compilers and the
+runbook, and the form's moves only when one of the four statements does. Someone who has
+learned the form at 1.0 has nothing to learn again until that number moves.
+
 The Unities are constraints, not fixes. They force the work into a better shape, and
 they cost something; the essay names the costs.
 

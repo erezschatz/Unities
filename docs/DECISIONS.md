@@ -496,3 +496,58 @@ to the gate reaches them by retyping, which is what 0.6.0 was made to end, and t
 proof that the conversion works is the plugin's own repository.
 
 Source: [tasks/convert-the-adopted-repositories.md](../tasks/convert-the-adopted-repositories.md)
+
+## D38 · 2026-11-19 · The form is four statements quoted from the essay
+
+**Decision** — The form is the principle and one statement for each unity, in the
+essay's words: "the work, its record and its location are the same thing at the same
+time"; "Everything the work consists of lives in the repository as files"; "The record
+of the work and the work itself happen in the same moment", with its corollary that a
+change without its record is a scene that did not happen; "there is one record, and
+anything else is derived from it, never kept in parallel", and "the check belongs in the
+same gesture as the writing". The rest of the essay explains them and shows them in
+practice. A staging says how much of the form a repository holds to and is not part of
+it. Everything else the plugin ships is tooling. Erez chose the essay's statement over
+the runbook's, and then these four statements when the first reading showed that "the
+essay" was not precise enough.
+**Rejected** — The runbook's §0 as the form, which names tooling and so would move with
+it; the essay and §0 together, two texts to keep in step; the essay as a whole, which
+names git, commits, pull requests and the gate as its examples; the same four statements
+without the check, leaving the cold reading to the tooling.
+**Why** — What is held still has to be sentences that no change to a script can reach.
+These name the repository and nothing else. That a check happens in the same gesture is
+in the form; who reads, and the `Reviewed by:` line, are how the tooling does it.
+
+Source: [tasks/the-form-has-its-own-version.md](../tasks/the-form-has-its-own-version.md)
+
+## D39 · 2026-11-19 · The form is 1.0 as it stands today
+
+**Decision** — The form is at version 1.0, dated 2026-11-19, first numbered in plugin
+0.6.3. The plugin keeps its own number and its 0.6 line. Erez chose this.
+**Rejected** — 1.0 dated to the essay (14 October 2026), which would claim the essay
+stood still since, when it was edited in three commits on 2026-11-19; a number below 1.0
+until the team has worked with it.
+**Why** — The team is learning it now, and what they learn should be something that has
+a number and stays.
+
+Source: [tasks/the-form-has-its-own-version.md](../tasks/the-form-has-its-own-version.md)
+
+## D40 · 2026-11-19 · What changes the form, and where it is written
+
+**Decision** — A change to the form is a change to one of the four statements. It is
+made only by a decision that names the new form version, in a task Erez opened for it.
+The form is read, with its version, in the runbook's §0; the README states the version
+and points there, and `docs/SPEC.md` holds the rule. §0 names the essay the statements
+are quoted from by its public URL. Beside the form's version stands the plugin version
+it arrived in. The essay is not touched in this scene.
+**Rejected** — Writing the version into the essay here, which is Erez's and is changed
+only when he asks; pointing §0 at the essay alone, or at it by a path in the plugin's
+repository, neither of which a repository that adopted the Unities can open; a version file of its own, a third place to read; a date alone
+beside the version, which cannot tell two plugin versions of one day apart; letting any
+scene that finds the form wanting change it.
+**Why** — §0 is what travels to every repository with the runbook, so the form can be
+read where the work is done. The plugin version beside it answers "did the form change
+in this version?" from the file alone. Whether the essay carries the number too is
+Erez's to say.
+
+Source: [tasks/the-form-has-its-own-version.md](../tasks/the-form-has-its-own-version.md)

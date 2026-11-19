@@ -54,6 +54,9 @@ it runs; Erez does.
 - **A change to the procedure is a version.** A new date and version on the runbook's
   first line, the same version in `.claude-plugin/plugin.json`, and the manifest
   regenerated so it carries it, in the same commit.
+- **The form has its own version** (1.0; the four statements are in the runbook's §0).
+  No change to the tooling changes it. It moves only by a decision that names the new
+  form version, in a task Erez opened for that (`docs/SPEC.md`, *The form's version*).
 - **The scripts are masters in `skills/unities-project/files/`.** After changing one, run
   `node skills/unities-project/files/make-manifest.mjs` and `node --test`, then copy the
   changed files and `manifest.json` over the planted copies here (`.claude/hooks/`,
