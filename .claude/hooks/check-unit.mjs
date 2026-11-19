@@ -10,23 +10,16 @@
 //
 //   --codex, after the mode: the caller is Codex's hooks, not Claude Code's (4.10). The
 //   checks are the same; only how an adapted Stop reaches the agent differs.
+//
+// This file is the same in every repository. What differs between repositories is read
+// from CONFIG; the hashes of the planted files, from MANIFEST.
 import { execSync, spawnSync } from "node:child_process";
+import { createHash } from "node:crypto";
 import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 
-// ---- per-repo: written by the adoption procedure from what it found ----
-const SCENE = process.env.UNITIES_SCENE ?? "commit";   // strict (D1)
-const RULES = {
-  source:  /^(skills\/|\.claude-plugin\/)/,          // the skill, the runbook and the manifest
-  test:    /^tests?\//,                              // no such folder yet; not in REQUIRED until the scripts are files
-  doc:     /^(docs\/|(^|\/)(README|CLAUDE|AGENTS)\.md$)/,   // docs also live beside code
-  task:    /^tasks\/(?!README\.md$)[^/_][^/]*\.md$/, // excludes README.md and _template.md
-  shared:  /^CHANGELOG\.md$/,                        // compiled; never edited or deleted by hand
-  retired: /^$/,                                    // nothing was retired: the tasks were already in tasks/
-};
-const REQUIRED = ["task"];                          // test and doc return when the scripts are files (tasks/the-scripts-as-files.md)
-const BASE = "origin/main";                         // the branch pull requests target
-const RELEASE_FILES = /^(CHANGELOG\.md|\.claude-plugin\/plugin\.json)$/;   // what a release may touch
+const CONFIG = ".claude/hooks/unities.json";            // per-repo values, written at adoption
+const MANIFEST = ".claude/hooks/unities.manifest.json"; // copied from the plugin with the scripts
 const COMPILER = "scripts/compile-changelog.mjs";
 // docs/DECISIONS.md and docs/PLAN.md are compiled from the task files (Appendix K). Nobody
 // writes them by hand: a decision is written in the task file of the work that made it.
@@ -43,9 +36,7 @@ const ACCEPTANCE_FORBIDDEN = /^(the |an? |all |active |end[- ])*(user|users|cust
 const REVIEW = /^Reviewed by:\s*\S/m;
 const REVIEW_SECTION = /^## Review\b/;   // a review round, written into the task file of the scene it reviews
 const REVIEW_EXEMPT = /^(Done before adoption; no record\.|Migrated from )/m;
-// -----------------------------------------------------------------------
 
-const strict = SCENE === "commit";
 const codex = process.argv.includes("--codex");
 const argv = process.argv.slice(2).filter(a => a !== "--codex");
 const mode = argv[0] ?? "--branch";
@@ -54,9 +45,20 @@ const input = mode === "--pr" || process.stdin.isTTY ? {} : JSON.parse((await re
 const cwd = input.cwd ?? process.cwd();
 const lines = s => s.split("\n").map(l => l.trim()).filter(Boolean);
 
+
 // PreToolUse's `if` filter is best-effort; make sure this really is a commit.
 if (input.hook_event_name === "PreToolUse" &&
     !/(^|[;&|]\s*)git\s+commit\b/.test(input.tool_input?.command ?? "")) process.exit(0);
+
+// ---- per-repo, from CONFIG ----
+const config = readConfig();
+const SCENE = process.env.UNITIES_SCENE ?? config.scene;   // "commit" (strict) or "pr" (adapted)
+const RULES = Object.fromEntries(Object.entries(config.rules).map(([role, re]) => [role, new RegExp(re)]));
+const REQUIRED = config.required;                          // roles a source change must be accompanied by
+const BASE = config.base;                                  // the branch pull requests target
+const RELEASE_FILES = new RegExp(config.releaseFiles);     // what a release PR may touch
+const RUN = config.run ?? "node";                          // how the compilers are invoked (Deno, Bun: Appendix H)
+const strict = SCENE === "commit";
 
 let files, base, deleted;   // deleting a tombstone is not editing it
 if (mode === "--pr") {
@@ -117,7 +119,7 @@ if (mode === "--pr" && shared.length && files.every(f => RELEASE_FILES.test(f)))
   let compiled, why;
   try {
     const since = sh(`git describe --tags --abbrev=0 ${base}`) || git("rev-list --max-parents=0 HEAD").trim();
-    const out = sh(`node ${COMPILER} --dry-run --since ${since}`);
+    const out = sh(`${RUN} ${COMPILER} --dry-run --since ${since}`);
     if (/^\(no task records/.test(out)) why = " (no task records to release)";
     else compiled = lines(out).slice(1);                       // drop the version heading
   } catch { why = " (compiler failed)"; }
@@ -137,7 +139,7 @@ const record = files.filter(f => RECORD_FILES.test(f) && head(show(from, f)) !==
 const compileOnly = files.length > 0 && files.every(f => RECORD_FILES.test(f));
 if (files.length && existsSync(join(cwd, RECORD_COMPILER))) {
   // The compiler reads the work tree; in --pr that is the checkout of the PR's tip.
-  const run = spawnSync(`node ${RECORD_COMPILER} --check`, { cwd, shell: true, encoding: "utf8" });
+  const run = spawnSync(`${RUN} ${RECORD_COMPILER} --check`, { cwd, shell: true, encoding: "utf8" });
   if (run.status === 3) missing.push(run.stderr.trim());
   if (strict || compileOnly) {
     if (run.status === 1) missing.push(`compiled record is out of date: ${run.stderr.trim()}`);
@@ -192,6 +194,48 @@ for (const f of files.filter(f => RULES.task.test(f) && !deleted.includes(f))) {
   }
 }
 
+// The planted scripts are the plugin's, byte for byte. A copy edited in place is a second
+// version of the gate; the fix belongs in the plugin, and an upgrade is a copy of the
+// scripts and the manifest together. Judged when the scene touches one of them, so that a
+// clean tree still passes. Line endings are left out of the hash: a checkout that writes
+// CRLF has not edited anything. A scene that deletes the manifest is judged against the
+// one it deleted.
+const manifestNow = contents(MANIFEST, null);
+const manifestBefore = show(from, MANIFEST) || null;
+if (manifestNow === null && manifestBefore !== null)
+  missing.push(`planted manifest deleted: ${MANIFEST} (an upgrade replaces it; nothing removes it)`);
+const manifest = manifestNow ?? manifestBefore;
+if (manifest !== null) {
+  let planted = null;
+  try { planted = JSON.parse(manifest).files; } catch {}
+  if (!planted) missing.push(`${MANIFEST} has no "files" map`);
+  else if (files.some(f => f === MANIFEST || f in planted)) {
+    for (const [file, hash] of Object.entries(planted)) {
+      const text = contents(file, null);
+      if (text === null) missing.push(`planted file missing: ${file} (copy it from the plugin)`);
+      else if (sha256(text) !== hash)
+        missing.push(`planted file edited: ${file} differs from the plugin's (change the plugin, then copy it here)`);
+    }
+  }
+}
+// The plugin's own repository holds the masters as well as planted copies ("plugin" in
+// CONFIG names their folder). There a changed master must arrive in the copies in the
+// same scene, or the repository's gate is not the one it ships.
+if (config.plugin) {
+  const masterManifest = contents(`${config.plugin}/manifest.json`, null);
+  let shipped = [];
+  try { shipped = Object.keys(JSON.parse(masterManifest ?? "{}").files ?? {}); }
+  catch { missing.push(`${config.plugin}/manifest.json is not valid JSON (run make-manifest.mjs)`); }
+  const touched = files.some(f => f.startsWith(`${config.plugin}/`) || f === MANIFEST || shipped.includes(f));
+  if (touched) {
+    if (masterManifest !== manifestNow)
+      missing.push(`planted copy out of date: ${MANIFEST} differs from ${config.plugin}/manifest.json`);
+    for (const file of shipped)
+      if (contents(file, null) !== contents(`${config.plugin}/${file.split("/").pop()}`, null))
+        missing.push(`planted copy out of date: ${file} differs from ${config.plugin}/${file.split("/").pop()}`);
+  }
+}
+
 if (missing.length === 0) process.exit(0);
 
 const what = { "--pr": "This pull request", "--staged": "This commit", "--branch": strict ? "This change" : "This branch" }[mode];
@@ -241,12 +285,35 @@ function addedLines(file) {  // lines this scene adds to the file
   else return new Set(lines(contents(file)));            // untracked: all of it is new
   return new Set(lines(diff).filter(l => l.startsWith("+") && !l.startsWith("+++")).map(l => l.slice(1).trim()));
 }
-function contents(file) {   // the file as this scene has it
+function contents(file, absent = "") {   // the file as this scene has it
   try {
     if (mode === "--pr") return git(`show HEAD:${file}`);
     if (mode === "--staged") return git(`show :${file}`);
     return readFileSync(join(cwd, file), "utf8");
-  } catch { return ""; }
+  } catch { return absent; }
+}
+function sha256(text) { return createHash("sha256").update(text.replace(/\r\n/g, "\n")).digest("hex"); }
+function readConfig() {
+  // The configuration missing or broken is an incomplete adoption: refused like an
+  // incomplete scene, and like one, a Stop that was already sent back lets the turn end.
+  const fail = message => {
+    if (input.hook_event_name === "Stop" && input.stop_hook_active) {
+      console.log(JSON.stringify({ systemMessage: message }));
+      process.exit(0);
+    }
+    console.error(message);
+    process.exit(2);
+  };
+  const path = join(cwd, CONFIG);
+  if (!existsSync(path)) fail(`${CONFIG} is missing; it holds this repository's roles and staging (UNITIES.md, Appendix A).`);
+  let c;
+  try { c = JSON.parse(readFileSync(path, "utf8")); } catch (e) { fail(`${CONFIG} is not valid JSON: ${e.message}`); }
+  for (const key of ["scene", "rules", "required", "base", "releaseFiles"])
+    if (c[key] === undefined) fail(`${CONFIG} has no "${key}"`);
+  for (const role of ["source", "test", "doc", "task", "shared", "retired"])
+    if (typeof c.rules[role] !== "string") fail(`${CONFIG}: rules.${role} must be a regular expression, as a string`);
+  if (!["commit", "pr"].includes(c.scene)) fail(`${CONFIG}: scene must be "commit" or "pr"`);
+  return c;
 }
 function show(ref, file) {   // the file as the scene's base has it; "" if absent
   try { return git(`show ${ref}:${file}`); } catch { return ""; }

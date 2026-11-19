@@ -60,7 +60,7 @@ const title = f => {
   return m ? m[1].trim() : f;
 };
 
-// ---- per-repo: match the existing changelog convention ----
+// ---- the entry ----
 // Blank lines inside a record are its paragraph and list breaks: keep them, trim the
 // ends. The hash goes once per record. Ordering is by task path, then by commit order,
 // so the output is deterministic for the gate.
@@ -70,7 +70,11 @@ const trimBlank = lines => {
   while (b > a && !lines[b - 1].trim()) b--;
   return lines.slice(a, b);
 };
-const formatEntry = (e) => `${trimBlank(e.lines.filter(l => !/^Reviewed by:/.test(l))).join("\n")}\n\nRecorded in \`${e.hash}\`.`;
+// The line that closes an entry is the one per-repo value here, read from the gate's
+// configuration ("changelog": {"recorded": ...}); {hash} is the short hash of the commit.
+const CONFIG = ".claude/hooks/unities.json";
+const recorded = (existsSync(CONFIG) && JSON.parse(readFileSync(CONFIG, "utf8")).changelog?.recorded) || "Recorded in `{hash}`.";
+const formatEntry = (e) => `${trimBlank(e.lines.filter(l => !/^Reviewed by:/.test(l))).join("\n")}\n\n${recorded.replaceAll("{hash}", e.hash)}`;
 const today = new Date().toISOString().slice(0, 10);
 let out = `## ${version ?? "<version>"} — ${today}\n\n`;
 for (const file of [...byTask.keys()].sort()) {

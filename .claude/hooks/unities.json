@@ -1,0 +1,19 @@
+{
+  "scene": "commit",
+  "rules": {
+    "source": "^skills/unities-project/files/(?![^/]*\\.test\\.mjs$)[^/]*\\.mjs$",
+    "test": "^skills/unities-project/files/[^/]*\\.test\\.mjs$",
+    "doc": "^(docs/|skills/.*\\.md$|(^|/)(README|CLAUDE|AGENTS)\\.md$)",
+    "task": "^tasks/(?!README\\.md$)[^/_][^/]*\\.md$",
+    "shared": "^CHANGELOG\\.md$",
+    "retired": "^$"
+  },
+  "required": [
+    "test",
+    "doc",
+    "task"
+  ],
+  "base": "origin/main",
+  "releaseFiles": "^(CHANGELOG\\.md|\\.claude-plugin/plugin\\.json)$",
+  "plugin": "skills/unities-project/files"
+}

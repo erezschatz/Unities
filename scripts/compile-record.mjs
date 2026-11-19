@@ -11,11 +11,10 @@
 //               itself is invalid (a compiled decision removed or retitled, a duplicate)
 import { existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from "node:fs";
 
-// ---- per-repo ----
+// Fixed, not per-repo: the gate looks for the compiled files at these paths.
 const TASKS = "tasks";
 const DECISIONS = "docs/DECISIONS.md";
 const PLAN = "docs/PLAN.md";
-// ------------------
 const MARKER = "<!-- Compiled from tasks/ by scripts/compile-record.mjs. Do not edit below this line by hand. -->";
 const check = process.argv.includes("--check");
 const invalid = message => { console.error(`Invalid record: ${message}`); process.exit(3); };

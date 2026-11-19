@@ -17,13 +17,12 @@ It is itself run under the Unities, in the strict staging.
 ## The Unities
 
 The work, its record and its location are the same thing at the same time. Every commit
-that changes source (here: `skills/` and `.claude-plugin/`) also carries a
-`## What was done` section appended to the task file in `tasks/`, read cold against the
-diff by a reader that did not write it: code, test, document, review are one unit. Until
-the scripts are files (`tasks/the-scripts-as-files.md`) the gate requires only the task
-record, because the tests and the docs of the runbook live inside the runbook; a change
-to a listing still runs the Appendix J tests, and a change of behaviour still updates
-`docs/SPEC.md` or the README, by this rule and not by the gate. This is enforced, not
+that changes source (here: the scripts in `skills/unities-project/files/`) also carries
+its test, its doc line and a `## What was done` section appended to the task file in
+`tasks/`, read cold against the diff by a reader that did not write it: code, test,
+document, review are one unit. The runbook, the skill and the README are docs: the gate
+does not hold a change to them alone to a record, and by this rule it carries one anyway.
+This is enforced, not
 requested: a Stop hook refuses to end a turn with a half-recorded change, and a
 `git commit` made through Claude Code refuses an incomplete scene
 (`.claude/hooks/check-unit.mjs`). A commit from a shell is not checked here: there is no
@@ -51,11 +50,14 @@ it runs; Erez does.
   runbook. A copy in any other repository is a deployment and is never edited in place.
   This repository plants no `docs/UNITIES.md`; it carries out the master directly.
 - **A change to the procedure is a version.** A new date and version on the runbook's
-  first line, the same version in `.claude-plugin/plugin.json`, in the same commit.
-- **The planted scripts here are deployments too.** `.claude/hooks/check-unit.mjs`, its
-  tests and `scripts/*.mjs` were cut from the runbook's appendices with this repository's
-  per-repo values. Change a listing in the runbook first; then re-cut the copy here and
-  run the tests. Never fix the copy alone.
+  first line, the same version in `.claude-plugin/plugin.json`, and the manifest
+  regenerated so it carries it, in the same commit.
+- **The scripts are masters in `skills/unities-project/files/`.** After changing one, run
+  `node skills/unities-project/files/make-manifest.mjs` and `node --test`, then copy the
+  changed files and `manifest.json` over the planted copies here (`.claude/hooks/`,
+  `scripts/`, `.claude/hooks/unities.manifest.json`). The gate refuses a planted copy
+  that differs from the manifest. This repository's own values are in
+  `.claude/hooks/unities.json`.
 - **No dependencies.** The scripts use only `node:` built-ins and git, and run on Node,
   Deno and Bun. No `package.json` here; scripts are called as `node <path>`.
 - **Every planted script keeps its licence line** (MIT, first or second line).
@@ -68,9 +70,9 @@ it runs; Erez does.
 
 ## Division of labour
 
-- **Claude** edits the runbook, the skill, the README, the spec and the task files; cuts
-  the listings and runs the Appendix J tests (`node --test .claude/hooks/check-unit.test.mjs`),
-  reporting the output as it came, not as a verdict on the plugin.
+- **Claude** edits the runbook, the skill, the README, the spec and the task files; runs
+  the tests (`node --test` at the root, the master files), reporting the output as it
+  came, not as a verdict on the plugin.
 - **Erez** owns the essay, judges the prose, runs the plugin in real repositories (that
   is where it runs, and where it is verified), decides versions, compiles and commits releases from his shell, and pushes.
 - Tests here run on whatever Node is installed (26 on Erez's machine); the README's

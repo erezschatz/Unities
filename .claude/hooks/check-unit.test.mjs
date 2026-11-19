@@ -1,26 +1,47 @@
 // Copyright (c) 2026 Erez Schatz, https://github.com/erezschatz/unities. SPDX-License-Identifier: MIT
-// Run with: node --test .claude/hooks/check-unit.test.mjs
+// Run with: node --test   (in the plugin: the master; in a repository: its planted copy)
+// The same file in every repository. The throwaway repositories these tests build carry
+// their own configuration, FIXTURE, so the tests pin the script's behaviour and not the
+// roles of the repository they happen to run in.
 import test from "node:test";
 import assert from "node:assert/strict";
 import { execSync, spawnSync } from "node:child_process";
-import { copyFileSync, mkdtempSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { createHash } from "node:crypto";
+import { copyFileSync, existsSync, mkdtempSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
-// ---- per-repo: one path in each role, matching RULES in check-unit.mjs ----
-const SOURCE = "skills/x/SKILL.md";
-const TEST = "tests/x.test.mjs";
+// One path in each role of FIXTURE.
+const SOURCE = "src/x.ts";
+const TEST = "tests/x.test.ts";
 const DOC = "docs/a.md";
 const TASK = "tasks/1-t.md";
 const SHARED = "CHANGELOG.md";
-const RETIRED = "TODO.md";     // matches no rule here; the retired tests are skipped
-// ---------------------------------------------------------------------------
+const RETIRED = "TODO.md";
+const CONFIG = ".claude/hooks/unities.json";
+const MANIFEST = ".claude/hooks/unities.manifest.json";
+const FIXTURE = {
+  scene: "pr",
+  rules: {
+    source: "^src/",
+    test: "^tests?/",
+    doc: "^(docs/|(^|/)(README|CLAUDE|AGENTS)\\.md$)",
+    task: "^tasks/(?!README\\.md$)[^/_][^/]*\\.md$",
+    shared: "^CHANGELOG\\.md$",
+    retired: "^(TODO\\.md|TASKS\\.md|ROADMAP\\.md)$",
+  },
+  required: ["test", "doc", "task"],
+  base: "origin/main",
+  releaseFiles: "^(CHANGELOG\\.md|package\\.json|deno\\.json)$",
+};
 
+// The scripts sit side by side in the plugin, and in .claude/hooks/ and scripts/ once planted.
 const here = dirname(fileURLToPath(import.meta.url));
 const hook = join(here, "check-unit.mjs");
-const compiler = resolve(here, "../../scripts/compile-changelog.mjs");
-const recordCompiler = resolve(here, "../../scripts/compile-record.mjs");
+const sibling = name => existsSync(join(here, name)) ? join(here, name) : resolve(here, "../../scripts", name);
+const compiler = sibling("compile-changelog.mjs");
+const recordCompiler = sibling("compile-record.mjs");
 const DECISIONS = "docs/DECISIONS.md";
 const PLAN = "docs/PLAN.md";
 
@@ -33,6 +54,7 @@ function repo({ adopted = true } = {}) {
   git("config user.email t@example.com");
   git("config user.name t");
   git("config commit.gpgsign false");
+  write(CONFIG, JSON.stringify(FIXTURE, null, 2) + "\n");
   write(SHARED, "# Changelog\n\n<!-- Compiled from tasks/ by scripts/compile-changelog.mjs. Do not edit below this line by hand. -->\n");
   write(RETIRED, "Tasks now live in tasks/, one file each.\n");
   write(SOURCE, "base\n");
@@ -109,7 +131,7 @@ test("a pull request deleting the compiled changelog is refused", () => {
   assert.match(result.stderr, /CHANGELOG\.md/);
 });
 
-test("a pull request editing a retired file is refused", { skip: "this repository retired no files (RULES.retired matches nothing); see tasks/adopt-unities.md" }, () => {
+test("a pull request editing a retired file is refused", () => {
   const { dir, git, write, commit } = repo();
   git("checkout -q -b feature");
   write(RETIRED, "- [ ] a new item, in the old place\n");
@@ -119,7 +141,7 @@ test("a pull request editing a retired file is refused", { skip: "this repositor
   assert.match(result.stderr, /shared file edited directly: TODO\.md/);
 });
 
-test("a pull request deleting a retired file is not refused", { skip: "this repository retired no files (RULES.retired matches nothing); see tasks/adopt-unities.md" }, () => {
+test("a pull request deleting a retired file is not refused", () => {
   const { dir, git, commit } = repo();
   git("checkout -q -b feature");
   git(`rm -q ${RETIRED}`);
@@ -325,7 +347,7 @@ test("strict: a commit with an incomplete scene is refused", () => {
   assert.match(result.stderr, /revert it/);
 });
 
-test("strict: deleting a retired file is a complete scene on its own", { skip: "this repository retired no files (RULES.retired matches nothing); see tasks/adopt-unities.md" }, () => {
+test("strict: deleting a retired file is a complete scene on its own", () => {
   const { dir, git } = repo();
   git(`rm -q ${RETIRED}`);
   assert.equal(run(dir, ["--staged"], { scene: "commit" }).status, 0);
@@ -511,7 +533,7 @@ test("a pull request with no history in common with its target stops with an err
   assert.match(result.stderr, /no merge base between main and HEAD/);
 });
 
-test("the compiled record does not count as the doc change", { skip: "doc is not in REQUIRED here until the scripts are files; see tasks/adopt-unities.md" }, () => {
+test("the compiled record does not count as the doc change", () => {
   const { dir, git, write, commit, compile } = repo();
   write(SOURCE, "changed\n");
   write(TEST, "test\n");
@@ -645,4 +667,203 @@ test("a review round from before this rule is left alone", () => {
   commit("new");
   const ok = run(dir, ["--pr", "main"]);
   assert.equal(ok.status, 0, ok.stderr);
+});
+
+// ---- the scripts as files: configuration and manifest ----
+
+const sha256 = text => createHash("sha256").update(text.replace(/\r\n/g, "\n")).digest("hex");
+const PLANTED = {
+  ".claude/hooks/check-unit.mjs": hook,
+  "scripts/compile-changelog.mjs": compiler,
+  "scripts/compile-record.mjs": recordCompiler,
+};
+// A repository planted the way the runbook plants: the files copied, the manifest beside them.
+function planted() {
+  const r = repo();
+  const files = Object.fromEntries(Object.keys(PLANTED).map(f => [f, sha256(r.read(f))]));
+  r.write(MANIFEST, JSON.stringify({ version: "test", files }, null, 2) + "\n");
+  r.commit("manifest");
+  return r;
+}
+
+test("the roles are read from the configuration file", () => {
+  const { dir, git, write, read } = repo();
+  write(CONFIG, JSON.stringify({ ...FIXTURE, rules: { ...FIXTURE.rules, source: "^lib/" } }));
+  git("add -A"); git("commit -q -m lib-is-source");
+  write("src/y.ts", "not source here\n");
+  git("add -A");
+  assert.equal(run(dir, ["--staged"], { scene: "commit" }).status, 0);
+  write("lib/y.ts", "source here\n");
+  git("add -A");
+  const result = run(dir, ["--staged"], { scene: "commit" });
+  assert.equal(result.status, 2);
+  assert.match(result.stderr, /no test change/);
+  assert.ok(read(CONFIG).includes("^lib/"));
+});
+
+test("without its configuration the gate stops and names the file", () => {
+  const { dir, git } = repo();
+  git(`rm -q ${CONFIG}`);
+  const result = run(dir, ["--staged"], { scene: "commit" });
+  assert.equal(result.status, 2);
+  assert.match(result.stderr, /\.claude\/hooks\/unities\.json is missing/);
+});
+
+test("a planted script edited in place is refused, naming the file, in every mode", () => {
+  const { dir, git, write, read, commit } = planted();
+  git("checkout -q -b feature");
+  write("scripts/compile-record.mjs", read("scripts/compile-record.mjs") + "// a local fix\n");
+  const edited = /planted file edited: scripts\/compile-record\.mjs/;
+  const branch = run(dir, ["--branch"], { scene: "commit" });   // strict Stop: the work tree
+  assert.equal(branch.status, 2);
+  assert.match(branch.stderr, edited);
+  git("add -A");
+  const staged = run(dir, ["--staged"], { scene: "commit" });
+  assert.equal(staged.status, 2);
+  assert.match(staged.stderr, edited);
+  commit("local-fix");
+  const pr = run(dir, ["--pr", "main"]);
+  assert.equal(pr.status, 1);
+  assert.match(pr.stderr, /planted file edited: scripts\/compile-record\.mjs/);
+});
+
+test("a planted copy equal to the plugin's passes; deleting one is refused", () => {
+  const { dir, git, write, read, compile } = planted();
+  // The same bytes copied again, as an upgrade to an unchanged file does.
+  write(".claude/hooks/check-unit.mjs", readFileSync(hook, "utf8"));
+  write(TASK, "# t\n\n## Context\n\nopened\n");
+  compile();
+  git("add -A");
+  const same = run(dir, ["--staged"], { scene: "commit" });
+  assert.equal(same.status, 0, same.stderr);
+  git("reset -q --hard");
+  git("rm -q scripts/compile-changelog.mjs");
+  const gone = run(dir, ["--staged"], { scene: "commit" });
+  assert.equal(gone.status, 2);
+  assert.match(gone.stderr, /planted file missing: scripts\/compile-changelog\.mjs/);
+  assert.ok(read(MANIFEST).includes("compile-changelog"));
+});
+
+test("an upgrade copies a script and the manifest together, and passes", () => {
+  const { dir, git, write, read } = planted();
+  const next = read("scripts/compile-record.mjs") + "// the plugin's next version\n";
+  const manifest = JSON.parse(read(MANIFEST));
+  manifest.files["scripts/compile-record.mjs"] = sha256(next);
+  write("scripts/compile-record.mjs", next);
+  write(MANIFEST, JSON.stringify(manifest, null, 2) + "\n");
+  git("add -A");
+  assert.equal(run(dir, ["--staged"], { scene: "commit" }).status, 0);
+});
+
+test("a checkout that writes CRLF has not edited a planted script", () => {
+  const { dir, git, write, read } = planted();
+  write("scripts/compile-record.mjs", read("scripts/compile-record.mjs").replace(/\n/g, "\r\n"));
+  assert.equal(run(dir, ["--branch"], { scene: "commit" }).status, 0);
+});
+
+test("the plugin's manifest holds the hash of every file it ships", { skip: !existsSync(join(here, "manifest.json")) && "not the plugin: this copy is planted" }, () => {
+  const manifest = JSON.parse(readFileSync(join(here, "manifest.json"), "utf8"));
+  const shipped = [".claude/hooks/check-unit.mjs", ".claude/hooks/check-unit.test.mjs", "scripts/compile-changelog.mjs", "scripts/compile-record.mjs"];
+  assert.deepEqual(Object.keys(manifest.files).sort(), shipped.sort());
+  for (const [file, hash] of Object.entries(manifest.files)) {
+    const master = join(here, file.split("/").pop());
+    assert.equal(hash, sha256(readFileSync(master, "utf8")), `${file}: run node ${join(here, "make-manifest.mjs")}`);
+  }
+});
+
+test("deleting the planted manifest is refused, and the scripts are still judged against it", () => {
+  const { dir, git, write, read, commit } = planted();
+  git("checkout -q -b feature");
+  git(`rm -q ${MANIFEST}`);
+  const deleted = /planted manifest deleted: \.claude\/hooks\/unities\.manifest\.json/;
+  const branch = run(dir, ["--branch"], { scene: "commit" });
+  assert.equal(branch.status, 2);
+  assert.match(branch.stderr, deleted);
+  write("scripts/compile-record.mjs", read("scripts/compile-record.mjs") + "// a local fix\n");
+  git("add -A");
+  const staged = run(dir, ["--staged"], { scene: "commit" });
+  assert.equal(staged.status, 2);
+  assert.match(staged.stderr, deleted);
+  assert.match(staged.stderr, /planted file edited: scripts\/compile-record\.mjs/);
+  commit("no-manifest");
+  const pr = run(dir, ["--pr", "main"]);
+  assert.equal(pr.status, 1);
+  assert.match(pr.stderr, deleted);
+});
+
+test("a scene that touches no planted file is not judged by the manifest; a clean tree passes", () => {
+  const { dir, git, write, compile } = planted();
+  assert.equal(run(dir, ["--branch"], { scene: "commit" }).status, 0);
+  write(SOURCE, "changed\n");
+  git("add -A");
+  const result = run(dir, ["--staged"], { scene: "commit" });
+  assert.equal(result.status, 2);
+  assert.doesNotMatch(result.stderr, /planted/);
+  complete(write);
+  compile();
+  git("add -A");
+  assert.equal(run(dir, ["--staged"], { scene: "commit" }).status, 0);
+});
+
+test("without its configuration: other commands pass, a commit is refused, a Stop lets go on its second pass", () => {
+  const { dir, git } = repo();
+  git(`rm -q ${CONFIG}`);
+  const pre = (command) => JSON.stringify({ hook_event_name: "PreToolUse", cwd: dir, tool_input: { command } });
+  const stop = (active) => JSON.stringify({ hook_event_name: "Stop", cwd: dir, stop_hook_active: active });
+  assert.equal(run(dir, ["--staged"], { scene: "commit", stdin: pre("ls") }).status, 0);
+  const commit = run(dir, ["--staged"], { scene: "commit", stdin: pre("git commit -m x") });
+  assert.equal(commit.status, 2);
+  assert.match(commit.stderr, /unities\.json is missing/);
+  const first = run(dir, ["--branch"], { scene: "commit", stdin: stop(false) });
+  assert.equal(first.status, 2);
+  assert.match(first.stderr, /unities\.json is missing/);
+  const second = run(dir, ["--branch"], { scene: "commit", stdin: stop(true) });
+  assert.equal(second.status, 0);
+  assert.match(JSON.parse(second.stdout).systemMessage, /unities\.json is missing/);
+  assert.equal(run(dir, ["--pr", "main"]).status, 2);
+});
+
+test("in the plugin's own repository a changed master must arrive in its planted copy", () => {
+  const { dir, git, write, read, compile } = planted();
+  const PLUGIN = "plugin/files";
+  // The masters beside the copies, and the configuration that says where they are.
+  for (const [file] of Object.entries(PLANTED)) write(`${PLUGIN}/${file.split("/").pop()}`, read(file));
+  write(`${PLUGIN}/manifest.json`, read(MANIFEST));
+  write(CONFIG, JSON.stringify({ ...FIXTURE, plugin: PLUGIN }));
+  git("add -A"); git("commit -q -m masters");
+  const next = read(`${PLUGIN}/compile-record.mjs`) + "// the next version\n";
+  const manifest = JSON.parse(read(MANIFEST));
+  manifest.files["scripts/compile-record.mjs"] = sha256(next);
+  write(`${PLUGIN}/compile-record.mjs`, next);
+  write(`${PLUGIN}/manifest.json`, JSON.stringify(manifest, null, 2) + "\n");
+  git("add -A");
+  const stale = run(dir, ["--staged"], { scene: "commit" });
+  assert.equal(stale.status, 2);
+  assert.match(stale.stderr, /planted copy out of date: scripts\/compile-record\.mjs/);
+  assert.match(stale.stderr, /planted copy out of date: \.claude\/hooks\/unities\.manifest\.json/);
+  write("scripts/compile-record.mjs", next);
+  write(MANIFEST, read(`${PLUGIN}/manifest.json`));
+  compile();
+  git("add -A");
+  const copied = run(dir, ["--staged"], { scene: "commit" });
+  assert.equal(copied.status, 0, copied.stderr);
+  git("commit -q -m copied");
+  write(DOC, "a doc change only\n");
+  git("add -A");
+  assert.equal(run(dir, ["--staged"], { scene: "commit" }).status, 0);
+});
+
+test("in the plugin's repository a broken master manifest is refused by name, and a Stop lets go", () => {
+  const { dir, git, write, read } = planted();
+  write("plugin/files/manifest.json", read(MANIFEST));
+  write(CONFIG, JSON.stringify({ ...FIXTURE, plugin: "plugin/files" }));
+  git("add -A"); git("commit -q -m masters");
+  write("plugin/files/manifest.json", "{");
+  git("add -A");
+  const staged = run(dir, ["--staged"], { scene: "commit" });
+  assert.equal(staged.status, 2);
+  assert.match(staged.stderr, /plugin\/files\/manifest\.json is not valid JSON/);
+  const stop = run(dir, ["--branch"], { scene: "commit", stdin: JSON.stringify({ hook_event_name: "Stop", cwd: dir, stop_hook_active: true }) });
+  assert.equal(stop.status, 0);
+  assert.match(JSON.parse(stop.stdout).systemMessage, /manifest\.json is not valid JSON/);
 });

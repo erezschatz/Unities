@@ -25,6 +25,7 @@ they cost something; the essay names the costs.
 | [`docs/the-unities.md`](docs/the-unities.md) | The essay: the form, where it comes from, what it forces, what it costs. Start here. |
 | [`skills/unities-project/SKILL.md`](skills/unities-project/SKILL.md) | The front door. It runs the kickoff interview for a new project, or migrates an existing repository. |
 | [`skills/unities-project/UNITIES.md`](skills/unities-project/UNITIES.md) | The runbook. The skill plants it in a repository as `docs/UNITIES.md` and carries it out: the task record, the gate script and its tests, the two compilers, the CI example. This copy is the master. |
+| [`skills/unities-project/files/`](skills/unities-project/files/) | The scripts the runbook plants, as files: the gate, its tests, the two compilers, and a manifest of their hashes. They are copied as they are; each repository keeps its own values in one configuration file. |
 | `tasks/` | The record of this repository's own work, one file per task. |
 | [`CLAUDE.md`](CLAUDE.md), [`docs/SPEC.md`](docs/SPEC.md) | How to work in this repository, and what the plugin is and how a version is made. |
 | `docs/DECISIONS.md`, `docs/PLAN.md` | Compiled from `tasks/`; read, never written. |
@@ -63,18 +64,17 @@ documentation and has not yet been verified under Codex.
 
 ## Changing it
 
-A change to the procedure is a change to `skills/unities-project/UNITIES.md` here, a new
-date and version on its first line, a new plugin version, then a re-run on each
-repository. Copies in other repositories are deployments and are never edited in place.
+A change to the procedure is a change to `skills/unities-project/UNITIES.md` or to a
+script in `skills/unities-project/files/` here, a new date and version on the runbook's
+first line, a new plugin version, then a re-run on each repository. Copies in other repositories are deployments and are never edited in place.
 
 Each change to this repository arrives as a task file in `tasks/`, and carries its record
 with it.
 
 ## Status
 
-Version 0.5. In use in several repositories, solo and team. The gate, the tests and the
-compilers currently live as listings inside the runbook; they are to be split out into
-files.
+Version 0.6. In use in several repositories, solo and team. The tests run with
+`node --test` at the root of this repository.
 
 ## Licence
 

@@ -244,3 +244,137 @@ D11 carried it further; only its object is gone.
 Supersedes: D19
 
 Source: [tasks/adopt-unities.md](../tasks/adopt-unities.md)
+
+## D21 · 2026-11-19 · The scripts are files in the skill folder, side by side
+
+**Decision** — The four scripts and `manifest.json` live in `skills/unities-project/files/`,
+flat, next to the runbook that plants them. They are planted at the paths they always
+had (`.claude/hooks/`, `scripts/`). Appendices A, F, J and K now describe the files and
+point to them; the bindings (B, C, I, L) stay listings.
+**Rejected** — Mirroring the planted layout inside the plugin (`files/.claude/hooks/…`),
+which puts dot-folders in the plugin and hides the tests from `node --test`; keeping the
+listings in the runbook beside the files, which is two accounts of each script.
+**Why** — The plugin ships the skill folder, so the files travel with the runbook at the
+same version. Flat, the tests find the compilers beside them in the plugin and in
+`../../scripts/` once planted.
+Supersedes: D10
+
+Source: [tasks/the-scripts-as-files.md](../tasks/the-scripts-as-files.md)
+
+## D22 · 2026-11-19 · One configuration file, JSON, beside the gate
+
+**Decision** — The per-repo values are `.claude/hooks/unities.json`: `scene`, `rules` (one
+regular expression per role, as a string), `required`, `base`, `releaseFiles`, and the
+optional `changelog.recorded` and `run`. The gate reads it from the repository it runs
+in and stops, naming the file, when it is missing, is not JSON or lacks a key.
+`compile-record.mjs` has no per-repo values; its paths are the ones the gate already
+fixes.
+**Rejected** — A JavaScript configuration module (per-repo code again); globs instead of
+regular expressions (a second syntax, and the old `RULES` are regular expressions, so
+converting a repository is a copy); a file at the repository's root; making the record
+compiler's paths configurable.
+**Why** — JSON needs nothing to read in Node, Deno or Bun, and holds values, not
+behaviour, so a script that reads it can be the same file everywhere. Beside the gate,
+because the gate is what `adopted()` looks for and what reads it.
+
+Source: [tasks/the-scripts-as-files.md](../tasks/the-scripts-as-files.md)
+
+## D23 · 2026-11-19 · A manifest of hashes, checked when a scene touches a planted file
+
+**Decision** — `manifest.json` holds the sha256 of each shipped script, under its planted
+path, and the plugin's version; it is planted as `.claude/hooks/unities.manifest.json`.
+When a scene touches a planted script or the manifest, the gate refuses it if any planted
+script differs from its hash or is missing. Line endings are left out of the hash.
+**Rejected** — Checking on every run, which would refuse a clean tree in strict and leave
+revert no way out; comparing with the plugin's own folder, which is not there in CI or on
+another machine; comparing versions only, which misses an edit; refusing a scene that
+edits a script and the manifest together, which is exactly what an upgrade is.
+**Why** — The gate can check presence, not truth. A copy edited with its manifest passes,
+but the edit is then deliberate and in the diff, and a fix carried quietly in one
+repository (the case in this task's context) no longer happens by accident.
+
+Source: [tasks/the-scripts-as-files.md](../tasks/the-scripts-as-files.md)
+
+## D24 · 2026-11-19 · The tests carry their own configuration
+
+**Decision** — `check-unit.test.mjs` writes a fixed configuration (`FIXTURE`) into each
+throwaway repository, so the file has nothing per-repo and the four tests skipped here
+run again. One test, that `manifest.json` holds every shipped file's hash, runs only in
+the plugin and is skipped in a planted copy.
+**Rejected** — Tests that read the host repository's configuration, as the listing's
+per-repo paths did; keeping the skips.
+**Why** — The tests pin what the script does. Which roles a repository has is its
+configuration's business, and a test of it would differ in every repository.
+Supersedes: D4
+
+Source: [tasks/the-scripts-as-files.md](../tasks/the-scripts-as-files.md)
+
+## D25 · 2026-11-19 · The changelog's closing line and the compilers' invocation are configuration
+
+**Decision** — `compile-changelog.mjs` reads `changelog.recorded` (default
+``Recorded in `{hash}`.``). The gate invokes the compilers with `run` (default `node`).
+Any other change to an entry's shape is a change to the plugin.
+**Rejected** — Leaving `formatEntry` per-repo, as the listing did; telling Deno and Bun
+repositories to edit the gate's two `node` calls, as Appendix H did.
+**Why** — Both were edits to a planted copy, which the manifest now refuses. They are the
+only per-repo variations the runbook named for these scripts.
+
+Source: [tasks/the-scripts-as-files.md](../tasks/the-scripts-as-files.md)
+
+## D26 · 2026-11-19 · In this repository the scripts are source and the runbook is a doc
+
+**Decision** — Source is the scripts in `skills/unities-project/files/` other than the
+tests; test is the tests there; doc adds every `.md` under `skills/`. `required` is
+`["test", "doc", "task"]`. `.claude-plugin/plugin.json` and `manifest.json` are in no
+role.
+**Rejected** — Keeping D3 (task only); the runbook as source with tests required, which
+asks for a test with every change of wording; teaching the gate per-role requirements
+("a doc change needs a task"), a change to the master nobody asked for.
+**Why** — D3 said test and doc would come back once the scripts were files. They are. The
+cost is that a change to the runbook alone is no longer held to a record by the gate,
+only by `CLAUDE.md`, as a doc change is in any repository.
+Supersedes: D3
+
+Source: [tasks/the-scripts-as-files.md](../tasks/the-scripts-as-files.md)
+
+## D27 · 2026-11-19 · 0.6.0, and a conversion for repositories cut from listings
+
+**Decision** — The version is 0.6.0. Runbook 5.5 converts a repository adopted earlier:
+its per-repo values go into the configuration; any other difference between its copies
+and the listings it was cut from is listed and decided one by one, brought to the plugin
+as a task or dropped; then the files are copied, and the old and new gates are run on the
+same scenes.
+**Rejected** — 0.5.6; carrying a local change into the new copy, which breaks the byte
+identity; dropping local changes silently.
+**Why** — Every adopted repository has to be re-run and changes files it had owned. One
+team repository is known to carry such a local change
+(`tasks/new-records-are-found-by-heading-text.md`).
+
+Source: [tasks/the-scripts-as-files.md](../tasks/the-scripts-as-files.md)
+
+## D28 · 2026-11-19 · In the plugin's repository the gate also compares masters with copies
+
+**Decision** — An optional `plugin` key in the configuration names the folder of the
+master files. Where it is set, a scene that touches a master, a planted copy or the
+manifest is refused unless every planted copy and the manifest equal the masters. This
+repository sets it; no planted repository does.
+**Rejected** — Leaving it to `CLAUDE.md`; a test in the plugin's suite, which runs when
+asked and not at the commit; making the plugin a special case in the code by path.
+**Why** — The cold reader changed a master here without copying it, and the gate passed:
+the drift this task exists to end, in the one repository that ships the gate.
+
+Source: [tasks/the-scripts-as-files.md](../tasks/the-scripts-as-files.md)
+
+## D29 · 2026-11-19 · A missing configuration is refused like an incomplete scene
+
+**Decision** — The gate reads its configuration after the `PreToolUse` filter, so a
+command that is not a commit passes. Missing or broken, it refuses a commit, the gate at
+the pull request and a first `Stop`, naming the file, and lets a second `Stop` end with
+a message.
+**Rejected** — Refusing every hook call, including the second `Stop`, which traps the
+agent; defaults for a missing configuration, which would run the gate on roles nobody
+chose.
+**Why** — It is an incomplete adoption, and the gate already knows how to treat an
+incomplete thing without trapping anyone.
+
+Source: [tasks/the-scripts-as-files.md](../tasks/the-scripts-as-files.md)
