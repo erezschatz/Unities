@@ -1,4 +1,4 @@
-<!-- UNITIES.md 2026-11-19 · 0.6.3. Master copy: the unities-project skill folder (plugin `unities`). -->
+<!-- UNITIES.md 2026-11-19 · 0.6.4. Master copy: the unities-project skill folder (plugin `unities`). -->
 
 # UNITIES.md — adopting the Unities in a repository
 
@@ -675,7 +675,10 @@ file carries a compiled decision the compiler refuses, and so does the gate (4.7
 release tag is the one thing in the system that is not a file, and it is the right thing
 not to be.
 
-**Limits.**
+**Limits.** This list is what a person adopting should know, not every case the gate
+has been read against. A case a reader constructed, which has not happened in a
+repository and was not built against, is recorded in the plugin's repository as a
+decision titled `Not admitted: …` (`docs/DECISIONS.md` there).
 
 - Presence is not truth. The gate is deliberately a presence test: a file in each role,
   nothing about whether `tests/parser.test.ts` really exercises `parser.ts`. Presence

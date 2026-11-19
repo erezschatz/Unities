@@ -7,7 +7,7 @@ what is not in scope are set by decisions. All of it is compiled from `tasks/` a
 
 ## Steps
 
-- [a-check-is-admitted-from-what-happened](../tasks/a-check-is-admitted-from-what-happened.md) — A check enters the gate because something happened
+- [a-check-is-admitted-from-what-happened](../tasks/a-check-is-admitted-from-what-happened.md) — A check enters the gate because something happened · done
 - [a-marketplace-file](../tasks/a-marketplace-file.md) — Let the plugin be installed from this repository by name
 - [acceptance-boxes-are-judged-where-the-scene-wrote](../tasks/acceptance-boxes-are-judged-where-the-scene-wrote.md) — Acceptance boxes are judged where the scene wrote them
 - [adopt-unities](../tasks/adopt-unities.md) — Adopt the Unities in this repository · done

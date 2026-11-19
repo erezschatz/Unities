@@ -32,7 +32,7 @@ What it does:
   `make-manifest.mjs` rewrites the manifest and is not planted.
 - **The plugin manifest**, `.claude-plugin/plugin.json`.
 
-What it explicitly does not do, as of 0.6.3:
+What it explicitly does not do, as of 0.6.4:
 
 - It is not installable by name; there is no marketplace file yet
   (`tasks/a-marketplace-file.md`).
@@ -57,6 +57,10 @@ scene that touches one (runbook Appendix A).
 first line, the same version in `.claude-plugin/plugin.json`, and a regenerated
 `manifest.json`, which carries it, in the same commit. The
 version changes with the work, not at a separate release step.
+
+**How the gate grows.** A check enters the gate because something happened: in a
+repository, or to something a task file or a test already promises. A case a reader
+constructed is recorded and not built until Erez admits it (`CLAUDE.md`, *Code rules*).
 
 **The form's version.** The form is four statements quoted from the essay: the principle
 and one for each unity. They are read, with the version, in the runbook's §0; the README states

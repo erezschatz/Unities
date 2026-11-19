@@ -57,6 +57,18 @@ it runs; Erez does.
 - **The form has its own version** (1.0; the four statements are in the runbook's §0).
   No change to the tooling changes it. It moves only by a decision that names the new
   form version, in a task Erez opened for that (`docs/SPEC.md`, *The form's version*).
+- **A check enters the gate because something happened.** This is about one kind of
+  finding: one whose answer would make the gate refuse something it lets through, or
+  handle a case it does not handle. Such a finding is not built on the reader's word.
+  Write it into the task file as a review item, as any finding, and say to Erez what
+  you would rule; he rules. He admits it when the case happened in a repository, or
+  when it breaks something a task file's promise or acceptance, or a test, already
+  says. Until he admits it, it is not admitted: the item's *Done when* reads
+  `<case> → the gate is unchanged`, and a decision titled `Not admitted: <the case>`
+  says why, so `docs/DECISIONS.md` lists what is known and not built. A finding about
+  the record, the docs, or a fault in what the scene itself wrote is answered in the
+  scene, as before. The reader's brief does not change; the reader still reports
+  everything.
 - **The scripts are masters in `skills/unities-project/files/`.** After changing one, run
   `node skills/unities-project/files/make-manifest.mjs` and `node --test`, then copy the
   changed files and `manifest.json` over the planted copies here (`.claude/hooks/`,
