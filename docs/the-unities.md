@@ -30,7 +30,7 @@ Most of what falls through the cracks is a violation of this unity, not of place
 
 The uncomfortable corollary: a change without its record is not a change with missing paperwork. It is a scene that did not happen. If you are interrupted before the record exists, the honest move under the constraint is to discard the change, not to leave it for tomorrow. Anything that would be recorded later is treated as already lost.
 
-That is the form, and it is the ideal. The form says what a scene is; it does not say how long one is, and that is where practice pushes back. Where the people working in a repository treat a commit as a save rather than a statement, the scene lengthens to the pull request: commits on the way are free, the unit that must be complete is the PR, and the gate that refuses an incomplete scene runs at merge. That staging gives up part of this unity — the record may be written at the end of the scene rather than beside each change, and the discard rule goes with it — and it is kept honest only because the gate has teeth and the warnings along the way keep pulling toward same-gesture. Part II stages both. Get the strict one if you can.
+That is the form, and it is the ideal. The form says what a scene is; it does not say how long one is, and that is where practice pushes back. Where the people working in a repository treat a commit as a save rather than a statement, the scene lengthens to the pull request: commits on the way are free, the unit that must be complete is the PR, and the gate that refuses an incomplete scene runs at merge. That staging gives up part of this unity — the record may be written at the end of the scene rather than beside each change, and the discard rule goes with it — and it is kept honest only because the gate has teeth and the warnings along the way keep pulling toward same-gesture. The runbook stages both. Get the strict one if you can.
 
 Working with a language model makes this sharper. A session ends and everything unrecorded is gone, so the discipline is forced whether you adopt it or not. Whatever was not written down did not, for all practical purposes, take place.
 
@@ -84,132 +84,8 @@ The last row is the real tension. When the two conflict, time wins at the moment
 
 ---
 
-# Part II: two stagings
+The staging of this form with git, Node and Claude Code (the gate, the bindings, the
+compilers) is the runbook, [`skills/unities-project/UNITIES.md`](../skills/unities-project/UNITIES.md).
 
-Part I is the form; it names no tools. This part stages it with git, Node and Claude Code, in two ways that share one script, one record and one compiler and differ in how long a scene is.
-
-**Strict: the commit is the scene.** `git commit` refuses an incomplete scene; the agent cannot end a turn with one; an interrupted scene is reverted. The ideal, for one developer or a team that already commits complete units.
-
-**Adapted: the pull request is the scene.** Commits are the developer's own. The PR is what must be complete, and a required check at merge refuses it otherwise. Commit and end-of-turn only warn, naming what the PR will still fail on. This is what a multi-developer repository with a PR policy actually accepts, and it was learned by trying the strict one on such a repository.
-
-The switch between them is one constant in the script (`SCENE`) and one settings entry. `UNITIES.md`, the adoption runbook, carries the current script, tests, compiler and the per-repo decisions; what follows is the shape, not the listing.
-
-Two pieces of writing carry the staging, and they divide the work. The skill `unities-project` is the front door: it chooses the mode (new project or existing repo), runs the kickoff interview — what it is and for whom, what is cut, who verifies, the milestone that could disprove the project, who commits and how — and writes the files that let a fresh session pick up from the repo alone: `CLAUDE.md`, `docs/SPEC.md`, `docs/DECISIONS.md` (append-only, a decision reversed only by a new entry naming the old one) and `docs/PLAN.md` (the ordered steps, with no status column, because status is derived from the task files). The runbook `docs/UNITIES.md` is what the skill then carries out: the record, the gates, the compiler and the per-repo decisions. The fresh-session test is the plainest statement of unity of place; the decisions file is unity of action applied to choices rather than changes.
-
-One observation from the adapted staging softens its cost: with squash-merge, each pull request lands on `main` as one commit, so the history reads as strict — one commit per scene, each complete — even though the branch was free. The branch is the rehearsal; `main` is the performance.
-
-## The stage
-
-Everything the play depends on is a file in the repo. Each folder plays one role, and the roles are what the check script tests for.
-
-| Path | Role | Written when |
-| --- | --- | --- |
-| `src/` | the code | during the change |
-| `tests/` | the test that guards it | same sitting |
-| `docs/`, `README.md` | the documentation | same sitting |
-| `tasks/<name>.md` | one file per task; its "what was done" section is the change record | same sitting, appended once |
-| `CHANGELOG.md` | compiled at release from task records; never edited | at release, by the compiler only |
-| `.claude/hooks/check-unit.mjs` | the scene-completeness test | once; it is the rule, in code |
-| `.claude/settings.json` | binds the test to Claude Code events; committed | once |
-| `.git/hooks/pre-commit` (or husky) | binds the same test to human commits; refuses (strict) or warns (adapted) | once |
-
-The one door: anything from outside (a request, an incident, a decision made in a meeting) becomes a `tasks/` file on arrival, by whoever received it.
-
-## The check script
-
-One script answers one question: is this change set a complete scene? It has three modes, and `SCENE` decides which refuse and which warn:
-
-| Mode | What it looks at | Strict | Adapted |
-| --- | --- | --- | --- |
-| `--pr <base>` | what the PR changes against its target | refuses (backstop) | refuses (the gate) |
-| `--staged` | what `git commit` is about to record | refuses | warns |
-| `--branch` | strict: the uncommitted tree; adapted: the branch since it forked, committed or not | refuses the turn's end | advises the agent once |
-
-A clean tree passes, so reverting is always a way out. A target branch that has not yet adopted the script is not held to it, so the adoption PR itself gets through.
-
-```js
-// .claude/hooks/check-unit.mjs — the shape; the full listing is UNITIES.md, Appendix A
-const SCENE = "pr";                    // "commit" for the strict staging
-const RULES = { source: /^src\//, test: /^tests?\//, doc: /^docs\//,
-                task: /^tasks\/(?!README\.md$)[^/_][^/]*\.md$/,
-                shared: /^(CHANGELOG\.md|TODO\.md)$/ };   // compiled or retired; never edited
-const REQUIRED = ["test", "doc", "task"];
-const RELEASE_FILES = /^(CHANGELOG\.md|package\.json)$/;  // what a release PR may touch
-
-// 1. collect the files the scene touches, by mode (diff vs base, staged, or branch+tree)
-// 2. if any is source, every REQUIRED role must appear      → "no test change" ...
-// 3. a shared file may not be edited directly               → "shared file edited directly"
-//    except: a PR confined to RELEASE_FILES whose added CHANGELOG lines equal
-//    `compile-changelog --dry-run` on the target's history   → a release, by construction
-// 4. report: --pr exits 1 (CI fails). Strict: exit 2 (refuse); Stop second pass lets go
-//    and tells the person. Adapted: exit 0; Stop sends additionalContext to the agent once.
-```
-
-The `RULES` table is the whole per-repo definition of "done," and it is deliberately a presence test: a file in each role, nothing about whether `tests/parser.test.ts` really exercises `parser.ts`. Presence already catches the failure this discipline exists for, the record not being written at all. A later tightening is to check the staged diff of `tasks/*.md` for an added `## What was done` heading, so "touched the task" becomes "recorded the scene."
-
-## Wiring
-
-The same script is bound in up to three places: to git, so a person committing from any editor sees it; to Claude Code, so a session cannot end around it; and, in the adapted staging, to CI as a required check on the pull request. The git binding is installed only where commits can happen outside the agent; the `Stop` binding always; the `PreToolUse` binding on `git commit` in the strict staging only (its `if` filter is best-effort, so the script itself confirms the command is a commit).
-
-`.git/hooks/pre-commit` (or the equivalent husky entry):
-
-```sh
-#!/bin/sh
-exec node "$(git rev-parse --show-toplevel)/.claude/hooks/check-unit.mjs" --staged
-```
-
-`.claude/settings.json`, committed with the repo:
-
-```json
-{
-  "hooks": {
-    "Stop": [{ "hooks": [{ "type": "command", "command": "node",
-      "args": ["${CLAUDE_PROJECT_DIR}/.claude/hooks/check-unit.mjs", "--branch"] }] }],
-    "PreToolUse": [{ "matcher": "Bash", "hooks": [{ "type": "command",
-      "if": "Bash(git commit *)", "command": "node",
-      "args": ["${CLAUDE_PROJECT_DIR}/.claude/hooks/check-unit.mjs", "--staged"],
-      "onFailure": "block" }] }]   // strict staging only
-  }
-}
-```
-
-Each binding enforces a different unity (S = strict, A = adapted):
-
-| Binding | Fires when | What it does | Unity |
-| --- | --- | --- | --- |
-| `Stop` hook | the agent finishes a turn | S: refuses to end on a half-recorded change, sends the agent back once, then lets go and tells the person. A: tells the agent once, in its own context, what the PR will still fail on | time |
-| `PreToolUse` on `git commit` (S) | the agent is about to commit | refuses a commit that is not a complete scene | time |
-| `pre-commit` | a person commits | S: refuses. A: warns | time, place |
-| CI check on the PR (A; backstop in S) | a pull request is opened or updated | refuses the merge of an incomplete scene; the one gate with teeth in the adapted staging | time |
-| `shared` rule in the script | any mode | refuses a direct edit to `CHANGELOG.md` or a retired `TODO.md`; a release PR passes only if its changelog equals the compiler's output | action |
-| `onFailure: "block"` (S) | the script is missing or crashes | blocks the commit; a policy that fails open is not a policy | time |
-
-The `stop_hook_active` branch is the loop breaker in both stagings. Strict: the agent was sent back once; on the second pass the turn ends and the missing parts are printed to the person, whose decision the revert is. Adapted: the advice is given once per turn and not repeated, so a turn can always end.
-
-CLAUDE.md gets one paragraph stating the form. A skill, if any, holds procedure only: how task files are named here, what the "what was done" heading is. The skill says how; the hooks make sure.
-
-## What hooks cannot do
-
-Two pieces sit outside the check script, because a hook can test presence but not truth, and can gate a change but not build a release.
-
-**The release compiler.** The only writer `CHANGELOG.md` ever has. It runs at release and reads the record out of git history rather than out of the tree (following renames, since task files get a tracker id late), so archiving or deleting finished task files cannot lose the trail. In the strict staging the release commit is made from a shell with `--no-verify`, the one documented bypass. In the adapted staging there is no bypass and none is needed: the gate verifies the blob against its sources. A PR confined to the release files passes if the changelog lines it adds equal what the compiler produces from the target's history, and fails with a diff otherwise. That is unity of action enforced literally — the compiled file must equal compile(record) — and it is the reason the compiler's output has to be deterministic.
-
-```sh
-# the shape: every "what was done" section added since the last release, grouped by task
-node scripts/compile-changelog.mjs 1.4.0            # writes CHANGELOG.md
-node scripts/compile-changelog.mjs --dry-run         # what the gate compares a release PR against
-```
-
-The point is its shape: it is the compile step from sources to blob, it runs once per release, and nobody edits its output. The release tag is the one thing in the system that is not a file, and it is the right thing not to be.
-
-**The reviewer.** The script passes a task record that says the wrong thing. A fluent, simultaneous, inaccurate record satisfies unity of time and breaks unity of action, and that is the specific trap of working with a language model. The check for truth is a second reader that has not seen the work: a reviewer subagent, invoked before commit, that reads the staged diff cold against the task file and says whether the record describes the change. Claude Code can also spawn such a reviewer from a hook (an agent-type `Stop` hook), but that feature is marked experimental; an explicitly invoked subagent is the stable form.
-
-## Limits of this staging
-
-- Presence is not truth. The script checks that files in each role changed, not that they are right. The reviewer covers truth; nothing covers it for free.
-- The `Stop` hook judges one session's tree or branch. Two sessions in one repo each see only their own. The commit gate (strict) or the PR gate (adapted) is what holds across sessions.
-- `onFailure: "block"` has no effect on `Stop` hooks, so a missing script silently lets turns end; the next gate catches the change. Keep the script in the repo and the path in `settings.json` correct.
-- Hooks in `.claude/settings.json` run only after the person has trusted the folder, and cloud sessions do not read a machine's user settings. Committing the project settings is what makes the staging travel with the repo.
-- The adapted staging weakens unity of time by design. The record may be written at the end of the scene, and an interrupted scene is an open PR rather than a revert. Each repo that adopts it has to say what becomes of a PR that keeps failing the gate.
-- The PR gate's required-ness lives outside the repository (a branch policy, or the merging tool's step). It is the one part of the staging that `git diff` cannot see, and the first thing to check when the gate seems to have stopped working.
-- The discard is not automated anywhere. The form says an interrupted scene is abandoned; the strict staging says so, loudly, and leaves the `git checkout` to a person.
+© 2026 Erez Schatz. This essay is licensed under
+[Creative Commons Attribution-ShareAlike 4.0 International](https://creativecommons.org/licenses/by-sa/4.0/).

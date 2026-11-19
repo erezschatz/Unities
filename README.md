@@ -27,9 +27,6 @@ they cost something; the essay names the costs.
 | [`skills/unities-project/UNITIES.md`](skills/unities-project/UNITIES.md) | The runbook. The skill plants it in a repository as `docs/UNITIES.md` and carries it out: the task record, the gate script and its tests, the two compilers, the CI example. This copy is the master. |
 | `tasks/` | The record of this repository's own work, one file per task. |
 
-Part II of the essay describes the staging as it stood in October 2026. Where it and the
-runbook differ, the runbook is current.
-
 ## Two stagings
 
 The form says what a scene is, not how long one is. A repository chooses once.
@@ -79,4 +76,9 @@ files.
 
 ## Licence
 
-MIT. See [`LICENSE`](LICENSE).
+The plugin is under the MIT licence: the skill, the runbook, and every script and
+template the runbook plants in a repository. See [`LICENSE`](LICENSE).
+
+The prose is under
+[Creative Commons Attribution-ShareAlike 4.0 International](https://creativecommons.org/licenses/by-sa/4.0/):
+the essay in `docs/` and this README.

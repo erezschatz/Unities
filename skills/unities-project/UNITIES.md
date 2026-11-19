@@ -1,4 +1,4 @@
-<!-- UNITIES.md 2026-11-19 · 0.5.4. Master copy: the unities-project skill folder (plugin `unities`). -->
+<!-- UNITIES.md 2026-11-19 · 0.5.5. Master copy: the unities-project skill folder (plugin `unities`). -->
 
 # UNITIES.md — adopting the Unities in a repository
 
@@ -591,6 +591,80 @@ procedure is carried out, install the files, say in the adoption task that the C
 binding is unverified and name the developer who will verify it; do not report it as
 working.
 
+### 4.11 What each binding enforces, and what none of them can
+
+Nothing here is installed. It is what the person adopting should know about the bindings
+above. It was carried over from the essay *The Unities* (14 October 2026) when the
+essay's second part was cut as an older copy of this file; the statements about Claude
+Code's behaviour are as they stood then.
+
+Each binding enforces a different unity (S = strict, A = adapted). The table describes
+the Claude Code bindings; under Codex an adapted `Stop` continues the turn once instead
+(§1, 4.10):
+
+| Binding | Fires when | What it does | Unity |
+| --- | --- | --- | --- |
+| `Stop` hook | the agent finishes a turn | S: refuses to end on a half-recorded change, sends the agent back once, then lets go and tells the person. A: tells the agent once, in its own context, what the PR will still fail on | time |
+| `PreToolUse` on `git commit` (S) | the agent is about to commit | refuses a commit that is not a complete scene | time |
+| `pre-commit` | a person commits | S: refuses. A: warns | time, place |
+| CI check on the PR (A; backstop in S) | a pull request is opened or updated | refuses the merge of an incomplete scene; the one gate with teeth in the adapted staging | time |
+| `shared` rule in the script | any mode | refuses a direct edit to `CHANGELOG.md` or a retired `TODO.md`; a release PR passes only if its changelog equals the compiler's output | action |
+| `onFailure: "block"` (S) | the script is missing or crashes | blocks the commit; a policy that fails open is not a policy | time |
+
+In strict, a clean tree passes at the commit and at the end of a turn, so reverting is
+always a way out. `--pr`, and `--branch` in adapted, read the commits since the fork, so
+there a clean tree says nothing.
+
+`check-unit.mjs` is the rule, in code. The essay said of a repository's own skill, if it
+has one, that it "holds procedure only: how task files are named here, what the 'what was
+done' heading is. The skill says how; the hooks make sure." Here that procedure is
+`tasks/README.md` (4.4, Appendix D), and the sentence holds of it: the instructions say
+how, the hooks make sure.
+
+The fresh-session test is the plainest statement of unity of place; the decisions file is
+unity of action applied to choices rather than changes.
+
+With squash-merge the adapted staging's history reads as strict: one commit per scene,
+each complete, even though the branch was free. The branch is the rehearsal; `main` is
+the performance.
+
+A hook can test presence but not truth, and can gate a change but not build a release.
+The point of the changelog compiler is its shape: it is the compile step from sources to
+blob, it runs once per release, and nobody edits its output. It reads the record out of
+git history, not out of the tree, so archiving or deleting a finished task file cannot
+lose its changelog entries. That holds for the changelog only. The record compiler reads
+the work tree (4.5): deleting a task file drops its step from `docs/PLAN.md`, and if the
+file carries a compiled decision the compiler refuses, and so does the gate (4.7). The
+release tag is the one thing in the system that is not a file, and it is the right thing
+not to be.
+
+**Limits.**
+
+- Presence is not truth. The gate is deliberately a presence test: a file in each role,
+  nothing about whether `tests/parser.test.ts` really exercises `parser.ts`. Presence
+  already catches the failure this discipline exists for, the record not being written
+  at all. The reviewer covers truth; nothing covers it for free.
+- A touched task file is not a recorded scene. The gate asks that a task file changed,
+  and checks the `## What was done` sections a scene adds; it does not require that one
+  be added. The essay named that as a later tightening, and it has not been made.
+- The `Stop` hook judges one session's tree or branch. Two sessions in one repository
+  each see only their own. The commit gate (strict) or the PR gate (adapted) is what
+  holds across sessions.
+- `onFailure: "block"` has no effect on `Stop` hooks, so a missing script silently lets
+  turns end; the next gate catches the change. Keep the script in the repository and the
+  path in `settings.json` correct.
+- Hooks in `.claude/settings.json` run only after the person has trusted the folder, and
+  cloud sessions do not read a machine's user settings. Committing the project settings
+  is what makes the staging travel with the repository.
+- The PR gate's being required lives outside the repository (a branch policy, or the
+  merging tool's step). It is the one part of the staging that `git diff` cannot see, and
+  the first thing to check when the gate seems to have stopped working.
+- The discard is not automated anywhere. The form says an interrupted scene is abandoned;
+  the strict staging says so, loudly, and leaves the `git checkout` to a person.
+- Claude Code can also start the reader of Appendix G from a hook (an agent-type `Stop`
+  hook), but that feature was marked experimental; an explicitly invoked subagent is the
+  stable form.
+
 ---
 
 ## 5. Migrate the record
@@ -738,10 +812,11 @@ sentences as the adoption task's record. Then tell the person:
 
 ## Appendix A — `.claude/hooks/check-unit.mjs`
 
-Fill the per-repo block from Phase 3. Everything else is fixed.
+Fill the per-repo block from Phase 3. Everything else is fixed, the licence line included.
 
 ```js
 #!/usr/bin/env node
+// Copyright (c) 2026 Erez Schatz, https://github.com/erezschatz/unities. SPDX-License-Identifier: MIT
 // A scene is complete or it is nothing. SCENE says how long a scene is:
 //   "commit" (strict)  : every commit; --staged and --branch refuse.
 //   "pr"     (adapted) : the pull request; --pr refuses, --staged and --branch warn.
@@ -1267,6 +1342,7 @@ no timestamps finer than the date, no environment-dependent ordering.
 
 ```js
 #!/usr/bin/env node
+// Copyright (c) 2026 Erez Schatz, https://github.com/erezschatz/unities. SPDX-License-Identifier: MIT
 // compile-changelog <version> [--since <ref>] [--dry-run]
 // The only writer CHANGELOG.md has. Reads "## What was done" sections added to tasks/
 // since the last release and prepends them under a version heading.
@@ -1598,6 +1674,7 @@ must carry them up to date; and that the same script called from Codex's hooks
 reaches the agent.
 
 ```js
+// Copyright (c) 2026 Erez Schatz, https://github.com/erezschatz/unities. SPDX-License-Identifier: MIT
 // Run with: node --test .claude/hooks/check-unit.test.mjs
 import test from "node:test";
 import assert from "node:assert/strict";
@@ -2256,6 +2333,7 @@ function of the work tree: the gate runs it with `--check` and compares.
 
 ```js
 #!/usr/bin/env node
+// Copyright (c) 2026 Erez Schatz, https://github.com/erezschatz/unities. SPDX-License-Identifier: MIT
 // compile-record [--check]
 // The only writer docs/DECISIONS.md and docs/PLAN.md have. Both are compiled from the
 // task files: decisions from their `## Decisions` sections, the plan's steps from the
