@@ -229,3 +229,15 @@ here.
 
 All 41 tests pass; no listing changed in this round.
 
+Reviewed by: the same read-only subagent, second reading (see the correction below)
+
+## What was done
+
+A correction to the section above, which was committed as it stood. Its sentence "Six
+rows of the table above were corrected and one replaced" is wrong: nine of the eighteen
+rows were corrected. The reader's second reading found this and nothing else. The edit
+that should have fixed the count and added the `Reviewed by:` line failed, and the commit
+went ahead without either; both are added here, not rewritten there. No other file
+changed.
+
+Reviewed by: the same read-only subagent, second reading; the count is its finding
