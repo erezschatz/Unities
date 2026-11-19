@@ -10,6 +10,10 @@ The problem they answer is scatter. A developer today works across chat, mail, t
 
 The dramatic unities were never a solution to a dramatic problem. They were constraints adopted for aesthetic, cultural and practical reasons, and their value was that they forced structure: when you cannot add a location, you have to bring the action into the room. That is the posture here. These are not rules that fix things; they are constraints that force the work to take a better shape, and like any strict form they have costs, named at the end.
 
+The three unities are not Aristotle's. He argues for one, the unity of action. He mentions time once, as something the tragedies of his day tended to keep, and he says nothing of place. The rule of three was made some nineteen centuries later, by Castelvetro in Italy and then by the French, and signed with his name. "This is what Aristotle meant" was false as history. What they made was a new and stricter thing, with borrowed authority.
+
+The same temptation is here, so it is better to say it outright. Extreme Programming and the agile manifesto saw the problem these constraints answer: the work and the account of the work drift apart. Their answer was to keep the knowledge in people who sit together. A story card is a promise of a conversation, the customer is in the room, and working software counts for more than documentation. The Unities say the opposite: what is not written did not happen. So this is not what they meant. It is what their aim requires now, when some of those in the room are agents whose memory ends with the session. The aim is theirs. The rule is new, and it is not signed with their name.
+
 ## Unity of place
 
 The stage is the medium, not the window. Everything the work consists of lives in the repository as files: the spec, the task, the code, the test, the documentation, the changelog entry. The test for whether something is on stage is whether `git diff` can see it. If it cannot, it is not a prop in this play; it is a different theatre.
