@@ -420,3 +420,69 @@ six-role default.
 staging; and a default would put roles into a repository that nobody chose.
 
 Source: [tasks/the-runbook-is-source.md](../tasks/the-runbook-is-source.md)
+
+## D33 · 2026-11-19 · Written fresh: a section is new when its heading's line was added
+
+**Decision** — The gate takes, from the scene's diff with no context lines (`-U0`), the
+numbers of the lines it adds in the scene's version of the file, and counts a
+`## What was done` or `## Review` section as the scene's when the line its heading
+stands on is one of them. An untracked file is new throughout. A `+++` line is a header
+only before the first hunk; after it, it is an added line that begins with `++`.
+**Rejected** — Bringing in the team repository's fix, which has not been seen here;
+matching the section's whole text, which still confuses two identical sections;
+counting a section as the scene's when any line in it was added, which would charge the
+scene with an old record it only appended a line to.
+**Why** — The heading's own line is what a scene writes when it writes a section, and
+its number tells two sections with one heading apart. When the team repository is
+re-run (runbook 5.5), its local fix is a local change to be listed; this one replaces
+it, and that repository's decision says so.
+
+Source: [tasks/new-records-are-found-by-heading-text.md](../tasks/new-records-are-found-by-heading-text.md)
+
+## D34 · 2026-11-19 · Sections are compared with the base's, not found in the diff
+
+**Decision** — A section is the scene's when the base has no section identical to it,
+wherever it stands; of the sections left over, a base section is paired with the scene's
+section under the same heading that shares the most lines with it, as an edit, and what
+stays unpaired is new. The base is the file at the scene's base plus the task files that
+left the scene, so a renamed file keeps its past. Line endings are normalised, and only
+`\n` starts a line.
+**Rejected** — The line numbers of D33: git chooses which of two identical lines it
+reports as added, and charged a new record to an old one; asking git for rename
+detection, which a work-tree rename and `diff.renames=false` do not give.
+**Why** — The cold reader showed D33 judging the wrong record when a new one is inserted
+above an older one, a regression on 0.6.1. Comparing the sections themselves needs no
+diff at all, so git's configuration cannot change it.
+Supersedes: D33
+
+Source: [tasks/new-records-are-found-by-heading-text.md](../tasks/new-records-are-found-by-heading-text.md)
+
+## D35 · 2026-11-19 · Two findings outside this scene become tasks
+
+**Decision** — The reader's findings on the release check and compiler under unusual git
+configuration, and on acceptance boxes judged across the whole file, are
+`tasks/diffs-are-read-under-any-git-config.md` and
+`tasks/acceptance-boxes-are-judged-where-the-scene-wrote.md`, worked after the six of D7.
+**Rejected** — Fixing them in this scene.
+**Why** — Both predate this change and lie outside its diff; each needs its own record,
+and the second a decision on whether a widened rule should reach old boxes.
+
+Source: [tasks/new-records-are-found-by-heading-text.md](../tasks/new-records-are-found-by-heading-text.md)
+
+## D36 · 2026-11-19 · A section is the scene's unless the base held it, word for word
+
+**Decision** — A `## What was done` or `## Review` section is judged when no task file at
+the scene's base holds an identical section (line endings aside). A section that only
+moved, by reordering, rename, split or copy, is the base's. One the scene edited is the
+scene's and is judged whole, so editing an older record that names no reader is refused
+until it does. This reverses the first round's box "an older record the scene only
+appended a line to → not judged".
+**Rejected** — D34's pairing of left-over sections by heading and shared lines, which a
+deleted record, a long new one or a deleted task file made stand for a new section; any
+other heuristic that lets one section stand for another.
+**Why** — The second reading broke the pairing four ways, and each repair moves the
+failure. Identity needs no guess. The cost falls on editing a merged record, which the
+form already forbids: such a record then names its reader, or is left as it was.
+Supersedes: D34
+
+Source: [tasks/new-records-are-found-by-heading-text.md](../tasks/new-records-are-found-by-heading-text.md)

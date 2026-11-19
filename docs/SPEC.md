@@ -32,7 +32,7 @@ What it does:
   `make-manifest.mjs` rewrites the manifest and is not planted.
 - **The plugin manifest**, `.claude-plugin/plugin.json`.
 
-What it explicitly does not do, as of 0.6.1:
+What it explicitly does not do, as of 0.6.2:
 
 - It is not installable by name; there is no marketplace file yet
   (`tasks/a-marketplace-file.md`).

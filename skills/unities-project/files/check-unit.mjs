@@ -172,18 +172,19 @@ for (const f of files.filter(f => RULES.task.test(f) && !deleted.includes(f))) {
     if (m && !REVIEW_SECTION.test(heading) && ACCEPTANCE_FORBIDDEN.test(m[1].trim()))
       missing.push(`acceptance box in ${f} names an outcome, not a check: "${m[1].trim()}" (make it the promise or a PLAN.md milestone)`);
   }
-  // Every record this scene adds names its cold reader.
-  const added = addedLines(f);
-  for (const section of contents(f).split(/^(?=## )/m)) {
-    if (!/^## What was done/.test(section) || !added.has(section.split("\n")[0].trim())) continue;
+  // Every record this scene adds names its cold reader. A section is the scene's unless
+  // the base held it word for word, in any task file (scenesSections).
+  const sections = scenesSections(f);
+  for (const section of sections) {
+    if (!/^## What was done/.test(section)) continue;
     if (!REVIEW.test(section) && !REVIEW_EXEMPT.test(section))
       missing.push(`record in ${f} has no "Reviewed by:" line (a reader that has not seen the work; see Appendix G)`);
   }
   // Every review round this scene adds: each item says what was found, when it is done
   // (one box per case, as "case → outcome") and what was not asked. An item with an open
   // box does not merge. Who ticks is not the gate's business; that every case is named is.
-  for (const section of contents(f).split(/^(?=## )/m)) {
-    if (!REVIEW_SECTION.test(section) || !added.has(section.split("\n")[0].trim())) continue;
+  for (const section of sections) {
+    if (!REVIEW_SECTION.test(section)) continue;
     for (const item of section.split(/^(?=### )/m).slice(1)) {
       const name = item.split("\n")[0].replace(/^### /, "").trim();
       const doneWhen = item.split(/^\*\*Done when\*\*/m)[1]?.split(/^\*\*/m)[0] ?? "";
@@ -280,13 +281,46 @@ if (input.hook_event_name === "Stop") {
 process.exit(0);
 
 function adopted(ref) { return gitOk(`cat-file -e ${ref}:${SELF}`); }
-function addedLines(file) {  // lines this scene adds to the file
-  let diff;
-  if (mode === "--pr") diff = git(`diff ${base} HEAD -- ${file}`);
-  else if (mode === "--staged") diff = git("diff --cached -- " + file);
-  else if (gitOk(`ls-files --error-unmatch ${file}`)) diff = git(`diff ${base} -- ${file}`);
-  else return new Set(lines(contents(file)));            // untracked: all of it is new
-  return new Set(lines(diff).filter(l => l.startsWith("+") && !l.startsWith("+++")).map(l => l.slice(1).trim()));
+// The sections of a task file that are this scene's: every one the base did not hold, word
+// for word, in some task file. A section that only moved (reordered, renamed with its file,
+// split or copied into another) is still the base's. One the scene edited is the scene's,
+// and is judged whole: a record is not edited once merged, and one that is must then say
+// who read it. Nothing is paired or guessed, so no deletion, length or git setting can
+// make one section stand for another.
+function scenesSections(file) {
+  return sectionsOf(contents(file)).filter(section => !baseSections().has(section));
+}
+function baseSections() {   // every section of every task file at the scene's base
+  if (baseSections.cache) return baseSections.cache;
+  // One git call for all of them: a repository keeps a task file for every task it ever had.
+  let blobs = [];
+  try {
+    blobs = lines(git(`ls-tree -r ${from} -- tasks/`))
+      .map(l => /^\d+ blob ([0-9a-f]+)\t(.+)$/.exec(l))
+      .filter(m => m && RULES.task.test(m[2]))
+      .map(m => m[1]);
+  } catch {}
+  const texts = [];
+  if (blobs.length) {
+    const out = execSync("git cat-file --batch", { cwd, input: blobs.join("\n") + "\n", stdio: ["pipe", "pipe", "ignore"], maxBuffer: 1 << 30 });
+    // Each object: "<oid> blob <size>\n", then <size> bytes, then "\n".
+    for (let at = 0; at < out.length;) {
+      const eol = out.indexOf(10, at);
+      const size = Number(out.toString("utf8", at, eol).split(" ")[2]);
+      texts.push(out.toString("utf8", eol + 1, eol + 1 + size));
+      at = eol + 1 + size + 1;
+    }
+  }
+  return baseSections.cache = new Set(texts.flatMap(sectionsOf));
+}
+function sectionsOf(text) {   // the "## " sections of a file; line endings and trailing blanks are not content
+  const out = [];
+  for (const raw of text.replace(/\r\n/g, "\n").split("\n")) {
+    const line = raw.replace(/[ \t]+$/, "");
+    if (line.startsWith("## ")) out.push(line);
+    else if (out.length) out[out.length - 1] += "\n" + line;
+  }
+  return out.map(section => section.replace(/\n+$/, ""));
 }
 function contents(file, absent = "") {   // the file as this scene has it
   try {
