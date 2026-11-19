@@ -1,4 +1,4 @@
-<!-- UNITIES.md 2026-11-17 · 0.5.2. Master copy: the unities-project skill folder (plugin `unities`). -->
+<!-- UNITIES.md 2026-11-19 · 0.5.4. Master copy: the unities-project skill folder (plugin `unities`). -->
 
 # UNITIES.md — adopting the Unities in a repository
 
@@ -377,8 +377,14 @@ adoption — retired TODO files and all — is not held to it.
 If pull requests are merged by a tool through the CI service's API rather than by its
 merge button, run the check in that tool, before it merges, instead of as a CI job. A
 required CI policy applies to the tool's API merges too, so the two gates would collide.
-Run in a checkout, the base is the merge base of source and target, with the source tip
-checked out: `check-unit.mjs --pr $(git merge-base <target> HEAD)`.
+Run in a checkout, with the source tip checked out: `check-unit.mjs --pr <target>`. The
+script measures the scene from the merge base of target and `HEAD`, not from the target's
+tip, so a target that has moved on since the branch forked does not charge the branch
+with the target's commits. The checkout therefore needs the history back to the fork
+point; without it the script stops with an error instead of guessing. It stops the same
+way when the checkout does not know the target's name at all — a typo, or a branch that
+was never fetched — because only a target that exists and has no `check-unit.mjs` counts
+as one that has not adopted yet.
 
 **Shared files.** Three kinds are never edited by hand. `CHANGELOG.md` is *compiled* at
 release: the compiler is its only writer, and deleting it is refused like editing it.
@@ -690,7 +696,7 @@ to adapted, unmarked to both.
 7. (A) Confirm the 4.7 gate exists, and say whether whatever makes it required — a branch
    policy, or the merging tool's step — is in place; it usually lives outside the
    repository. Confirm the release check: on a throwaway branch, run the compiler for a
-   fake version, commit only its output and the version bump, and run `--pr <base>` →
+   fake version, commit only its output and the version bump, and run `--pr <target>` →
    must pass; then hand-edit one changelog line → must fail with a diff. Confirm the
    merge man: name what runs the record compiler after a merge and under which identity
    it commits; if that lives outside the repository and is not in place yet, say so —
@@ -740,7 +746,7 @@ Fill the per-repo block from Phase 3. Everything else is fixed.
 //   "commit" (strict)  : every commit; --staged and --branch refuse.
 //   "pr"     (adapted) : the pull request; --pr refuses, --staged and --branch warn.
 //
-//   --pr <base>     : what the PR changes against its target     (gate; always enforces)
+//   --pr <target>   : what the PR changed since it forked from its target (gate; always enforces)
 //   --staged        : what `git commit` is about to record       (pre-commit, PreToolUse)
 //   --branch [base] : the scene so far, committed or not         (Stop)
 //
@@ -796,9 +802,17 @@ if (input.hook_event_name === "PreToolUse" &&
 
 let files, base, deleted;   // deleting a tombstone is not editing it
 if (mode === "--pr") {
-  base = argv[1];
-  if (!base) fail("usage: check-unit.mjs --pr <base>");
-  if (!adopted(base)) skip(`${base} has no ${SELF}; the record is not required until the target adopts it.`);
+  const target = argv[1];
+  if (!target) fail("usage: check-unit.mjs --pr <target>");
+  // A name git does not know is not a target that has yet to adopt: refuse, do not skip.
+  if (!gitOk(`cat-file commit ${target}`))
+    fail(`${target} is not a commit this checkout knows; check the name, or fetch the branch (a single-branch or shallow clone may not have it).`);
+  if (!adopted(target)) skip(`${target} has no ${SELF}; the record is not required until the target adopts it.`);
+  // The PR's own change, measured from where it forked. The target's tip may have
+  // moved on since, and its new commits are not this PR's.
+  if (!gitOk(`merge-base ${target} HEAD`))
+    fail(`no merge base between ${target} and HEAD; the checkout needs the history back to where the branch forked (a shallow clone may not have it).`);
+  base = git(`merge-base ${target} HEAD`).trim();
   files = lines(git(`diff --name-only ${base} HEAD`));
   deleted = lines(git(`diff --name-only --diff-filter=D ${base} HEAD`));
 } else if (mode === "--staged") {
@@ -1509,8 +1523,9 @@ steps:
   # A PR build checks out the merge of the PR into its target: HEAD^1 is the target,
   # so HEAD^1..HEAD is exactly what the PR would change. Depth 2 reaches it.
   # This relies on the policy's default merge-commit checkout. If the policy is ever
-  # switched to a rebase or squash build, HEAD^1 is no longer the target; use the
-  # merge-base form from 4.7 instead.
+  # switched to a rebase or squash build, HEAD^1 is no longer the target; pass the
+  # target branch instead (`--pr origin/<target>`) with `fetchDepth: 0`, so the script
+  # can find where the branch forked (4.7).
   - checkout: self
     fetchDepth: 2
     clean: true
@@ -1573,7 +1588,8 @@ Fill the per-repo paths with one file in each role that `RULES` matches. The tes
 throwaway repositories, so they need git and nothing else. They pin the behaviour the
 practice depended on: the gate at the pull request, free commits in adapted, refused
 commits in strict, merges that do not re-check the other branch's scenes, a target that
-has not adopted yet, tombstones that may be deleted but not edited, the release check,
+has not adopted yet, a target that moved on after the branch forked, tombstones that may
+be deleted but not edited, the release check,
 review rounds whose items must name their cases and be closed before merge,
 and the compiled record: numbers that never change, a pull request that may not touch
 `docs/DECISIONS.md` or `docs/PLAN.md`, the compile that may, and the strict commit that
@@ -1741,6 +1757,23 @@ test("a pull request into a target that has not adopted the hook is not checked"
   write(SHARED, "hand edit\n");
   commit("edit");
   assert.equal(run(dir, ["--pr", "main"]).status, 0);
+});
+
+test("a target the checkout does not know is an error, not a target that has not adopted", () => {
+  const { dir, git, write, commit } = repo();
+  git("checkout -q -b feature");
+  write(SOURCE, "changed\n");
+  commit("wip");
+  const result = run(dir, ["--pr", "origin/mian"]);
+  assert.equal(result.status, 2);
+  assert.match(result.stderr, /origin\/mian is not a commit this checkout knows/);
+  // A commit id the checkout never fetched, and a name that is not a commit, are refused too.
+  const unfetched = "1234567890123456789012345678901234567890";
+  for (const name of [unfetched, `main:${SOURCE}`]) {
+    const other = run(dir, ["--pr", name]);
+    assert.equal(other.status, 2, name);
+    assert.match(other.stderr, /is not a commit this checkout knows/);
+  }
 });
 
 test("on a CI merge commit, HEAD^1 is the target and only the PR's changes count", () => {
@@ -2042,6 +2075,39 @@ test("adapted: a pull request that touches the compiled record is refused, by ha
   const result = run(dir, ["--pr", "main"]);
   assert.equal(result.status, 1);
   assert.match(result.stderr, /compiled record edited in this scene: docs\/PLAN\.md/);
+});
+
+test("what the target did after the branch forked is not the pull request's doing", () => {
+  const { dir, git, write, commit, compile } = repo();
+  git("checkout -q -b feature");
+  write(SOURCE, "changed\n");
+  complete(write);
+  commit("feature");
+  git("checkout -q main");
+  write("tasks/2-u.md", taskWith(decision("2026-11-19", "Decided on the target")));
+  compile();   // the merge man recompiled the record on the target; the branch is now behind
+  commit("main");
+  git("checkout -q feature");
+  const ok = run(dir, ["--pr", "main"]);
+  assert.equal(ok.status, 0, ok.stderr);
+  // A caller that still passes the fork point itself gets the same answer.
+  assert.equal(run(dir, ["--pr", git("merge-base main HEAD").trim()]).status, 0);
+  // And the branch's own edit to the compiled record is still refused.
+  write(DECISIONS, "by hand\n");
+  commit("by-hand");
+  const own = run(dir, ["--pr", "main"]);
+  assert.equal(own.status, 1);
+  assert.match(own.stderr, /compiled record edited in this scene: docs\/DECISIONS\.md/);
+});
+
+test("a pull request with no history in common with its target stops with an error", () => {
+  const { dir, git, write, commit } = repo();
+  git("checkout -q --orphan elsewhere");
+  write(SOURCE, "changed\n");
+  commit("elsewhere");
+  const result = run(dir, ["--pr", "main"]);
+  assert.equal(result.status, 2);
+  assert.match(result.stderr, /no merge base between main and HEAD/);
 });
 
 test("the compiled record does not count as the doc change", () => {
