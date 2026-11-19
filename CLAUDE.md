@@ -1,0 +1,77 @@
+# CLAUDE.md
+
+This repository is the `unities` Claude Code plugin: one skill (`unities-project`), the
+runbook it carries out (`UNITIES.md`, the master copy), and the essay the form comes from.
+It is itself run under the Unities, in the strict staging.
+
+## Read first, in this order
+
+1. `docs/SPEC.md`: what the plugin is, what it ships, how a version is made.
+2. `docs/DECISIONS.md`: what was decided and rejected. Compiled; read it, never write it.
+3. `docs/PLAN.md`: the open and finished tasks. Compiled. The working order is D7, not the
+   file-name order.
+4. `tasks/README.md`: what a task file is.
+
+`docs/the-unities.md` is the essay. Read it for why; it is not the procedure.
+
+## The Unities
+
+The work, its record and its location are the same thing at the same time. Every commit
+that changes source (here: `skills/` and `.claude-plugin/`) also carries a
+`## What was done` section appended to the task file in `tasks/`, read cold against the
+diff by a reader that did not write it: code, test, document, review are one unit. Until
+the scripts are files (`tasks/the-scripts-as-files.md`) the gate requires only the task
+record, because the tests and the docs of the runbook live inside the runbook; a change
+to a listing still runs the Appendix J tests, and a change of behaviour still updates
+`docs/SPEC.md` or the README, by this rule and not by the gate. This is enforced, not
+requested: a Stop hook refuses to end a turn with a half-recorded change, and a
+`git commit` made through Claude Code refuses an incomplete scene
+(`.claude/hooks/check-unit.mjs`). A commit from a shell is not checked here: there is no
+git hook (D5). `CHANGELOG.md` is compiled from task records at release
+(`node scripts/compile-changelog.mjs <version>`), by Erez, who commits the release from
+his shell; a commit through Claude Code that touches it is refused (D8). It is never
+edited by hand. If a change cannot be completed with its record in this
+sitting, revert it; do not leave it for later. Any choice with a rejected alternative gets
+a dated entry under `## Decisions` in the task file of the work that made it; a listed
+decision is not reopened quietly but by a new entry that supersedes it.
+`docs/DECISIONS.md` and `docs/PLAN.md` are read, never written: they are compiled from the
+task files (`node scripts/compile-record.mjs`), the commit carries the compiler's output,
+and the gate refuses one where they are out of date. A review item (`## Review` in the
+task file) is done when every *Done when* line holds for the running program, not when
+its wording is satisfied; whatever a fix needs beyond its item is recorded as a decision
+before it is built. Before committing, give the staged diff and the task file to a reader
+that has not seen the work — a read-only subagent, never yourself — to carry out
+`docs/reviewer.md`; write what it finds into the task file and its name on the record's
+`Reviewed by:` line. The agent does not claim a build is green or a feature works where
+it runs; Erez does.
+
+## Code rules
+
+- **The master and its deployments.** `skills/unities-project/UNITIES.md` is the master
+  runbook. A copy in any other repository is a deployment and is never edited in place.
+  This repository plants no `docs/UNITIES.md`; it carries out the master directly.
+- **A change to the procedure is a version.** A new date and version on the runbook's
+  first line, the same version in `.claude-plugin/plugin.json`, in the same commit.
+- **The planted scripts here are deployments too.** `.claude/hooks/check-unit.mjs`, its
+  tests and `scripts/*.mjs` were cut from the runbook's appendices with this repository's
+  per-repo values. Change a listing in the runbook first; then re-cut the copy here and
+  run the tests. Never fix the copy alone.
+- **No dependencies.** The scripts use only `node:` built-ins and git, and run on Node,
+  Deno and Bun. No `package.json` here; scripts are called as `node <path>`.
+- **Every planted script keeps its licence line** (MIT, first or second line).
+- **Readable to a strong JavaScript developer in week one.** If a construct needs
+  explaining, write it the plain way. Comments explain why.
+- **The essay is Erez's.** `docs/the-unities.md` is changed only when he asks, and what
+  Claude drafts there is said to be Claude's in the task file.
+- **Prose rules.** The runbook is addressed to the agent that carries it out. Say a thing
+  in one place; point to it from the others.
+
+## Division of labour
+
+- **Claude** edits the runbook, the skill, the README, the spec and the task files; cuts
+  the listings and runs the Appendix J tests (`node --test .claude/hooks/check-unit.test.mjs`),
+  reporting the output as it came, not as a verdict on the plugin.
+- **Erez** owns the essay, judges the prose, runs the plugin in real repositories (that
+  is where it runs, and where it is verified), decides versions, compiles and commits releases from his shell, and pushes.
+- Tests here run on whatever Node is installed (26 on Erez's machine); the README's
+  claim is Node 22.

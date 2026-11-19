@@ -26,6 +26,8 @@ they cost something; the essay names the costs.
 | [`skills/unities-project/SKILL.md`](skills/unities-project/SKILL.md) | The front door. It runs the kickoff interview for a new project, or migrates an existing repository. |
 | [`skills/unities-project/UNITIES.md`](skills/unities-project/UNITIES.md) | The runbook. The skill plants it in a repository as `docs/UNITIES.md` and carries it out: the task record, the gate script and its tests, the two compilers, the CI example. This copy is the master. |
 | `tasks/` | The record of this repository's own work, one file per task. |
+| [`CLAUDE.md`](CLAUDE.md), [`docs/SPEC.md`](docs/SPEC.md) | How to work in this repository, and what the plugin is and how a version is made. |
+| `docs/DECISIONS.md`, `docs/PLAN.md` | Compiled from `tasks/`; read, never written. |
 
 ## Two stagings
 
