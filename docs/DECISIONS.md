@@ -378,3 +378,45 @@ chose.
 incomplete thing without trapping anyone.
 
 Source: [tasks/the-scripts-as-files.md](../tasks/the-scripts-as-files.md)
+
+## D30 · 2026-11-19 · The runbook and the skill are source, held to a doc and a task change
+
+**Decision** — In this repository a seventh role, `procedure`, holds
+`skills/unities-project/UNITIES.md` and `SKILL.md`. `required` is
+`{"source": ["test", "doc", "task"], "procedure": ["doc", "task"]}`. Doc is `docs/`,
+`README.md` and `CLAUDE.md`.
+**Rejected** — D26's arrangement, the runbook a doc and not held to a record; the runbook
+as plain source, which asks for a test with every change of wording; source with
+`["doc", "task"]` for everything, which lets a script change through without a test.
+**Why** — The runbook is what every adoption runs; a change to it is a change of
+behaviour in every repository that re-runs it, and the gate should hold it to a record
+as it does code. A wording change has no test to carry.
+Supersedes: D26
+
+Source: [tasks/the-runbook-is-source.md](../tasks/the-runbook-is-source.md)
+
+## D31 · 2026-11-19 · `required` may map roles to lists, in the plugin, for every repository
+
+**Decision** — The gate accepts `required` either as a list (for source, as before) or as
+a map from role to list, and `rules` may hold roles beyond the six, for `required` to
+name. A configuration whose `required` names a role `rules` lacks stops the gate. The
+version is 0.6.1.
+**Rejected** — A special case for this repository; a fixed `procedure` role in the gate,
+which names something only this repository has.
+**Why** — The finding that made it necessary is this repository's, but the shape (some
+files held to less than source) is general, and a list stays valid, so no repository's
+configuration changes.
+
+Source: [tasks/the-runbook-is-source.md](../tasks/the-runbook-is-source.md)
+
+## D32 · 2026-11-19 · A map without `source` stops the gate
+
+**Decision** — When `required` is a map it must hold `source`, and in either form
+`source` must name at least one role; otherwise the gate stops, naming the
+configuration.
+**Rejected** — Allowing it, with source then held to nothing; defaulting `source` to the
+six-role default.
+**Why** — A configuration that holds a source change to nothing is a mistake, not a
+staging; and a default would put roles into a repository that nobody chose.
+
+Source: [tasks/the-runbook-is-source.md](../tasks/the-runbook-is-source.md)

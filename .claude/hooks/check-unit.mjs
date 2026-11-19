@@ -54,7 +54,9 @@ if (input.hook_event_name === "PreToolUse" &&
 const config = readConfig();
 const SCENE = process.env.UNITIES_SCENE ?? config.scene;   // "commit" (strict) or "pr" (adapted)
 const RULES = Object.fromEntries(Object.entries(config.rules).map(([role, re]) => [role, new RegExp(re)]));
-const REQUIRED = config.required;                          // roles a source change must be accompanied by
+// What a change in a role must be accompanied by: a list for source alone, or a map from
+// role to list where some files are held to less (a procedure that has no test, say).
+const REQUIRED = Array.isArray(config.required) ? { source: config.required } : config.required;
 const BASE = config.base;                                  // the branch pull requests target
 const RELEASE_FILES = new RegExp(config.releaseFiles);     // what a release PR may touch
 const RUN = config.run ?? "node";                          // how the compilers are invoked (Deno, Bun: Appendix H)
@@ -105,9 +107,10 @@ if (mode === "--pr") {
 // The compiled record is nobody's doc line: it does not count toward any role.
 const has = re => files.some(f => re.test(f) && !RECORD_FILES.test(f));
 const missing = [];
-if (has(RULES.source)) {
-  for (const part of REQUIRED)
-    if (!has(RULES[part])) missing.push(`no ${part} change`);
+for (const [role, needs] of Object.entries(REQUIRED)) {
+  if (!has(RULES[role])) continue;
+  for (const part of needs)
+    if (!has(RULES[part]) && !missing.includes(`no ${part} change`)) missing.push(`no ${part} change`);
 }
 let shared = files.filter(f => RULES.shared.test(f) || (RULES.retired.test(f) && !deleted.includes(f)));
 
@@ -313,6 +316,19 @@ function readConfig() {
   for (const role of ["source", "test", "doc", "task", "shared", "retired"])
     if (typeof c.rules[role] !== "string") fail(`${CONFIG}: rules.${role} must be a regular expression, as a string`);
   if (!["commit", "pr"].includes(c.scene)) fail(`${CONFIG}: scene must be "commit" or "pr"`);
+  for (const [role, re] of Object.entries(c.rules))
+    if (typeof re !== "string") fail(`${CONFIG}: rules.${role} must be a regular expression, as a string`);
+  const isMap = v => typeof v === "object" && v !== null && !Array.isArray(v);
+  if (!Array.isArray(c.required) && !isMap(c.required))
+    fail(`${CONFIG}: required must be a list of roles, or a map from role to list`);
+  const required = Array.isArray(c.required) ? { source: c.required } : c.required;
+  if (!Object.hasOwn(required, "source") || (Array.isArray(required.source) && required.source.length === 0))
+    fail(`${CONFIG}: required has no "source", or an empty one; a source change must be held to something`);
+  for (const [role, needs] of Object.entries(required)) {
+    if (!Array.isArray(needs)) fail(`${CONFIG}: required.${role} must be a list of roles`);
+    for (const name of [role, ...needs])
+      if (!Object.hasOwn(c.rules, name)) fail(`${CONFIG}: required names "${name}", which is not a role in rules`);
+  }
   return c;
 }
 function show(ref, file) {   // the file as the scene's base has it; "" if absent

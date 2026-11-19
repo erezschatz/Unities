@@ -867,3 +867,72 @@ test("in the plugin's repository a broken master manifest is refused by name, an
   assert.equal(stop.status, 0);
   assert.match(JSON.parse(stop.stdout).systemMessage, /manifest\.json is not valid JSON/);
 });
+
+test("required may hold a list per role: a procedure needs its doc and task, not a test", () => {
+  const { dir, git, write, compile } = repo();
+  write(CONFIG, JSON.stringify({
+    ...FIXTURE,
+    rules: { ...FIXTURE.rules, procedure: "^procedure/" },
+    required: { source: ["test", "doc", "task"], procedure: ["doc", "task"] },
+  }));
+  git("add -A"); git("commit -q -m procedure-role");
+  write("procedure/RUNBOOK.md", "a step\n");
+  git("add -A");
+  const alone = run(dir, ["--staged"], { scene: "commit" });
+  assert.equal(alone.status, 2);
+  assert.match(alone.stderr, /no doc change; no task change/);
+  assert.doesNotMatch(alone.stderr, /no test change/);
+  write(DOC, "documented\n");
+  write(TASK, "# t\n\n## What was done\n\ndone\n\nReviewed by: a reader\n");
+  compile();
+  git("add -A");
+  const recorded = run(dir, ["--staged"], { scene: "commit" });
+  assert.equal(recorded.status, 0, recorded.stderr);
+  write(SOURCE, "changed too\n");
+  git("add -A");
+  const source = run(dir, ["--staged"], { scene: "commit" });
+  assert.equal(source.status, 2);
+  assert.match(source.stderr, /no test change/);
+});
+
+test("required naming a role that rules does not have stops the gate", () => {
+  const { dir, git, write } = repo();
+  write(CONFIG, JSON.stringify({ ...FIXTURE, required: { source: ["test"], procedure: ["doc"] } }));
+  git("add -A");
+  const result = run(dir, ["--staged"], { scene: "commit" });
+  assert.equal(result.status, 2);
+  assert.match(result.stderr, /required names "procedure"/);
+});
+
+test("a required that is not a list or a map, misses source, or names no own role stops the gate", () => {
+  const { dir, git, write } = repo();
+  const stop = JSON.stringify({ hook_event_name: "Stop", cwd: dir, stop_hook_active: true });
+  const cases = [
+    [null, /required must be a list of roles, or a map/],
+    [5, /required must be a list of roles, or a map/],
+    ["test", /required must be a list of roles, or a map/],
+    [{ procedure: ["doc"] }, /required has no "source"/],
+    [{}, /required has no "source"/],
+    [[], /required has no "source", or an empty one/],
+    [{ source: [] }, /required has no "source", or an empty one/],
+    [{ source: "test" }, /required\.source must be a list of roles/],
+    [{ source: ["test"], toString: ["doc"] }, /required names "toString"/],
+    [["test", "constructor"], /required names "constructor"/],
+  ];
+  for (const [required, message] of cases) {
+    write(CONFIG, JSON.stringify({ ...FIXTURE, required }));
+    write(SOURCE, `changed ${JSON.stringify(required)}\n`);
+    git("add -A");
+    const result = run(dir, ["--staged"], { scene: "commit" });
+    assert.equal(result.status, 2, JSON.stringify(required));
+    assert.match(result.stderr, message);
+    assert.match(result.stderr, /\.claude\/hooks\/unities\.json/);
+    const second = run(dir, ["--branch"], { scene: "commit", stdin: stop });
+    assert.equal(second.status, 0);
+    assert.match(JSON.parse(second.stdout).systemMessage, message);
+  }
+  write(CONFIG, JSON.stringify({ ...FIXTURE, rules: { ...FIXTURE.rules, extra: 7 } }));
+  git("add -A");
+  assert.match(run(dir, ["--staged"], { scene: "commit" }).stderr, /rules\.extra must be a regular expression/);
+  assert.match(JSON.parse(run(dir, ["--branch"], { scene: "commit", stdin: stop }).stdout).systemMessage, /rules\.extra must be a regular expression/);
+});

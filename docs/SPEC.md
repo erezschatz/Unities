@@ -32,7 +32,7 @@ What it does:
   `make-manifest.mjs` rewrites the manifest and is not planted.
 - **The plugin manifest**, `.claude-plugin/plugin.json`.
 
-What it explicitly does not do, as of 0.6.0:
+What it explicitly does not do, as of 0.6.1:
 
 - It is not installable by name; there is no marketplace file yet
   (`tasks/a-marketplace-file.md`).
@@ -71,10 +71,12 @@ hand edit of `CHANGELOG.md` (D8).
 with the manifest, and its values are in `.claude/hooks/unities.json`.
 
 **Roles here** (`rules` in that file): source is the scripts in
-`skills/unities-project/files/` other than the tests; test is the tests there; doc is
-`docs/`, every `.md` under `skills/`, `README.md` and `CLAUDE.md`; task is `tasks/`;
-shared is `CHANGELOG.md`. Nothing is retired, and `.claude-plugin/plugin.json` and
-`manifest.json` are in no role. A source change requires a test, a doc and a task change.
+`skills/unities-project/files/` other than the tests; test is the tests there; procedure
+is the runbook and the skill (`UNITIES.md`, `SKILL.md`); doc is `docs/` other than the
+compiled `DECISIONS.md` and `PLAN.md`, and `README.md`, `CLAUDE.md`, `AGENTS.md`; task is `tasks/`; shared is `CHANGELOG.md`. Nothing is retired, and
+`.claude-plugin/plugin.json` and `manifest.json` are in no role. A script change requires
+a test, a doc and a task change; a change to the runbook or the skill, a doc and a task
+change.
 
 ## Stack
 

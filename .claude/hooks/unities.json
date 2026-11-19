@@ -3,16 +3,23 @@
   "rules": {
     "source": "^skills/unities-project/files/(?![^/]*\\.test\\.mjs$)[^/]*\\.mjs$",
     "test": "^skills/unities-project/files/[^/]*\\.test\\.mjs$",
-    "doc": "^(docs/|skills/.*\\.md$|(^|/)(README|CLAUDE|AGENTS)\\.md$)",
+    "doc": "^(docs/|(^|/)(README|CLAUDE|AGENTS)\\.md$)",
     "task": "^tasks/(?!README\\.md$)[^/_][^/]*\\.md$",
     "shared": "^CHANGELOG\\.md$",
-    "retired": "^$"
+    "retired": "^$",
+    "procedure": "^skills/unities-project/(UNITIES|SKILL)\\.md$"
   },
-  "required": [
-    "test",
-    "doc",
-    "task"
-  ],
+  "required": {
+    "source": [
+      "test",
+      "doc",
+      "task"
+    ],
+    "procedure": [
+      "doc",
+      "task"
+    ]
+  },
   "base": "origin/main",
   "releaseFiles": "^(CHANGELOG\\.md|\\.claude-plugin/plugin\\.json)$",
   "plugin": "skills/unities-project/files"

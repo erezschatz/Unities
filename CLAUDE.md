@@ -20,8 +20,10 @@ The work, its record and its location are the same thing at the same time. Every
 that changes source (here: the scripts in `skills/unities-project/files/`) also carries
 its test, its doc line and a `## What was done` section appended to the task file in
 `tasks/`, read cold against the diff by a reader that did not write it: code, test,
-document, review are one unit. The runbook, the skill and the README are docs: the gate
-does not hold a change to them alone to a record, and by this rule it carries one anyway.
+document, review are one unit. The runbook and the skill are what every adoption runs, so
+they are source too, held to a doc line and a record but not to a test: a change to
+either carries a doc change (anything in `docs/` but the compiled `DECISIONS.md` and
+`PLAN.md`, or `README.md`, `CLAUDE.md`, `AGENTS.md`), and its record.
 This is enforced, not
 requested: a Stop hook refuses to end a turn with a half-recorded change, and a
 `git commit` made through Claude Code refuses an incomplete scene

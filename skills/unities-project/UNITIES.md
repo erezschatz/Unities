@@ -1,4 +1,4 @@
-<!-- UNITIES.md 2026-11-19 · 0.6.0. Master copy: the unities-project skill folder (plugin `unities`). -->
+<!-- UNITIES.md 2026-11-19 · 0.6.1. Master copy: the unities-project skill folder (plugin `unities`). -->
 
 # UNITIES.md — adopting the Unities in a repository
 
@@ -907,8 +907,8 @@ not defaults:
 | Key | What it holds |
 | --- | --- |
 | `scene` | `"commit"` (strict) or `"pr"` (adapted), §1. The environment variable `UNITIES_SCENE` overrides it; the tests use that. |
-| `rules` | one regular expression per role, as a JSON string (a backslash is written twice). All six are present; a role the repository lacks matches nothing (`"^$"`). `task` excludes `tasks/README.md` and `_`-prefixed files; `shared` is the compiled changelog; `retired` the tombstones of 5.1, `"^$"` in a new project. |
-| `required` | the roles a source change must be accompanied by. A role the repository does not have is left out (4.1). |
+| `rules` | one regular expression per role, as a JSON string (a backslash is written twice). All six are present, and a repository may add its own for `required` to name; a role the repository lacks matches nothing (`"^$"`). `task` excludes `tasks/README.md` and `_`-prefixed files; `shared` is the compiled changelog; `retired` the tombstones of 5.1, `"^$"` in a new project. |
+| `required` | the roles a source change must be accompanied by. A role the repository does not have is left out (4.1). It may instead map roles to lists, where some files are held to less than source: `{"source": ["test", "doc", "task"], "procedure": ["doc", "task"]}`, with `procedure` a seventh role in `rules`. Every role it names must be in `rules`, and `source` must be held to at least one role. |
 | `base` | the branch pull requests target. |
 | `releaseFiles` | what a release pull request may touch: `CHANGELOG.md` and the version files (4.7). |
 | `changelog.recorded` | optional: the line that closes each changelog entry, `{hash}` standing for the commit's short hash (Appendix F). |
