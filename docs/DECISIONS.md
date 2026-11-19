@@ -486,3 +486,13 @@ form already forbids: such a record then names its reader, or is left as it was.
 Supersedes: D34
 
 Source: [tasks/new-records-are-found-by-heading-text.md](../tasks/new-records-are-found-by-heading-text.md)
+
+## D37 · 2026-11-19 · The conversion is worked first
+
+**Decision** — This task is worked ahead of the open tasks ordered by D7 and D35.
+**Rejected** — Taking it after them.
+**Why** — Erez runs it next, from Sunday 2026-11-22, when the team repository is at hand. Until the repositories are converted, each fix
+to the gate reaches them by retyping, which is what 0.6.0 was made to end, and the only
+proof that the conversion works is the plugin's own repository.
+
+Source: [tasks/convert-the-adopted-repositories.md](../tasks/convert-the-adopted-repositories.md)
