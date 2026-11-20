@@ -28,3 +28,15 @@ compiler decides.
 - [ ] script: a changelog entry with a line beginning `++` is compared and compiled, not dropped
 - [ ] script: "the compile after a merge…" passes under `core.autocrlf=true`
 - [ ] script: the same suites with no special configuration pass unchanged
+
+## Decisions
+
+### 2026-11-20 · Not admitted: the release check and the compiler under unusual git configuration
+
+**Decision** — Not built. The gate and `compile-changelog.mjs` keep reading git's output
+as git prints it by default. Erez ruled: it is handled when it comes to be an issue.
+This task stays open and is not worked until then.
+**Rejected** — Building it now, on the reader's constructed configurations.
+**Why** — None of the four configurations has met the gate in a repository (D41). The
+one to watch is `core.autocrlf=true`, the default of Git for Windows, wherever the gate
+runs outside WSL.
