@@ -52,8 +52,22 @@ accepts, and it was learned by trying strict on one.
 
 ## Using it
 
-This repository is a Claude Code plugin named `unities`, with one skill. Installed, the
-skill is run inside a repository:
+This repository is a Claude Code plugin named `unities`, with one skill, and the
+marketplace it is installed from. From a shell:
+
+```
+claude plugin marketplace add erezschatz/Unities
+claude plugin install unities@erezschatz
+```
+
+A new version is fetched by asking for it:
+
+```
+claude plugin marketplace update erezschatz
+claude plugin update unities@erezschatz
+```
+
+Installed, the skill is run inside a repository:
 
 ```
 /unities:unities-project

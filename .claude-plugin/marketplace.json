@@ -1,0 +1,14 @@
+{
+  "name": "erezschatz",
+  "description": "Plugins by Erez Schatz.",
+  "owner": {
+    "name": "Erez Schatz",
+    "url": "https://github.com/erezschatz"
+  },
+  "plugins": [
+    {
+      "name": "unities",
+      "source": "./"
+    }
+  ]
+}

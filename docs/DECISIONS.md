@@ -622,3 +622,40 @@ one to watch is `core.autocrlf=true`, the default of Git for Windows, wherever t
 runs outside WSL.
 
 Source: [tasks/diffs-are-read-under-any-git-config.md](../tasks/diffs-are-read-under-any-git-config.md)
+
+## D46 · 2026-11-20 · The marketplace is named erezschatz
+
+**Decision** — The marketplace's `name` is `erezschatz`, so the plugin is installed as
+`unities@erezschatz`. Erez chose it.
+**Rejected** — `unities`, which gives `unities@unities` and says nothing;
+`unities-plugins`, which promises a collection where there is one plugin.
+**Why** — The name is what is typed after the `@`. A user holds one marketplace per
+name, and the owner's handle is the one least likely to meet another. A second plugin
+of his can be listed under it without a rename, which would cost everyone a reinstall.
+
+Source: [tasks/a-marketplace-file.md](../tasks/a-marketplace-file.md)
+
+## D47 · 2026-11-20 · The plugin stays at the repository's root, and the entry says only where
+
+**Decision** — The marketplace file sits beside `plugin.json`, with one entry, `unities`,
+whose `source` is `"./"`. The entry has no `version` and no `description`. The file's
+own `description` is "Plugins by Erez Schatz." and its `owner` is his name and GitHub
+address.
+**Rejected** — Moving the plugin into a subdirectory, as the documentation's examples
+do; a description or version on the entry, a second place for what `plugin.json` says;
+a marketplace description that describes the plugin, the same second place; no
+marketplace description, which `claude plugin validate` warns about.
+**Why** — For a relative-path entry Claude Code reads `plugin.json` before the install,
+so the entry needs nothing more. The repository is the plugin; a subdirectory would move
+every path the runbook, the configuration and the decisions name.
+
+Source: [tasks/a-marketplace-file.md](../tasks/a-marketplace-file.md)
+
+## D48 · 2026-11-20 · No new version
+
+**Decision** — The plugin stays 0.6.4.
+**Rejected** — 0.6.5.
+**Why** — A version is a change to the procedure (D9). Nothing an adoption runs
+changed; how the plugin is fetched did.
+
+Source: [tasks/a-marketplace-file.md](../tasks/a-marketplace-file.md)

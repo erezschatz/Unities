@@ -30,12 +30,15 @@ What it does:
   `manifest.json` with their sha256 hashes and the plugin's version. They are planted by
   copy; a repository's own values live in its `.claude/hooks/unities.json`.
   `make-manifest.mjs` rewrites the manifest and is not planted.
-- **The plugin manifest**, `.claude-plugin/plugin.json`.
+- **The plugin manifest**, `.claude-plugin/plugin.json`, and beside it the marketplace
+  file, `.claude-plugin/marketplace.json`: one marketplace, `erezschatz`, listing this
+  plugin at the repository's root, so it is installed as `unities@erezschatz`. The
+  file says whose marketplace it is (its own one-line description, and the owner, which
+  Claude Code requires). The plugin's entry carries no version and no description; both
+  are read from `plugin.json`.
 
 What it explicitly does not do, as of 0.6.4:
 
-- It is not installable by name; there is no marketplace file yet
-  (`tasks/a-marketplace-file.md`).
 - The Codex binding has not been run under Codex (`tasks/verify-the-codex-binding.md`),
   and the gate has not been run on Windows outside WSL
   (`tasks/run-the-gate-under-cmd-exe.md`).
