@@ -149,3 +149,17 @@ without the plugin and for the skill to be listed, and neither was reported. The
 found it ticked in the first draft of this record.
 
 Reviewed by: a read-only subagent that had not seen the work; it found the second box ticked for more than was reported and two statements about the icon that went past the output, both corrected above before the commit
+
+## What was done
+
+Nothing in the repository changed but this file. Asked on 2026-11-22, in chat, whether
+the machine he installed on was without the plugin beforehand and whether
+`/unities:unities-project` was listed afterwards, Erez answered: "it was my work
+machine, so I guess no, but it did install correctly and shown as such."
+
+So the install from GitHub succeeded on a machine that, by his own guess, already had
+the plugin. The second box stays open: it asks for a machine without the plugin, which
+is what shows that someone who has never had it can install it. It closes the first time
+the two commands are run on such a machine and the skill is seen listed.
+
+Reviewed by: a read-only subagent that had not seen this record; no findings
