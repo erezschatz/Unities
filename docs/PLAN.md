@@ -17,9 +17,11 @@ what is not in scope are set by decisions. All of it is compiled from `tasks/` a
 - [new-records-are-found-by-heading-text](../tasks/new-records-are-found-by-heading-text.md) — A second record in a task file makes the first one count as new · done
 - [pr-measures-from-the-fork-point](../tasks/pr-measures-from-the-fork-point.md) — `--pr` measures a pull request from where it forked · done
 - [run-the-gate-under-cmd-exe](../tasks/run-the-gate-under-cmd-exe.md) — Run the gate where the shell is `cmd.exe`
+- [the-compilers-read-crlf-and-a-bom](../tasks/the-compilers-read-crlf-and-a-bom.md) — The compilers read a task file the same with CRLF, or with a BOM
 - [the-essay-says-whose-idea-this-is](../tasks/the-essay-says-whose-idea-this-is.md) — The essay says whose idea this is · done
 - [the-form-has-its-own-version](../tasks/the-form-has-its-own-version.md) — The form has its own version · done
 - [the-gate-does-not-require-a-record](../tasks/the-gate-does-not-require-a-record.md) — The gate does not require a record
+- [the-plan-can-be-switched-off](../tasks/the-plan-can-be-switched-off.md) — A repository that compiles no plan can say so
 - [the-runbook-is-source](../tasks/the-runbook-is-source.md) — The runbook and the skill are source in this repository · done
 - [the-scripts-as-files](../tasks/the-scripts-as-files.md) — Ship the scripts as files, not as listings · done
 - [verify-the-codex-binding](../tasks/verify-the-codex-binding.md) — Verify the Codex binding under Codex
