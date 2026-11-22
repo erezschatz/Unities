@@ -1,4 +1,4 @@
-<!-- UNITIES.md 2026-11-22 · 0.6.7. Master copy: the unities-project skill folder (plugin `unities`). -->
+<!-- UNITIES.md 2026-11-22 · 0.6.8. Master copy: the unities-project skill folder (plugin `unities`). -->
 
 # UNITIES.md — adopting the Unities in a repository
 
@@ -468,6 +468,15 @@ running the program where it runs belongs to the person who says it works (3.2):
 agent leaves it open and hands over those boxes alone, each with what to do and what
 should be seen.
 
+**The record.** A change in a role that the configuration holds to a task change
+(source, by default; Appendix A) must add a `## What was done` section to a task file. A
+task file that was only touched, a line added to its Context or a box ticked, is not a
+record, and the gate refuses it as "no record": at the commit and at the end of the turn
+in strict, at the pull request in adapted, where a commit on the way is told and not
+refused, as with everything else. A section the base already held is not the scene's. A
+scene that changes nothing held to a task change, one that only opens a task, owes no
+record.
+
 **The reader.** Every `## What was done` section a scene adds ends with a line
 `Reviewed by: <who>` naming the reader that read the diff cold against it (Appendix G: a
 read-only subagent, a colleague). The gate refuses a record without one, in every mode;
@@ -699,9 +708,11 @@ decision titled `Not admitted: …` (`docs/DECISIONS.md` there).
   nothing about whether `tests/parser.test.ts` really exercises `parser.ts`. Presence
   already catches the failure this discipline exists for, the record not being written
   at all. The reviewer covers truth; nothing covers it for free.
-- A touched task file is not a recorded scene. The gate asks that a task file changed,
-  and checks the `## What was done` sections a scene adds; it does not require that one
-  be added. The essay named that as a later tightening, and it has not been made.
+- A touched task file is not a recorded scene, and since 0.6.8 the gate says so: a
+  change in a role held to a task change must add a `## What was done` section, and a
+  line added elsewhere in a task file is refused as "no record" (4.7). What stays a
+  presence test is the section's content: the gate sees that one was added and that a
+  reader is named, not that it describes the change.
 - The `Stop` hook judges one session's tree or branch. Two sessions in one repository
   each see only their own. The commit gate (strict) or the PR gate (adapted) is what
   holds across sessions.
@@ -1467,7 +1478,8 @@ behaviour the practice depended on: the gate at the pull request, free commits i
 adapted, refused commits in strict, merges that do not re-check the other branch's
 scenes, a target that has not adopted yet, a target that moved on after the branch
 forked, tombstones that may be deleted but not edited, the release check, review rounds
-whose items must name their cases and be closed before merge, and the compiled record:
+whose items must name their cases and be closed before merge, a touched task file that
+is not a record, and the compiled record:
 numbers that never change, a pull request that may not touch `docs/DECISIONS.md` or
 `docs/PLAN.md`, the compile that may, and the strict commit that must carry them up to
 date; that the same script called from Codex's hooks (`--codex`, 4.10) checks the same

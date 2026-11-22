@@ -1400,3 +1400,95 @@ test("the gate reads a task file with CRLF line endings or a byte-order mark as 
   for (const form of FORMS)
     for (const [name, t] of Object.entries(texts)) assert.equal(pr(form(t)), plain[name], name);
 });
+
+// ---- a touched task file is not a recorded scene ----
+
+const OPENED = "# t\n\n## Context\n\nasked\n\n**Acceptance**\n\n- [ ] script: it works\n";
+const RECORDED = OPENED + "\n## What was done\n\ndone\n\nReviewed by: a reader\n";
+const unrecorded = (write, task = OPENED) => {
+  write(SOURCE, "changed\n");
+  write(TEST, "test\n");
+  write(DOC, "documented\n");
+  write(TASK, task);
+};
+
+test("adapted: source with its test, doc and a touched task file but no record is refused at the pull request, and only warned of at the commit", () => {
+  const { dir, git, write, commit } = repo();
+  git("checkout -q -b feature");
+  unrecorded(write);
+  git("add -A");
+  const staged = run(dir, ["--staged"]);
+  assert.equal(staged.status, 0);
+  assert.match(staged.stderr, /no record: /);
+  commit("no-record");
+  const result = run(dir, ["--pr", "main"]);
+  assert.equal(result.status, 1);
+  assert.match(result.stderr, /no record: a task file changed but no "## What was done" section was added/);
+  write(TASK, RECORDED);
+  commit("record");
+  assert.equal(run(dir, ["--pr", "main"]).status, 0);
+});
+
+test("strict: the same scene is refused at the commit and at the end of the turn, and passes once the record is added", () => {
+  const { dir, git, write, compile } = repo();
+  unrecorded(write);
+  compile();
+  git("add -A");
+  for (const mode of ["--staged", "--branch"]) {
+    const result = run(dir, [mode], { scene: "commit" });
+    assert.equal(result.status, 2);
+    assert.match(result.stderr, /no record: /);
+    assert.doesNotMatch(result.stderr, /out of date|no \w+ change/);   // the record is all that is missing
+  }
+  write(TASK, RECORDED);
+  compile();
+  git("add -A");
+  assert.equal(run(dir, ["--staged"], { scene: "commit" }).status, 0);
+  assert.equal(run(dir, ["--branch"], { scene: "commit" }).status, 0);
+});
+
+test("a record the base already held is not this scene's: a line added elsewhere in that task file is refused", () => {
+  const { dir, git, write, commit } = repo();
+  write(TASK, RECORDED);
+  commit("an-earlier-scene");
+  git("checkout -q -b feature");
+  unrecorded(write, RECORDED.replace("asked", "asked, and one more line"));
+  commit("touched");
+  const result = run(dir, ["--pr", "main"]);
+  assert.equal(result.status, 1);
+  assert.match(result.stderr, /no record: /);
+});
+
+test("a scene that only opens a task, and changes no source, passes in both stagings", () => {
+  let r = repo();
+  r.git("checkout -q -b feature");
+  r.write(TASK, OPENED);
+  r.commit("open-a-task");
+  assert.equal(run(r.dir, ["--pr", "main"]).status, 0);
+  r = repo();
+  r.write(TASK, OPENED);
+  r.compile();
+  r.git("add -A");
+  assert.equal(run(r.dir, ["--staged"], { scene: "commit" }).status, 0);
+});
+
+test("a role held to a task change is held to a record; a role held to less is not", () => {
+  const config = { ...FIXTURE, rules: { ...FIXTURE.rules, procedure: "^procedure/", notes: "^notes/" },
+    required: { source: ["test", "doc", "task"], procedure: ["doc", "task"], notes: ["doc"] } };
+  let r = repo({ config });
+  r.git("checkout -q -b feature");
+  r.write("procedure/RUNBOOK.md", "a step\n");
+  r.write(DOC, "documented\n");
+  r.write(TASK, OPENED);
+  r.commit("procedure");
+  const result = run(r.dir, ["--pr", "main"]);
+  assert.equal(result.status, 1);
+  assert.match(result.stderr, /no record: /);
+  r = repo({ config });
+  r.git("checkout -q -b feature");
+  r.write("notes/n.md", "a note\n");
+  r.write(DOC, "documented\n");
+  r.write(TASK, OPENED);
+  r.commit("notes");
+  assert.equal(run(r.dir, ["--pr", "main"]).status, 0);
+});

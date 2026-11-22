@@ -165,6 +165,7 @@ if (files.length && existsSync(join(cwd, RECORD_COMPILER))) {
 }
 
 // Acceptance boxes in the task files this scene touches.
+let recorded = false;   // has the scene added a "## What was done" section, in any task file?
 for (const f of files.filter(f => RULES.task.test(f) && !deleted.includes(f))) {
   let heading = "";
   for (const line of contents(f).split("\n")) {
@@ -179,6 +180,7 @@ for (const f of files.filter(f => RULES.task.test(f) && !deleted.includes(f))) {
   const sections = scenesSections(f);
   for (const section of sections) {
     if (!/^## What was done/.test(section)) continue;
+    recorded = true;
     if (!REVIEW.test(section) && !REVIEW_EXEMPT.test(section))
       missing.push(`record in ${f} has no "Reviewed by:" line (a reader that has not seen the work; see Appendix G)`);
   }
@@ -199,6 +201,13 @@ for (const f of files.filter(f => RULES.task.test(f) && !deleted.includes(f))) {
     }
   }
 }
+
+// A touched task file is not a recorded scene. A change that must carry a task change
+// must carry the record itself: a "## What was done" section the scene added. A scene
+// that only opens a task changes nothing that owes one, and passes.
+const owesRecord = Object.entries(REQUIRED).some(([role, needs]) => needs.includes("task") && has(RULES[role]));
+if (owesRecord && !recorded && !missing.includes("no task change"))
+  missing.push(`no record: a task file changed but no "## What was done" section was added (tasks/README.md)`);
 
 // The planted scripts are the plugin's, byte for byte. A copy edited in place is a second
 // version of the gate; the fix belongs in the plugin, and an upgrade is a copy of the

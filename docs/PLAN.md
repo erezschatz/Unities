@@ -20,7 +20,7 @@ what is not in scope are set by decisions. All of it is compiled from `tasks/` a
 - [the-compilers-read-crlf-and-a-bom](../tasks/the-compilers-read-crlf-and-a-bom.md) — The compilers read a task file the same with CRLF, or with a BOM · done
 - [the-essay-says-whose-idea-this-is](../tasks/the-essay-says-whose-idea-this-is.md) — The essay says whose idea this is · recorded, 1 box open
 - [the-form-has-its-own-version](../tasks/the-form-has-its-own-version.md) — The form has its own version · done
-- [the-gate-does-not-require-a-record](../tasks/the-gate-does-not-require-a-record.md) — The gate does not require a record
+- [the-gate-does-not-require-a-record](../tasks/the-gate-does-not-require-a-record.md) — The gate does not require a record · done
 - [the-plan-can-be-switched-off](../tasks/the-plan-can-be-switched-off.md) — A repository that compiles no plan can say so · recorded, 1 box open
 - [the-plan-says-when-boxes-are-open](../tasks/the-plan-says-when-boxes-are-open.md) — The plan says when a recorded task still has boxes open · done
 - [the-runbook-is-source](../tasks/the-runbook-is-source.md) — The runbook and the skill are source in this repository · done
