@@ -806,3 +806,46 @@ reader does someone else hold the pen, and the brief already says so to that rea
 The wording predates this task and nothing went wrong by it.
 
 Source: [tasks/whoever-checks-a-box-ticks-it.md](../tasks/whoever-checks-a-box-ticks-it.md)
+
+## D59 · 2026-11-22 · A recorded task is done only when no box in its file is open
+
+**Decision** — `compile-record.mjs` counts the open boxes (`- [ ]`) in each task file.
+A step with a `## What was done` section reads `done` when the count is zero and
+`recorded, N boxes open` otherwise. A step with no record carries no status and no
+count, as before. The gate is unchanged by this scene. It refuses nothing for an open
+acceptance box; at the pull request it refuses a review item the scene adds while one of
+its *Done when* boxes is open, as it did.
+**Rejected** — Leaving `done` as it was and saying it only in the standing paragraph,
+which 0.6.6 did and which does not show in the plan; having the gate also refuse a
+record while an acceptance box is open, which would refuse every scene whose last check can only be made
+after it is pushed, as the install from GitHub was; a count on steps with no record,
+where every box is open and the number says nothing.
+**Why** — It happened in two repositories. The plan is where Erez reads what is
+finished, and it said so of tasks that still owed him a check.
+
+Source: [tasks/the-plan-says-when-boxes-are-open.md](../tasks/the-plan-says-when-boxes-are-open.md)
+
+## D60 · 2026-11-22 · Every box in the file counts, not only the acceptance boxes
+
+**Decision** — The count is of every open box in the task file outside a fenced block:
+the acceptance boxes and the *Done when* boxes of every review. A box is a line the gate
+takes for one, written with `-` or with `*`.
+**Rejected** — Counting acceptance boxes only; skipping the boxes of a review item that
+became a task of its own.
+**Why** — Erez's words were about boxes, not about a kind of box, and an unanswered
+review item is owed as much as an unperformed check. An item that moved to its own task
+file keeps its open boxes in the file where it was found, since a record is not edited;
+that file then reads `recorded` until the other task closes and somebody ticks them.
+In this repository that is `tasks/new-records-are-found-by-heading-text.md`, with seven.
+A fenced block is skipped because a task file may quote a box, as a template does.
+
+Source: [tasks/the-plan-says-when-boxes-are-open.md](../tasks/the-plan-says-when-boxes-are-open.md)
+
+## D61 · 2026-11-22 · 0.6.7
+
+**Decision** — The version is 0.6.7.
+**Rejected** — No new version.
+**Why** — A planted script changed, and with it what an adopted repository's compiled
+plan says (D9).
+
+Source: [tasks/the-plan-says-when-boxes-are-open.md](../tasks/the-plan-says-when-boxes-are-open.md)

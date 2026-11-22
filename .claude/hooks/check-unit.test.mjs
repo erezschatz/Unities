@@ -450,6 +450,28 @@ test("a decision written in a task file is compiled with the next number, and th
   assert.equal(read(DECISIONS) + read(PLAN), before);
 });
 
+test("a task with a record and an open box is recorded, not done, and the plan says how many are open", () => {
+  const { write, compile, read } = repo();
+  const record = "## What was done\n\ndone\n\nReviewed by: a reader\n";
+  write(TASK, `# t\n\n## Context\n\n**Acceptance**\n\n- [x] script: one\n- [ ] the assignee: two\n\n${record}`);
+  write("tasks/2-u.md", `# u\n\n## Context\n\n- [ ] the assignee: one\n\n${record}\n## Review · 2026-11-22\n\n### a finding\n\n**Done when**\n\n* [ ] a case → an outcome\n`);
+  write("tasks/3-v.md", "# v\n\n## Context\n\n- [ ] the assignee: not started\n");
+  compile();
+  assert.match(read(PLAN), /— t · recorded, 1 box open\n/);
+  assert.match(read(PLAN), /— u · recorded, 2 boxes open\n/);
+  assert.match(read(PLAN), /— v\n/);                       // no record: open, and no count
+  write(TASK, read(TASK).replace("- [ ] the assignee: two", "- [x] the assignee: two"));
+  compile();
+  assert.match(read(PLAN), /— t · done\n/);
+});
+
+test("a box quoted in a fenced block is not an open box", () => {
+  const { write, compile, read } = repo();
+  write(TASK, "# t\n\n## Context\n\n- [x] script: one\n\nThe template reads:\n\n```\n- [ ] <actor>: <check>\n```\n\n## What was done\n\ndone\n\nReviewed by: a reader\n");
+  compile();
+  assert.match(read(PLAN), /— t · done\n/);
+});
+
 test("a compiled decision keeps its number whatever is compiled after it", () => {
   const { write, compile, read } = repo();
   write(TASK, taskWith(decision("2026-11-11", "Second by date")));

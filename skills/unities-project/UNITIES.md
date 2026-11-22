@@ -1,4 +1,4 @@
-<!-- UNITIES.md 2026-11-22 · 0.6.6. Master copy: the unities-project skill folder (plugin `unities`). -->
+<!-- UNITIES.md 2026-11-22 · 0.6.7. Master copy: the unities-project skill folder (plugin `unities`). -->
 
 # UNITIES.md — adopting the Unities in a repository
 
@@ -565,7 +565,8 @@ mark gaps as gaps.
 - `docs/PLAN.md` — compiled (4.5). *Steps*: one line per task file, in file-name order,
   linking to it; adding a step is adding a task file, and nobody edits a list. The order
   is the file names' unless a decision says otherwise. Each line carries the status
-  derived from its task file (a `## What was done` section → done); what the discipline
+  derived from its task file: a `## What was done` section and no open box anywhere in the
+  file → done; a section and a box still open → `recorded, N boxes open`; what the discipline
   removes is the hand-kept status field, and this one has no hand. *Milestones* and
   *Not in scope* are set by decisions: a decision carries `Milestone: After NN: …` or
   `Not in scope: …` lines, the plan lists them with the decision's number, and they
@@ -1105,8 +1106,10 @@ A task file has:
 
 The plan's steps are the task files themselves: adding a step is adding a file here.
 
-Status is derived: no "what was done" → open; present → done; included in a compiled
-release → shipped. There is no status field to keep in sync.
+Status is derived: no "what was done" → open; present, with a box in the file still
+open → recorded, and the plan says how many boxes are open; present and every box
+ticked → done; included in a compiled release → shipped. There is no status field to
+keep in sync.
 
 Outside input enters here and nowhere else. If it is not a task file, it did not arrive.
 ```

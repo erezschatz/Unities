@@ -4,6 +4,8 @@
 // The only writer docs/DECISIONS.md and docs/PLAN.md have. Both are compiled from the
 // task files: decisions from their `## Decisions` sections, the plan's steps from the
 // task files that exist, its milestones and not-in-scope lines from the decisions.
+// A step with a record reads "done" when no box in its task file is open, and
+// "recorded, N boxes open" while one is.
 // A repository that keeps no plan says "plan": false in the gate's configuration, and
 // docs/PLAN.md is then neither written nor checked.
 // A pure function of the files in the work tree: no git, no clock, so the gate can
@@ -38,8 +40,21 @@ const trimBlank = lines => {
   return lines.slice(a, b);
 };
 
+// A box is open while it reads "- [ ]" (or "* [ ]": the gate takes either for a box),
+// wherever in the task file it stands: an
+// acceptance box, or a review item's Done when. A fenced block is skipped, because a
+// task file may quote a box without having one.
+const openBoxes = text => {
+  let fenced = false, count = 0;
+  for (const line of text.split("\n")) {
+    if (/^\s*```/.test(line)) fenced = !fenced;
+    else if (!fenced && /^\s*[-*] \[ \]/.test(line)) count++;
+  }
+  return count;
+};
+
 // ---- read the task files ----
-const tasks = [];       // { file, stem, title, done }
+const tasks = [];       // { file, stem, title, recorded, open }
 const decisions = [];   // { key, date, title, file, order, body[] }
 const names = existsSync(TASKS)
   ? readdirSync(TASKS).filter(f => /^[^_].*\.md$/.test(f) && f !== "README.md").sort(natural) : [];
@@ -47,7 +62,7 @@ for (const name of names) {
   const file = `${TASKS}/${name}`;
   const text = read(file);
   const title = (text.match(/^#\s+(.+)$/m)?.[1] ?? name).trim();
-  tasks.push({ file, stem: name.replace(/\.md$/, ""), title, done: /^## What was done/m.test(text) });
+  tasks.push({ file, stem: name.replace(/\.md$/, ""), title, recorded: /^## What was done/m.test(text), open: openBoxes(text) });
   let inDecisions = false, current = null;
   for (const line of text.split("\n")) {
     if (/^## /.test(line)) { inDecisions = /^## Decisions\s*$/.test(line); current = null; continue; }
@@ -104,7 +119,10 @@ const planLines = label => decisions.filter(d => !superseded.has(d.n)).flatMap(d
 const [planHead] = split(PLAN,
   "# Plan\n\nThe steps are the task files, in file-name order unless a decision says otherwise. Milestones and\nwhat is not in scope are set by decisions. All of it is compiled from `tasks/` after each merge.\n");
 let planOut = `${planHead.trimEnd()}\n\n${MARKER}\n\n## Steps\n\n`;
-planOut += tasks.map(t => `- [${t.stem}](../${t.file}) — ${t.title}${t.done ? " · done" : ""}`).join("\n") || "(no task files yet)";
+// A task with a record is done only when no box in its file is open. Until then the
+// plan says how many are, so "done" is never read off a task somebody still owes a check.
+const status = t => !t.recorded ? "" : !t.open ? " · done" : ` · recorded, ${t.open} ${t.open === 1 ? "box" : "boxes"} open`;
+planOut += tasks.map(t => `- [${t.stem}](../${t.file}) — ${t.title}${status(t)}`).join("\n") || "(no task files yet)";
 planOut += "\n";
 for (const [heading, label] of [["Milestones", "Milestone"], ["Not in scope", "Not in scope"]]) {
   const found = planLines(label);

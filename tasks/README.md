@@ -75,7 +75,9 @@ A task file has:
 
 The plan's steps are the task files themselves: adding a step is adding a file here.
 
-Status is derived: no "what was done" → open; present → done; included in a compiled
-release → shipped. There is no status field to keep in sync.
+Status is derived: no "what was done" → open; present, with a box in the file still
+open → recorded, and the plan says how many boxes are open; present and every box
+ticked → done; included in a compiled release → shipped. There is no status field to
+keep in sync.
 
 Outside input enters here and nowhere else. If it is not a task file, it did not arrive.
