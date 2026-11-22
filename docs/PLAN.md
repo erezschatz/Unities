@@ -25,3 +25,8 @@ what is not in scope are set by decisions. All of it is compiled from `tasks/` a
 - [the-runbook-is-source](../tasks/the-runbook-is-source.md) — The runbook and the skill are source in this repository · done
 - [the-scripts-as-files](../tasks/the-scripts-as-files.md) — Ship the scripts as files, not as listings · done
 - [verify-the-codex-binding](../tasks/verify-the-codex-binding.md) — Verify the Codex binding under Codex
+- [whoever-checks-a-box-ticks-it](../tasks/whoever-checks-a-box-ticks-it.md) — Whoever checks a box ticks it · done
+
+## Not in scope
+
+- changing Saar's `AGENTS.md`, D14 or `docs/working-on-a-task.md`; that is a scene in Saar's repository. (D55)

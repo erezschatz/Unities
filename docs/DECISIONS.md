@@ -752,3 +752,57 @@ one version, 0.6.5.
 conversion is re-run once.
 
 Source: [tasks/the-plan-can-be-switched-off.md](../tasks/the-plan-can-be-switched-off.md)
+
+## D55 · 2026-11-22 · A box is ticked by whoever performed its check, the agent included
+
+**Decision** — The agent ticks a box it checked by reading the code or by a command
+whose output it reports, and a review box the reader found to hold. It does not ask a
+person to tick those. A box that can only be checked by running the program stays open and is
+handed to the person the division of labour names, those boxes alone, each with what to
+do and what should be seen.
+**Rejected** — Every tick is the person's, as the agent in Saar's repository read its
+rule: the person then confirms what they did not check, and the one check that is theirs
+is lost among three that are not. The agent ticking every box, including those that need
+the running program: it has not seen the program run.
+**Why** — A tick says a check was performed. The scene's developer is one person with
+the agents that act for them (Appendix D), so the one who performed the check is the one
+who can say so. What stays a person's is what 3.2 already keeps for one: saying it works
+where it runs.
+Not in scope: changing Saar's `AGENTS.md`, D14 or `docs/working-on-a-task.md`; that is a scene in Saar's repository.
+
+Source: [tasks/whoever-checks-a-box-ticks-it.md](../tasks/whoever-checks-a-box-ticks-it.md)
+
+## D56 · 2026-11-22 · The rule is prose in 4.7 and the standing paragraph; the gate and the brief do not change
+
+**Decision** — 4.7 states the rule once, under *Acceptance boxes*. The standing
+paragraphs of Appendix E carry it as an instruction to the agent, since that paragraph
+is what an agent in a deployment reads. 4.8 tells the guide to say it. The gate, the
+reader's brief and the form (1.0) are unchanged.
+**Rejected** — A gate check on who ticked: a tick carries no author, and 4.7 already
+says who ticks is not part of the form. Having the reader tick: its brief says "Change
+nothing", and a reader that edits the file it reads is no longer reading cold.
+**Why** — What went wrong was an instruction read wrongly, not a scene the gate let
+through. The fix belongs where the instruction is.
+
+Source: [tasks/whoever-checks-a-box-ticks-it.md](../tasks/whoever-checks-a-box-ticks-it.md)
+
+## D57 · 2026-11-22 · 0.6.6
+
+**Decision** — The plugin is 0.6.6: the runbook's first line,
+`.claude-plugin/plugin.json` and both manifests.
+**Rejected** — Holding the change for the next version that changes a script.
+**Why** — A change to the procedure is a version (`CLAUDE.md`, *Code rules*).
+
+Source: [tasks/whoever-checks-a-box-ticks-it.md](../tasks/whoever-checks-a-box-ticks-it.md)
+
+## D58 · 2026-11-22 · Who writes the review section is left as the runbook has it
+
+**Decision** — 4.7 *Review rounds*, Appendix D and `tasks/README.md` go on saying the
+review section is written "by whoever reviews", while the brief says whoever asked the
+reader writes its findings. Known, and not changed in this scene.
+**Rejected** — Rewording the three places here.
+**Why** — For a person who reviews, "whoever reviews" is right; only for a read-only
+reader does someone else hold the pen, and the brief already says so to that reader.
+The wording predates this task and nothing went wrong by it.
+
+Source: [tasks/whoever-checks-a-box-ticks-it.md](../tasks/whoever-checks-a-box-ticks-it.md)

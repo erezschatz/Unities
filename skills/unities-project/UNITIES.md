@@ -1,4 +1,4 @@
-<!-- UNITIES.md 2026-11-22 · 0.6.5. Master copy: the unities-project skill folder (plugin `unities`). -->
+<!-- UNITIES.md 2026-11-22 · 0.6.6. Master copy: the unities-project skill folder (plugin `unities`). -->
 
 # UNITIES.md — adopting the Unities in a repository
 
@@ -457,6 +457,17 @@ old by active users" — is an outcome, not a check: it is the promise or a mile
 mode, so it is caught at the commit or the turn, not only at merge. Move the sentence up
 to the promise or out to the plan and replace it with the checks it decomposes into.
 
+A box, here or in a review round, is ticked by whoever performed its check, and that
+includes the agent: a scene's developer is one person with the agents that act for them
+(Appendix D). The agent ticks a box it checked by reading the code or by a command whose
+output it reports, and a review box the reader found to hold (Appendix G). It does not
+ask a person to tick what it has checked. A *Done when* line describes the running
+program and is still checked by reading the code path, as the reader checks it; that it
+is about the program does not make it a person's. A box that can only be checked by
+running the program where it runs belongs to the person who says it works (3.2): the
+agent leaves it open and hands over those boxes alone, each with what to do and what
+should be seen.
+
 **The reader.** Every `## What was done` section a scene adds ends with a line
 `Reviewed by: <who>` naming the reader that read the diff cold against it (Appendix G: a
 read-only subagent, a colleague). The gate refuses a record without one, in every mode;
@@ -475,8 +486,9 @@ the failed rows importable" names one case, and the rows that were never sent fa
 of the preview with every box ticked and every test green. The gate cannot judge whether
 the cases are complete. It refuses, in every mode, an item added by the scene that lacks
 one of the three parts or has a *Done when* line without `→`; and at the pull request it
-refuses an item with an open box. Who ticks a box is not part of the form; that the
-verifier read the diff against each line is (Appendix G). Review sections that predate
+refuses an item with an open box. Who ticks a box is not part of the form (who does is
+under *Acceptance boxes*, above); that the verifier read the diff against each line is
+(Appendix G). Review sections that predate
 this rule are left alone.
 
 In strict the gate is not required (every commit is already complete) but is cheap, and
@@ -502,7 +514,9 @@ equivalent) for them, and link it from the README's setup path and from
    appended, never edited once merged; it becomes the changelog entry. And, where the
    work chose something over something else, a `## Decisions` entry in the same task
    file: the developer never opens `docs/DECISIONS.md` or `docs/PLAN.md` to write, only
-   to read; both are compiled from the task files after the merge.
+   to read; both are compiled from the task files after the merge. And who ticks a box
+   (4.7): whoever performed its check, the developer's agent included, so the developer
+   is handed only the boxes that can only be checked by running the program.
 4. What happens at merge (adapted) or at commit (strict): the gate, how to run it
    locally, and who sets the work item's state.
 5. A review round: where it appears (a `## Review` section in the task's own file, on
@@ -1151,8 +1165,12 @@ recorded as a decision before it is built. Before committing, give the staged di
 the task file to a reader that has not seen the work — a read-only subagent, never
 yourself — to carry out `docs/reviewer.md`; write what it finds into the task file and
 its name on the record's `Reviewed by:` line. The agent does not
-claim a build is green or a feature works where it runs; <who> does. The developer's side
-of all this is `docs/working-on-a-task.md`.
+claim a build is green or a feature works where it runs; <who> does. A box you checked by
+reading the code or by a command whose output you report, or a review box the reader
+found to hold, you tick; do not ask anyone to tick it for you. A box that can only be
+checked by running the program you leave open and hand to <who>, those boxes alone, each
+with what to do and what should be seen. The developer's side of all this is
+`docs/working-on-a-task.md`.
 ```
 
 Adapted:
@@ -1186,7 +1204,11 @@ yourself — to carry out `docs/reviewer.md`; write what it finds into the task 
 its name on the record's `Reviewed by:` line. Where the tool that merges asks the same
 questions again, what the reader finds here is what does not come back from there. The
 agent does not claim a build is green or a feature works where it runs; <who>
-does. The developer's side of all this is `docs/working-on-a-task.md`.
+does. A box you checked by reading the code or by a command whose output you report, or
+a review box the reader found to hold, you tick; do not ask anyone to tick it for you. A
+box that can only be checked by running the program you leave open and hand to <who>,
+those boxes alone, each with what to do and what should be seen. The developer's side of
+all this is `docs/working-on-a-task.md`.
 ```
 
 ## Appendix F — `scripts/compile-changelog.mjs`
@@ -1241,8 +1263,8 @@ questions, and the same reader answers all three in one pass:
 
 Its findings are written as a `## Review` section in the same task file, in the item
 shape of Appendix D, so that a verifier's finding and a person's review are the same
-thing to the developer and to the gate. It ticks the boxes it found to hold and leaves
-the others open. Run by the developer's agent before the pull request, by a colleague,
+thing to the developer and to the gate. It says which boxes it found to hold; whoever
+asked for the reading ticks those and leaves the others open (4.7). Run by the developer's agent before the pull request, by a colleague,
 or by the merging tool before it merges, it is one procedure: the oars, not the helm.
 
 **The brief.** The three questions and the shape of the answer are a file,

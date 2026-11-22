@@ -44,7 +44,11 @@ before it is built. Before committing, give the staged diff and the task file to
 that has not seen the work — a read-only subagent, never yourself — to carry out
 `docs/reviewer.md`; write what it finds into the task file and its name on the record's
 `Reviewed by:` line. The agent does not claim a build is green or a feature works where
-it runs; Erez does.
+it runs; Erez does. A box you checked by reading the code or by a command whose output
+you report, or a review box the reader found to hold, you tick; do not ask Erez to tick
+it for you. A box that can only be checked by running the plugin in a repository you
+leave open and hand to him, those boxes alone, each with what to do and what should be
+seen.
 
 ## Code rules
 
