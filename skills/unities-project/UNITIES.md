@@ -1,4 +1,4 @@
-<!-- UNITIES.md 2026-11-19 · 0.6.4. Master copy: the unities-project skill folder (plugin `unities`). -->
+<!-- UNITIES.md 2026-11-22 · 0.6.5. Master copy: the unities-project skill folder (plugin `unities`). -->
 
 # UNITIES.md — adopting the Unities in a repository
 
@@ -793,7 +793,8 @@ Convert them once, in this scene:
    `RULES`, `REQUIRED`, `BASE`, `RELEASE_FILES`) and write the same values into
    `.claude/hooks/unities.json` (Appendix A), each regular expression as a string. The
    closing line of `formatEntry` in `scripts/compile-changelog.mjs`, if it differs from
-   ``Recorded in `<hash>`.``, goes into `changelog.recorded`.
+   ``Recorded in `<hash>`.``, goes into `changelog.recorded`. A repository whose copy of
+   `scripts/compile-record.mjs` was changed to compile no plan gets `"plan": false`.
 2. Compare the rest of each old copy with the listing it was cut from: the appendices of
    the repository's previous `docs/UNITIES.md` (`git show HEAD:docs/UNITIES.md`, since the
    skill has just replaced the file). A difference outside the per-repo blocks is a local
@@ -902,6 +903,10 @@ sentences as the adoption task's record. Then tell the person:
 `.claude/hooks/check-unit.mjs` byte for byte, the licence line included. Nothing in it is
 per-repo, and it says what it does in its own comments: the three modes, the roles, the
 compiled record, acceptance boxes, the reader, review rounds and the manifest check.
+The gate and both compilers read the files of a repository (task files, the compiled
+files, the changelog, the configuration and the manifest, in the work tree and from
+git) with CRLF line endings as LF and without a leading byte-order mark, so a Windows
+checkout gets the answer a Linux one gets.
 
 **The configuration** is `.claude/hooks/unities.json`, written by the adoption from
 Phase 3. The gate reads it from the repository it runs in, and stops with an error naming
@@ -935,6 +940,7 @@ not defaults:
 | `releaseFiles` | what a release pull request may touch: `CHANGELOG.md` and the version files (4.7). |
 | `changelog.recorded` | optional: the line that closes each changelog entry, `{hash}` standing for the commit's short hash (Appendix F). |
 | `run` | optional: how the gate invokes the two compilers, `"node"` when absent (Appendix H). |
+| `plan` | optional: `false` in a repository that keeps no compiled plan. The record compiler then writes and checks `docs/DECISIONS.md` alone, the gate does not ask for `docs/PLAN.md`, and a file of that name, if there is one, is an ordinary doc. Absent or `true`, the plan is compiled (4.9, Appendix K). `Milestone:` and `Not in scope:` lines in decisions then go nowhere. Where it is `false`, whatever this runbook, the standing paragraph (Appendix E) and the gate's messages say of `docs/PLAN.md` as a compiled file does not apply: the adoption writes the paragraph with `docs/DECISIONS.md` alone, and an outcome box is moved to the promise. |
 | `plugin` | only in the plugin's own repository: the folder of the master files. A scene there that touches a master, a planted copy or the manifest is refused unless every planted copy and the manifest equal the masters. |
 
 **The manifest** is `files/manifest.json`: the plugin's version and the sha256 of each
@@ -1408,10 +1414,14 @@ steps:
   - bash: |
       set -euo pipefail
       node scripts/compile-record.mjs
-      if git diff --quiet -- docs/DECISIONS.md docs/PLAN.md; then exit 0; fi
+      # docs/PLAN.md is named only while it carries the compiler's marker. With
+      # "plan": false (Appendix A) the compiler leaves it alone, or it is not there.
+      compiled="docs/DECISIONS.md"
+      if grep -q "Compiled from tasks/" docs/PLAN.md 2>/dev/null; then compiled="$compiled docs/PLAN.md"; fi
+      if git diff --quiet -- $compiled; then exit 0; fi
       git config user.name "merge man"
       git config user.email "merge-man@localhost"
-      git add docs/DECISIONS.md docs/PLAN.md
+      git add $compiled
       git commit -m "Compile the record [skip ci]"
       git push origin HEAD:$(Build.SourceBranchName)
     displayName: Compile decisions and plan from the task files
@@ -1447,10 +1457,14 @@ test checks that `manifest.json` holds the hash of every shipped file.
 
 `files/compile-record.mjs` in the skill folder, planted at `scripts/compile-record.mjs`
 byte for byte: `docs/DECISIONS.md` and `docs/PLAN.md` from the task files (4.5). The
-paths are fixed, because the gate looks for the compiled files there. It is a pure
+paths are fixed, because the gate looks for the compiled files there. Its one per-repo
+value is `plan` in the gate's configuration (Appendix A): `false`, and it compiles the
+decisions alone. It is a pure
 function of the work tree, no git and no clock, so the gate can run it with `--check`
-and compare: exit 0 when both files equal its output, 1 when they do not, 3 when the
-record itself is invalid (a compiled decision removed or retitled, a duplicate).
+and compare: exit 0 when the compiled files equal its output, 1 when they do not, 3 when
+the record itself is invalid (a compiled decision removed or retitled, a duplicate) or
+the configuration cannot be read for `plan` (not JSON, or a value that is not true or
+false).
 
 ## Appendix L — other agents (4.10)
 

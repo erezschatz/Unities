@@ -21,9 +21,6 @@ import { join } from "node:path";
 const CONFIG = ".claude/hooks/unities.json";            // per-repo values, written at adoption
 const MANIFEST = ".claude/hooks/unities.manifest.json"; // copied from the plugin with the scripts
 const COMPILER = "scripts/compile-changelog.mjs";
-// docs/DECISIONS.md and docs/PLAN.md are compiled from the task files (Appendix K). Nobody
-// writes them by hand: a decision is written in the task file of the work that made it.
-const RECORD_FILES = /^docs\/(DECISIONS|PLAN)\.md$/;
 const RECORD_COMPILER = "scripts/compile-record.mjs";
 const RECORD_MARKER = "<!-- Compiled from tasks/ by scripts/compile-record.mjs.";
 const SELF = ".claude/hooks/check-unit.mjs";
@@ -59,6 +56,11 @@ const RULES = Object.fromEntries(Object.entries(config.rules).map(([role, re]) =
 const REQUIRED = Array.isArray(config.required) ? { source: config.required } : config.required;
 const BASE = config.base;                                  // the branch pull requests target
 const RELEASE_FILES = new RegExp(config.releaseFiles);     // what a release PR may touch
+// docs/DECISIONS.md and docs/PLAN.md are compiled from the task files (Appendix K). Nobody
+// writes them by hand: a decision is written in the task file of the work that made it.
+// A repository that keeps no plan ("plan": false) compiles only the decisions, and a
+// docs/PLAN.md there, if any, is an ordinary file.
+const RECORD_FILES = config.plan === false ? /^docs\/DECISIONS\.md$/ : /^docs\/(DECISIONS|PLAN)\.md$/;
 const RUN = config.run ?? "node";                          // how the compilers are invoked (Deno, Bun: Appendix H)
 const strict = SCENE === "commit";
 
@@ -170,7 +172,7 @@ for (const f of files.filter(f => RULES.task.test(f) && !deleted.includes(f))) {
     const m = /^\s*[-*] \[[ xX]\]\s+(.+)$/.exec(line);
     // "Done when" boxes of a review describe behaviour and may well start with "the user".
     if (m && !REVIEW_SECTION.test(heading) && ACCEPTANCE_FORBIDDEN.test(m[1].trim()))
-      missing.push(`acceptance box in ${f} names an outcome, not a check: "${m[1].trim()}" (make it the promise or a PLAN.md milestone)`);
+      missing.push(`acceptance box in ${f} names an outcome, not a check: "${m[1].trim()}" (make it the promise${config.plan === false ? "" : " or a PLAN.md milestone"})`);
   }
   // Every record this scene adds names its cold reader. A section is the scene's unless
   // the base held it word for word, in any task file (scenesSections).
@@ -315,7 +317,7 @@ function baseSections() {   // every section of every task file at the scene's b
 }
 function sectionsOf(text) {   // the "## " sections of a file; line endings and trailing blanks are not content
   const out = [];
-  for (const raw of text.replace(/\r\n/g, "\n").split("\n")) {
+  for (const raw of lf(text).split("\n")) {
     const line = raw.replace(/[ \t]+$/, "");
     if (line.startsWith("## ")) out.push(line);
     else if (out.length) out[out.length - 1] += "\n" + line;
@@ -324,9 +326,9 @@ function sectionsOf(text) {   // the "## " sections of a file; line endings and 
 }
 function contents(file, absent = "") {   // the file as this scene has it
   try {
-    if (mode === "--pr") return git(`show HEAD:${file}`);
-    if (mode === "--staged") return git(`show :${file}`);
-    return readFileSync(join(cwd, file), "utf8");
+    if (mode === "--pr") return lf(git(`show HEAD:${file}`));
+    if (mode === "--staged") return lf(git(`show :${file}`));
+    return lf(readFileSync(join(cwd, file), "utf8"));
   } catch { return absent; }
 }
 function sha256(text) { return createHash("sha256").update(text.replace(/\r\n/g, "\n")).digest("hex"); }
@@ -344,12 +346,13 @@ function readConfig() {
   const path = join(cwd, CONFIG);
   if (!existsSync(path)) fail(`${CONFIG} is missing; it holds this repository's roles and staging (UNITIES.md, Appendix A).`);
   let c;
-  try { c = JSON.parse(readFileSync(path, "utf8")); } catch (e) { fail(`${CONFIG} is not valid JSON: ${e.message}`); }
+  try { c = JSON.parse(lf(readFileSync(path, "utf8"))); } catch (e) { fail(`${CONFIG} is not valid JSON: ${e.message}`); }
   for (const key of ["scene", "rules", "required", "base", "releaseFiles"])
     if (c[key] === undefined) fail(`${CONFIG} has no "${key}"`);
   for (const role of ["source", "test", "doc", "task", "shared", "retired"])
     if (typeof c.rules[role] !== "string") fail(`${CONFIG}: rules.${role} must be a regular expression, as a string`);
   if (!["commit", "pr"].includes(c.scene)) fail(`${CONFIG}: scene must be "commit" or "pr"`);
+  if (c.plan !== undefined && typeof c.plan !== "boolean") fail(`${CONFIG}: plan must be true or false`);
   for (const [role, re] of Object.entries(c.rules))
     if (typeof re !== "string") fail(`${CONFIG}: rules.${role} must be a regular expression, as a string`);
   const isMap = v => typeof v === "object" && v !== null && !Array.isArray(v);
@@ -366,8 +369,12 @@ function readConfig() {
   return c;
 }
 function show(ref, file) {   // the file as the scene's base has it; "" if absent
-  try { return git(`show ${ref}:${file}`); } catch { return ""; }
+  try { return lf(git(`show ${ref}:${file}`)); } catch { return ""; }
 }
+// A Windows checkout commits and hands back CRLF line endings, and some editors put a
+// byte-order mark first; neither is content. Without this a line such as "- [ ] box\r"
+// matches none of the patterns that end in (.+)$.
+function lf(text) { return text.replace(/^\uFEFF/, "").replace(/\r\n/g, "\n"); }
 function head(text) {        // the part above the compile marker; null if the file is not compiled
   const i = text.indexOf(RECORD_MARKER);
   return i < 0 ? null : text.slice(0, i).trimEnd();

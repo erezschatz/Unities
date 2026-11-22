@@ -46,7 +46,7 @@ const DECISIONS = "docs/DECISIONS.md";
 const PLAN = "docs/PLAN.md";
 
 // A repo whose main branch has adopted the hook, unless told otherwise.
-function repo({ adopted = true } = {}) {
+function repo({ adopted = true, config = FIXTURE } = {}) {
   const dir = mkdtempSync(join(tmpdir(), "check-unit-"));
   const git = (args) => execSync(`git ${args}`, { cwd: dir, encoding: "utf8", stdio: ["ignore", "pipe", "ignore"] });
   const write = (file, text) => { mkdirSync(dirname(join(dir, file)), { recursive: true }); writeFileSync(join(dir, file), text); };
@@ -54,7 +54,7 @@ function repo({ adopted = true } = {}) {
   git("config user.email t@example.com");
   git("config user.name t");
   git("config commit.gpgsign false");
-  write(CONFIG, JSON.stringify(FIXTURE, null, 2) + "\n");
+  write(CONFIG, JSON.stringify(config, null, 2) + "\n");
   write(SHARED, "# Changelog\n\n<!-- Compiled from tasks/ by scripts/compile-changelog.mjs. Do not edit below this line by hand. -->\n");
   write(RETIRED, "Tasks now live in tasks/, one file each.\n");
   write(SOURCE, "base\n");
@@ -1224,4 +1224,157 @@ test("trailing spaces or tabs, removed or added, do not make an older record the
   r.write(TASK, `${pre.replace("second line", "second\tline")}\n${RECORD_NEW_READ}`);
   out = everyMode(r);
   assert.equal(out.staged.status, 2);   // a changed word, or a tab inside a line, is a change
+});
+
+// ---- a repository that keeps no plan ("plan": false in the configuration) ----
+
+const NO_PLAN = { ...FIXTURE, plan: false };
+
+test("with the plan switched off the compiler writes the decisions and no plan, and its check passes", () => {
+  const { dir, write, compile, read } = repo({ config: NO_PLAN });
+  assert.equal(existsSync(join(dir, PLAN)), false);
+  write(TASK, taskWith(decision("2026-11-11", "One file per unit", "Milestone: After 03: sync proven\n")));
+  compile();
+  assert.match(read(DECISIONS), /## D1 · 2026-11-11 · One file per unit/);
+  assert.equal(existsSync(join(dir, PLAN)), false);
+  assert.equal(spawnSync("node", ["scripts/compile-record.mjs", "--check"], { cwd: dir }).status, 0);
+});
+
+test("with the plan switched off, strict: a commit is held to the decisions alone and gains no plan", () => {
+  const { dir, git, write, compile } = repo({ config: NO_PLAN });
+  write(SOURCE, "changed\n");
+  complete(write);
+  write(TASK, taskWith(decision("2026-11-11", "One file per unit")));
+  git("add -A");
+  assert.match(run(dir, ["--staged"], { scene: "commit" }).stderr, /compiled record is out of date/);
+  compile();
+  git("add -A");
+  const ok = run(dir, ["--staged"], { scene: "commit" });
+  assert.equal(ok.status, 0, ok.stderr);
+  assert.equal(existsSync(join(dir, PLAN)), false);
+});
+
+test("with the plan switched off, adapted: the compile after a merge is the decisions alone", () => {
+  const { dir, git, write, commit, compile } = repo({ config: NO_PLAN });
+  git("checkout -q -b feature");
+  write(SOURCE, "changed\n");
+  complete(write);
+  write(TASK, taskWith(decision("2026-11-11", "One file per unit")));
+  commit("feature");
+  assert.equal(run(dir, ["--pr", "main"]).status, 0);
+  git("checkout -q main");
+  git("merge -q --no-ff -m merge feature");
+  git("checkout -q -b record");
+  compile();
+  commit("compile");
+  assert.equal(git("diff --name-only main HEAD").trim(), DECISIONS);
+  const ok = run(dir, ["--pr", "main"]);
+  assert.equal(ok.status, 0, ok.stderr);
+});
+
+test("with the plan switched off, a docs/PLAN.md that was compiled before is an ordinary doc", () => {
+  const { dir, git, write, commit, read } = repo();        // the base compiles a plan
+  write(CONFIG, JSON.stringify(NO_PLAN, null, 2) + "\n");
+  commit("switch");
+  git("checkout -q -b feature");
+  write(SOURCE, "changed\n");
+  complete(write);
+  write(PLAN, read(PLAN) + "\nA line written by hand.\n");
+  commit("feature");
+  const ok = run(dir, ["--pr", "main"]);
+  assert.equal(ok.status, 0, ok.stderr);
+});
+
+test("a plan setting that is not true or false stops the gate, naming the configuration", () => {
+  const { dir, git, write } = repo();
+  write(CONFIG, JSON.stringify({ ...FIXTURE, plan: "no" }, null, 2) + "\n");
+  write(SOURCE, "changed\n");
+  git("add -A");
+  const result = run(dir, ["--staged"], { scene: "commit" });
+  assert.equal(result.status, 2);
+  assert.match(result.stderr, /unities\.json: plan must be true or false/);
+  // The compiler reads the same key and stops on the same value, and on a file that is not JSON.
+  const compiler = () => spawnSync("node", ["scripts/compile-record.mjs", "--check"], { cwd: dir, encoding: "utf8" });
+  assert.equal(compiler().status, 3);
+  assert.match(compiler().stderr, /unities\.json: plan must be true or false/);
+  write(CONFIG, "{ not json");
+  assert.equal(compiler().status, 3);
+  assert.match(compiler().stderr, /unities\.json: not valid JSON/);
+});
+
+// ---- CRLF line endings and a byte-order mark are not content ----
+
+const crlf = text => text.replace(/\n/g, "\r\n");
+const BOM = "\uFEFF";
+const FORMS = [crlf, text => BOM + text, text => BOM + crlf(text)];
+
+test("a task file with CRLF line endings or a byte-order mark compiles to the same record", () => {
+  const text = taskWith(decision("2026-11-11", "One file per unit", "Milestone: After 03: sync proven\n"));
+  const compiled = (t) => {
+    const { write, compile, read } = repo();
+    write(TASK, t);
+    compile();
+    return read(DECISIONS) + read(PLAN);
+  };
+  const plain = compiled(text);
+  assert.match(plain, /## D1 · 2026-11-11 · One file per unit/);
+  assert.match(plain, /- After 03: sync proven \(D1\)/);
+  for (const form of FORMS) assert.equal(compiled(form(text)), plain);
+});
+
+test("compiled files checked out with CRLF are still equal to the compiler's output", () => {
+  const { dir, write, compile, read } = repo();
+  write(TASK, taskWith(decision("2026-11-11", "One file per unit")));
+  compile();
+  write(DECISIONS, crlf(read(DECISIONS)));
+  write(PLAN, crlf(read(PLAN)));
+  assert.equal(spawnSync("node", ["scripts/compile-record.mjs", "--check"], { cwd: dir }).status, 0);
+});
+
+test("a record committed with CRLF line endings or a byte-order mark compiles to the same changelog entry", () => {
+  const text = "# t\n\n## What was done\n\ndone\nsecond line\n\nReviewed by: a reader\n";
+  const entry = (t) => {
+    const { dir, git, write, commit } = repo();
+    git("config core.autocrlf false");
+    write(SOURCE, "changed\n");
+    write(TEST, "test\n");
+    write(DOC, "documented\n");
+    write(TASK, t);
+    commit("feature");
+    const out = execSync("node scripts/compile-changelog.mjs --dry-run --since v0", { cwd: dir, encoding: "utf8" });
+    return out.replace(/`[0-9a-f]{7,}`/g, "`hash`");
+  };
+  const plain = entry(text);
+  assert.match(plain, /### t\n\ndone\nsecond line\n\nRecorded in `hash`\./);
+  for (const form of FORMS) assert.equal(entry(form(text)), plain);
+});
+
+test("the gate reads a task file with CRLF line endings or a byte-order mark as it reads LF", () => {
+  const texts = {
+    outcome: "# t\n\n## Context\n\n**Acceptance**\n\n- [ ] new schema is running in production\n\n## What was done\n\ndone\n\nReviewed by: a reader\n",
+    read: "# t\n\n## What was done\n\ndone\n\nReviewed by: a reader\n",
+    unread: "# t\n\n## What was done\n\ndone\n",
+    open: review(item([`- [x] rows created → removed`, `- [ ] rows never sent → stay`])),
+    shapeless: review("### No parts\n\nfix it\n"),
+  };
+  const pr = (t) => {
+    const { dir, git, write, commit } = repo();
+    git("config core.autocrlf false");
+    git("checkout -q -b feature");
+    write(SOURCE, "changed\n");
+    write(TEST, "test\n");
+    write(DOC, "documented\n");
+    write(TASK, t);
+    commit("record");
+    const result = run(dir, ["--pr", "main"]);
+    return `${result.status}\n${result.stderr}`;
+  };
+  const plain = Object.fromEntries(Object.entries(texts).map(([name, t]) => [name, pr(t)]));
+  assert.match(plain.outcome, /names an outcome/);
+  assert.match(plain.read, /^0\n/);
+  assert.match(plain.unread, /no "Reviewed by:" line/);
+  assert.match(plain.open, /is still open/);
+  assert.match(plain.shapeless, /^1\n/);
+  for (const form of FORMS)
+    for (const [name, t] of Object.entries(texts)) assert.equal(pr(form(t)), plain[name], name);
 });

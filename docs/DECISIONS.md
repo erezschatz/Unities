@@ -659,3 +659,96 @@ Source: [tasks/a-marketplace-file.md](../tasks/a-marketplace-file.md)
 changed; how the plugin is fetched did.
 
 Source: [tasks/a-marketplace-file.md](../tasks/a-marketplace-file.md)
+
+## D49 · 2026-11-22 · One function in each script, and every file is read through it
+
+**Decision** — Each of the three scripts has one function that drops a leading
+byte-order mark and turns CRLF into LF, and reads every file through it: task files,
+the compiled files, `CHANGELOG.md`, and what `git show` returns for the scene and for
+its base. The changelog compiler does the same to each added line it takes from
+`git log -p`. This is the team repository's fix of 2026-11-17, taken from the patch
+against the 0.6.4 masters that its session wrote out on 2026-11-22 and Erez brought
+here. Its tests were not in the patch; the tests here were written for this change.
+**Rejected** — Normalising only where a pattern was seen to fail; a `.gitattributes`
+rule in every repository instead, which fixes line endings and not the byte-order mark,
+and which a planted script cannot check.
+**Why** — It happened: on a Windows checkout a line such as `- [ ] box` ends in a
+carriage return, and none of the gate's patterns that end in `(.+)$` match it, so
+acceptance boxes and review items went unread.
+
+Source: [tasks/the-compilers-read-crlf-and-a-bom.md](../tasks/the-compilers-read-crlf-and-a-bom.md)
+
+## D50 · 2026-11-22 · The configuration and the manifest are read the same way
+
+**Decision** — Beyond that patch, the gate's configuration is read through the same
+function in all three scripts, and so is the manifest, since the gate reads it as it
+reads any file of the scene.
+**Rejected** — Leaving `JSON.parse` on the raw bytes, as the patch did.
+**Why** — `JSON.parse` refuses a byte-order mark. The same editor that puts one on a
+task file puts one on `unities.json`, and the gate would then stop on a configuration
+that is fine. This case was not met in that repository; it is included because every
+read going through one function is the fix's own shape, and leaving one read out is the
+exception that would need explaining.
+
+Source: [tasks/the-compilers-read-crlf-and-a-bom.md](../tasks/the-compilers-read-crlf-and-a-bom.md)
+
+## D51 · 2026-11-22 · What follows from it, accepted
+
+**Decision** — Three consequences stand. A planted script that differs from the master
+only by a byte-order mark passes the manifest check, as one that differs only by CRLF
+already did (D23). `compile-record.mjs --check` takes a compiled file checked out with
+CRLF as up to date. `compile-changelog.mjs` writes `CHANGELOG.md` back with LF.
+**Rejected** — Keeping the byte-order mark in the hash; writing files back in the line
+endings they were read in.
+**Why** — None of these is content. What git checks out or commits for line endings is
+the repository's own setting, and the scripts no longer depend on it.
+
+Source: [tasks/the-compilers-read-crlf-and-a-bom.md](../tasks/the-compilers-read-crlf-and-a-bom.md)
+
+## D52 · 2026-11-22 · "plan": false in the configuration, read by the gate and the record compiler
+
+**Decision** — A repository that keeps no compiled plan sets `"plan": false` in
+`.claude/hooks/unities.json`. `compile-record.mjs` reads the configuration for it and
+then writes and checks `docs/DECISIONS.md` alone; the gate leaves `docs/PLAN.md` out of
+the compiled files. Absent or `true`, nothing changes. A value that is neither stops the
+gate and the compiler, each naming the configuration; so does a configuration the
+compiler cannot parse, and it exits 3, which until now meant only an invalid record. This reverses one sentence of D22, that
+`compile-record.mjs` has no per-repo values; the rest of D22 stands.
+**Rejected** — A `--no-plan` flag, which the gate and every caller would each have to
+pass; taking a missing `docs/PLAN.md` to mean no plan, which lets a deleted plan stop
+being asked for; a nested key such as `record.plan`, for one value; a new exit code for
+the compiler, which the gate would have to learn.
+**Why** — The team repository switched its plan off by editing its copy, which 0.6.0
+ended. The configuration is where a repository's own values now live, and both scripts
+must agree, so both read the one key. The two lines of that repository's change that let
+the plan's path be empty are taken as they were shown in its patch.
+
+Source: [tasks/the-plan-can-be-switched-off.md](../tasks/the-plan-can-be-switched-off.md)
+
+## D53 · 2026-11-22 · With the plan off, docs/PLAN.md is an ordinary file and plan lines go nowhere
+
+**Decision** — With `"plan": false` a `docs/PLAN.md`, if the repository has one, is a doc
+like any other: written by hand, counted as a doc change, never compared with the
+compiler. `Milestone:` and `Not in scope:` lines in decisions stay in the decisions and
+are compiled into no plan. The runbook says so in one place, the `plan` row of Appendix
+A, which also says that what the runbook, the standing paragraph and the gate's messages
+say of `docs/PLAN.md` as a compiled file does not apply there. The gate's refusal of an
+outcome box no longer points such a repository to a `PLAN.md` milestone, and the
+Azure DevOps pipeline of Appendix I stages `docs/PLAN.md` only when it is compiled.
+**Rejected** — Refusing a `docs/PLAN.md` where the plan is off; refusing or warning
+about plan lines there; a second wording of every passage of the runbook that mentions
+the plan.
+**Why** — Neither has happened in a repository (D41). The repository that asked for this
+wants no plan at all, and what it does with a file of that name is its own business.
+
+Source: [tasks/the-plan-can-be-switched-off.md](../tasks/the-plan-can-be-switched-off.md)
+
+## D54 · 2026-11-22 · 0.6.5, with the line-ending change
+
+**Decision** — This and `tasks/the-compilers-read-crlf-and-a-bom.md` are one scene and
+one version, 0.6.5.
+**Rejected** — Two versions.
+**Why** — One repository waits on both, they touch the same three scripts, and its
+conversion is re-run once.
+
+Source: [tasks/the-plan-can-be-switched-off.md](../tasks/the-plan-can-be-switched-off.md)

@@ -28,7 +28,9 @@ What it does:
 - **The scripts**, `skills/unities-project/files/`: `check-unit.mjs` (the gate),
   `check-unit.test.mjs`, `compile-changelog.mjs`, `compile-record.mjs`, and
   `manifest.json` with their sha256 hashes and the plugin's version. They are planted by
-  copy; a repository's own values live in its `.claude/hooks/unities.json`.
+  copy; a repository's own values live in its `.claude/hooks/unities.json`, among them
+  `"plan": false` for one that keeps no compiled plan. All three scripts read a file
+  with CRLF line endings or a byte-order mark as they read it without.
   `make-manifest.mjs` rewrites the manifest and is not planted.
 - **The plugin manifest**, `.claude-plugin/plugin.json`, and beside it the marketplace
   file, `.claude-plugin/marketplace.json`: one marketplace, `erezschatz`, listing this
@@ -37,7 +39,7 @@ What it does:
   Claude Code requires). The plugin's entry carries no version and no description; both
   are read from `plugin.json`.
 
-What it explicitly does not do, as of 0.6.4:
+What it explicitly does not do, as of 0.6.5:
 
 - The Codex binding has not been run under Codex (`tasks/verify-the-codex-binding.md`),
   and the gate has not been run on Windows outside WSL
