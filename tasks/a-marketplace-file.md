@@ -20,7 +20,7 @@ by asking for it.
 
 **Acceptance**
 
-- [ ] script: `claude plugin validate .` passes in this repository
+- [x] script: `claude plugin validate .` passes in this repository
 - [ ] the assignee: on a machine without the plugin, the two commands install it and `/unities:unities-project` is listed
 - [x] the assignee: the README's "Using it" section gives the two commands
 
@@ -124,3 +124,28 @@ alternatives, and SPEC says what the whole file carries. The marketplace file wi
 description was not validated again.
 
 Reviewed by: the same reader, which read these corrections against the working tree
+
+## What was done
+
+Nothing in the repository changed but this file. After the push, Erez ran both open
+checks on his own machine and reported them on 2026-11-22.
+
+`claude plugin validate .` at the root of his clone ended "Validation passed with
+warnings". The two warnings: `CLAUDE.md` at the plugin root is not loaded as project
+context, and the plugin has no icon (a plugin-directory check, which the output says
+does not change the result). Neither is acted on. `CLAUDE.md` here is how to
+work in this repository and is not meant to reach a repository that installs the plugin;
+the warning appears because the repository and the plugin are one folder (the second
+decision above). On the writer's reading of the output, the icon is asked for by the
+catalog plugins are submitted to, and this plugin is not submitted there.
+
+The two install commands of the README, against `erezschatz/Unities`: Erez reported that
+they "worked without a hitch". He did not say whether that machine already held the copy
+synced from claude.ai, nor whether `/unities:unities-project` was listed afterwards, and
+the two update commands have still not been run.
+
+The first box is ticked on his report. The second stays open: it asks for a machine
+without the plugin and for the skill to be listed, and neither was reported. The reader
+found it ticked in the first draft of this record.
+
+Reviewed by: a read-only subagent that had not seen the work; it found the second box ticked for more than was reported and two statements about the icon that went past the output, both corrected above before the commit
