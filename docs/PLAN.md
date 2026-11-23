@@ -33,4 +33,4 @@ what is not in scope are set by decisions. All of it is compiled from `tasks/` a
 
 ## Not in scope
 
-- changing Saar's `AGENTS.md`, D14 or `docs/working-on-a-task.md`; that is a scene in Saar's repository. (D55)
+- changing that repository's `AGENTS.md`, D14 or `docs/working-on-a-task.md`; that is a scene in that repository. (D55)

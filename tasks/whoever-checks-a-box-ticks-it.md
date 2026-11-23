@@ -2,8 +2,8 @@
 
 ## Context
 
-Brought by Erez on 2026-11-22, in chat, from Saar's repository (deployment 0.5.2), branch
-`task/#11431-server-layers`.
+Brought by Erez on 2026-11-22, in chat, from a multi-developer repository in the adapted staging
+(deployment 0.5.2).
 
 A review there left four *Done when* boxes open. Three were checks on the code. The
 agent had checked them by reading the code, and two readers had found them to hold. The
@@ -13,7 +13,7 @@ to the developer as "tell me which hold, and I'll tick them", citing its `AGENTS
 reviewed and verified by claude, having me tell it to tick the boxes is silly", and "'The
 Developer' here is not me, it's claude."
 
-That sentence is Saar's own (its D14, 2026-11-09: "The developer ticks each acceptance box
+That sentence is that repository's own (its D14, 2026-11-09: "The developer ticks each acceptance box
 as they perform its check"). It is not in the master and never was. The master is silent
 at the same place. 4.7 says who ticks is not part of the form, and Appendix G that the
 reader ticks what it found to hold, but nothing tells the agent that a box it checked is
@@ -38,7 +38,7 @@ whose output it reports, and a review box the reader found to hold. It does not 
 person to tick those. A box that can only be checked by running the program stays open and is
 handed to the person the division of labour names, those boxes alone, each with what to
 do and what should be seen.
-**Rejected** — Every tick is the person's, as the agent in Saar's repository read its
+**Rejected** — Every tick is the person's, as the agent in that repository read its
 rule: the person then confirms what they did not check, and the one check that is theirs
 is lost among three that are not. The agent ticking every box, including those that need
 the running program: it has not seen the program run.
@@ -46,7 +46,7 @@ the running program: it has not seen the program run.
 the agents that act for them (Appendix D), so the one who performed the check is the one
 who can say so. What stays a person's is what 3.2 already keeps for one: saying it works
 where it runs.
-Not in scope: changing Saar's `AGENTS.md`, D14 or `docs/working-on-a-task.md`; that is a scene in Saar's repository.
+Not in scope: changing that repository's `AGENTS.md`, D14 or `docs/working-on-a-task.md`; that is a scene in that repository.
 
 ### 2026-11-22 · The rule is prose in 4.7 and the standing paragraph; the gate and the brief do not change
 
@@ -93,7 +93,7 @@ Because the runbook changed, the plugin is 0.6.6: the runbook's first line,
 `.claude-plugin/plugin.json`, both manifests, and SPEC's "as of 0.6.6". The form is
 unchanged at 1.0. No script, test or reader's brief changed.
 
-Saar's repository is unchanged and still carries its own sentence; the rule reaches it
+That repository is unchanged and still carries its own sentence; the rule reaches it
 when Erez converts it to this version or supersedes its D14 there.
 
 `node --test` at the root: 84 tests, 84 pass, on Node 26.13.1.
@@ -133,7 +133,7 @@ says whoever asked the reader writes it.
 `CLAUDE.md`, Appendix E and 4.8 say an item is done when each line "holds for the
 running program". The new rule handed to the person every box "that needs the running
 program". Read as the same thing, every review box goes to the person, which is what
-happened in Saar's repository.
+happened in that repository.
 
 **Done when**
 
@@ -146,7 +146,7 @@ happened in Saar's repository.
 
 ### The out-of-scope line sits under the version decision
 
-**Found** — The `Not in scope:` line about Saar's repository was attached to the 0.6.6
+**Found** — The `Not in scope:` line about that repository was attached to the 0.6.6
 decision, so `docs/PLAN.md` cited a decision about a version number for it. It had no
 full stop.
 

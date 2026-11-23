@@ -2,12 +2,12 @@
 
 ## Context
 
-Raised 2026-11-23 by Mandy's session, while upgrading Mandy to 0.6.8, in
-`~/dev/erez/mandy/tasks/unities-plugin-asks.md` (its second ask). The gate refuses any
+Raised 2026-11-23 from a single-developer repository in the strict staging, while it
+was being upgraded to 0.6.8, in a task file of its own (the second of three asks). The gate refuses any
 edit above the marker in `docs/DECISIONS.md` and `docs/PLAN.md` and says to change the
-head through a new decision, but nothing in a decision reaches the head. Mandy's
+head through a new decision, but nothing in a decision reaches the head. That repository's
 `docs/PLAN.md` head still says a task is done when its last record carries
-`Status: done`, which stopped being true at 0.6.8. Mandy asked for a way to edit the head
+`Status: done`, which stopped being true at 0.6.8. It asked for a way to edit the head
 that the gate accepts.
 
 Erez, the same day, in chat: the ask is an attempt "to keep what was over what is, and
@@ -37,7 +37,7 @@ wrong is replaced in the same upgrade.
 
 **Decision** — The head of a compiled file stays closed to ordinary scenes. A stale head
 is replaced by the scene that installs a new version, as 4.7 already says.
-**Rejected** — Mandy's ask for a scene that touches only the head and a task file whose
+**Rejected** — The ask for a scene that touches only the head and a task file whose
 decision explains it, which keeps the old head and patches it by hand.
 **Why** — Erez: the plugin replaces what was with what is; where that leaves an existing
 file wrong, the file is replaced.

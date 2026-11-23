@@ -760,7 +760,7 @@ whose output it reports, and a review box the reader found to hold. It does not 
 person to tick those. A box that can only be checked by running the program stays open and is
 handed to the person the division of labour names, those boxes alone, each with what to
 do and what should be seen.
-**Rejected** — Every tick is the person's, as the agent in Saar's repository read its
+**Rejected** — Every tick is the person's, as the agent in that repository read its
 rule: the person then confirms what they did not check, and the one check that is theirs
 is lost among three that are not. The agent ticking every box, including those that need
 the running program: it has not seen the program run.
@@ -768,7 +768,7 @@ the running program: it has not seen the program run.
 the agents that act for them (Appendix D), so the one who performed the check is the one
 who can say so. What stays a person's is what 3.2 already keeps for one: saying it works
 where it runs.
-Not in scope: changing Saar's `AGENTS.md`, D14 or `docs/working-on-a-task.md`; that is a scene in Saar's repository.
+Not in scope: changing that repository's `AGENTS.md`, D14 or `docs/working-on-a-task.md`; that is a scene in that repository.
 
 Source: [tasks/whoever-checks-a-box-ticks-it.md](../tasks/whoever-checks-a-box-ticks-it.md)
 
@@ -916,7 +916,7 @@ Source: [tasks/the-gate-does-not-require-a-record.md](../tasks/the-gate-does-not
 **Decision** — The strict staging gets no configuration value that turns its `Stop` into a
 report. The procedure itself says that a turn may stop to discuss, and the gate follows
 it in every repository.
-**Rejected** — Mandy's `"stop": "advise"`, which keeps a repository's old `--tree` mode
+**Rejected** — The asked-for `"stop": "advise"`, which keeps a repository's old `--tree` mode
 alive under a new name.
 **Why** — Erez: asks of this kind are attempts to keep what was over what is, and the
 plugin is there to replace what was with what is. A repository whose reading differs
@@ -928,7 +928,7 @@ Source: [tasks/a-turn-may-stop-to-discuss.md](../tasks/a-turn-may-stop-to-discus
 
 **Decision** — The head of a compiled file stays closed to ordinary scenes. A stale head
 is replaced by the scene that installs a new version, as 4.7 already says.
-**Rejected** — Mandy's ask for a scene that touches only the head and a task file whose
+**Rejected** — The ask for a scene that touches only the head and a task file whose
 decision explains it, which keeps the old head and patches it by hand.
 **Why** — Erez: the plugin replaces what was with what is; where that leaves an existing
 file wrong, the file is replaced.

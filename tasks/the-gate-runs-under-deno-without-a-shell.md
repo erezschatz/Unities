@@ -2,16 +2,16 @@
 
 ## Context
 
-Raised 2026-11-23 by Mandy's session, while upgrading Mandy to 0.6.8, in
-`~/dev/erez/mandy/tasks/unities-plugin-asks.md` (its third ask). Erez, the same day, in
-chat: "3 is a bug, it should be fixed."
+Raised 2026-11-23 from a single-developer repository in the strict staging, while it
+was being upgraded to 0.6.8, in a task file of its own (the third of three asks). Erez,
+the same day, in chat: "3 is a bug, it should be fixed."
 
 Measured there under Deno 2.9.8 with Appendix H's invocation: with
 `--allow-env=TF_BUILD,UNITIES_SCENE` every `execSync` throws
 `NotCapable: Requires env access`, because Deno's `child_process` copies the whole
 environment into the child. With full `--allow-env` it then throws
 `Command failed: git …` and hides the reason, because `execSync` runs through `/bin/sh`,
-which `--allow-run=git,deno` does not cover. Mandy now runs the gate with
+which `--allow-run=git,deno` does not cover. That repository now runs the gate with
 `--allow-run=git,deno,/bin/sh --allow-env`, and granting `/bin/sh` amounts to granting
 any command. The tests here run under Node and cannot see it. Under `onFailure: "block"`
 a gate that crashes refuses every commit; a `Stop` gate that crashes fails silently.

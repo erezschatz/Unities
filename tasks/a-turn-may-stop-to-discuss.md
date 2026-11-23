@@ -2,17 +2,18 @@
 
 ## Context
 
-Raised 2026-11-23 by Mandy's session, while upgrading Mandy to 0.6.8, in
-`~/dev/erez/mandy/tasks/unities-plugin-asks.md` (its first ask): a turn there often stops
+Raised 2026-11-23 from a single-developer repository in the strict staging, while it
+was being upgraded to 0.6.8, in a task file of its own (the first of three asks): a turn
+there often stops
 mid-change on purpose, to argue a design before it is built or to hand over a browser
-recipe, and 0.6.8's strict `Stop` sends such a turn back once. Mandy asked for a value,
+recipe, and 0.6.8's strict `Stop` sends such a turn back once. It asked for a value,
 for example `"stop": "advise"`, under which the strict `Stop` only reports.
 
 Erez, the same day, in chat: "There's nothing wrong with stopping a process to discuss
 and I don't see any issue with it in Unities [...] the unity is of start to end process
 being a single motion, not that it has to be done in a single, uninterrupted motion."
 
-The plugin says otherwise today, so Mandy's reading is the plugin's. The strict `Stop`
+The plugin says otherwise today, so that repository's reading is the plugin's. The strict `Stop`
 answers every incomplete turn end with "Complete the record in this same change, or
 revert it. Do not leave it for later." (`check-unit.mjs`), and sends the turn back once.
 The runbook says "an interrupted scene is abandoned" (4.11, what no binding can enforce) and the essay that if the sitting ends before step 7, steps 3 to 6 are
@@ -42,7 +43,7 @@ Unities do not treat that as the scene being abandoned.
 **Decision** — The strict staging gets no configuration value that turns its `Stop` into a
 report. The procedure itself says that a turn may stop to discuss, and the gate follows
 it in every repository.
-**Rejected** — Mandy's `"stop": "advise"`, which keeps a repository's old `--tree` mode
+**Rejected** — The asked-for `"stop": "advise"`, which keeps a repository's old `--tree` mode
 alive under a new name.
 **Why** — Erez: asks of this kind are attempts to keep what was over what is, and the
 plugin is there to replace what was with what is. A repository whose reading differs
