@@ -910,3 +910,27 @@ edited once merged, so removing one was never the form, and taking a change out 
 change to source like any other. Erez may rule otherwise.
 
 Source: [tasks/the-gate-does-not-require-a-record.md](../tasks/the-gate-does-not-require-a-record.md)
+
+## D66 · 2026-11-23 · No setting keeps the old --tree Stop
+
+**Decision** — The strict staging gets no configuration value that turns its `Stop` into a
+report. The procedure itself says that a turn may stop to discuss, and the gate follows
+it in every repository.
+**Rejected** — Mandy's `"stop": "advise"`, which keeps a repository's old `--tree` mode
+alive under a new name.
+**Why** — Erez: asks of this kind are attempts to keep what was over what is, and the
+plugin is there to replace what was with what is. A repository whose reading differs
+needs the procedure clarified, not a switch.
+
+Source: [tasks/a-turn-may-stop-to-discuss.md](../tasks/a-turn-may-stop-to-discuss.md)
+
+## D67 · 2026-11-23 · No door for hand edits to the head; the upgrade replaces it
+
+**Decision** — The head of a compiled file stays closed to ordinary scenes. A stale head
+is replaced by the scene that installs a new version, as 4.7 already says.
+**Rejected** — Mandy's ask for a scene that touches only the head and a task file whose
+decision explains it, which keeps the old head and patches it by hand.
+**Why** — Erez: the plugin replaces what was with what is; where that leaves an existing
+file wrong, the file is replaced.
+
+Source: [tasks/an-upgrade-may-rewrite-the-head.md](../tasks/an-upgrade-may-rewrite-the-head.md)

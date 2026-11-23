@@ -9,8 +9,10 @@ what is not in scope are set by decisions. All of it is compiled from `tasks/` a
 
 - [a-check-is-admitted-from-what-happened](../tasks/a-check-is-admitted-from-what-happened.md) — A check enters the gate because something happened · recorded, 1 box open
 - [a-marketplace-file](../tasks/a-marketplace-file.md) — Let the plugin be installed from this repository by name · recorded, 1 box open
+- [a-turn-may-stop-to-discuss](../tasks/a-turn-may-stop-to-discuss.md) — A turn may stop to discuss
 - [acceptance-boxes-are-judged-where-the-scene-wrote](../tasks/acceptance-boxes-are-judged-where-the-scene-wrote.md) — Acceptance boxes are judged where the scene wrote them
 - [adopt-unities](../tasks/adopt-unities.md) — Adopt the Unities in this repository · done
+- [an-upgrade-may-rewrite-the-head](../tasks/an-upgrade-may-rewrite-the-head.md) — An upgrade may rewrite the compiled files' head
 - [convert-the-adopted-repositories](../tasks/convert-the-adopted-repositories.md) — Convert the repositories adopted before 0.6.0
 - [diffs-are-read-under-any-git-config](../tasks/diffs-are-read-under-any-git-config.md) — The release check and the changelog compiler read diffs under any git configuration
 - [essay-part-two-and-licences](../tasks/essay-part-two-and-licences.md) — Cut the essay's second part; licence the prose and the scripts · done
@@ -21,6 +23,7 @@ what is not in scope are set by decisions. All of it is compiled from `tasks/` a
 - [the-essay-says-whose-idea-this-is](../tasks/the-essay-says-whose-idea-this-is.md) — The essay says whose idea this is · recorded, 1 box open
 - [the-form-has-its-own-version](../tasks/the-form-has-its-own-version.md) — The form has its own version · done
 - [the-gate-does-not-require-a-record](../tasks/the-gate-does-not-require-a-record.md) — The gate does not require a record · done
+- [the-gate-runs-under-deno-without-a-shell](../tasks/the-gate-runs-under-deno-without-a-shell.md) — The gate runs under Deno without a shell
 - [the-plan-can-be-switched-off](../tasks/the-plan-can-be-switched-off.md) — A repository that compiles no plan can say so · recorded, 1 box open
 - [the-plan-says-when-boxes-are-open](../tasks/the-plan-says-when-boxes-are-open.md) — The plan says when a recorded task still has boxes open · done
 - [the-runbook-is-source](../tasks/the-runbook-is-source.md) — The runbook and the skill are source in this repository · done
