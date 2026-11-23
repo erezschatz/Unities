@@ -1025,3 +1025,22 @@ scene found and which nobody admitted.
 silence the end-of-turn advice, not the pull request's gate, which names its target.
 
 Source: [tasks/a-broken-configuration-is-refused-not-crashed.md](../tasks/a-broken-configuration-is-refused-not-crashed.md)
+
+## D74 · 2026-11-23 · A correction to a record is allowed and is not a record
+
+Supersedes: D69
+
+**Decision** — Admitted by Erez, 2026-11-23, in chat. Fixing a record that is already
+there, a mistake or something added by accident, is not part of the scene's action and
+is never refused for it. It is not the scene's record either: "no record" is answered
+only by a `## What was done` the scene adds, told from an edited one by the diff.
+Records copied by hand from one task file into another are not designed for: the gate
+does not try to tell a copy from new work.
+**Rejected** — Keeping the gate as it is and changing runbook 4.7 and Appendix D to say a
+correction counts as a record; refusing edits to merged records.
+**Why** — Erez: "The idea was never to prevent updates and fixes", and "If someone starts
+copy pasting stuff between tasks rather than using the available tools, then we shouldn't
+validate this by trying to figure how to support it." The runbook already says a touched
+task file is not a record; the gate is brought to it.
+
+Source: [tasks/an-edited-merged-record-passes.md](../tasks/an-edited-merged-record-passes.md)

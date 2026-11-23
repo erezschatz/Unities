@@ -18,11 +18,25 @@ would have the gate refuse something it lets through is Erez's to admit (`CLAUDE
 `tasks/README.md` says a merged record is never edited, but that is a rule for whoever
 writes, not a promise, an acceptance or a test the gate breaks.
 
-**Promise** — A record, once merged, reads as it did when it was reviewed.
+The same repository's reader reported it again on 2026-11-23, brought in by Erez the same
+day, with what the first reading missed: runbook 4.7 says "a task file that was only
+touched, a line added to its Context or a box ticked, is not a record", and the gate lets
+a box ticked or a line added inside a merged `## What was done` pass as one. So the gate
+and its own runbook disagree. Erez ruled the same day; the second decision below.
+
+**Promise** — Correcting a record is never refused, and never counts as the record of new
+work. (Rewritten with the ruling; it read "A record, once merged, reads as it did when it
+was reviewed", which the ruling rejects.)
 
 **Acceptance**
 
-- [ ] the assignee: Erez's ruling on this finding is recorded here as a decision that supersedes the one below, or the one below stands
+- [x] the assignee: Erez's ruling on this finding is recorded here as a decision that supersedes the one below, or the one below stands
+- [ ] script: source + doc change + one box ticked, or one line added, inside an earlier merged `## What was done` that has its `Reviewed by:` → refused as "no record"
+- [ ] script: the same correction together with a new `## What was done` that has its `Reviewed by:` → passes
+- [ ] script: a scene that only corrects a merged record, with no source change → passes
+- [ ] script: a box ticked only in an acceptance section, or a line added only to `## Context`, with source → refused as "no record", as now
+- [ ] script: a new `## What was done` with no `Reviewed by:` → refused for the missing reader, as now
+- [ ] script: `node --test` at the root passes with the manifest at the new version
 
 ## Review · 2026-11-23
 
@@ -47,3 +61,20 @@ scene's, judged whole.
 **Rejected** — Refusing an edited merged section, on the reader's constructed case.
 **Why** — It has not happened in a repository, and until Erez admits a finding of this
 kind it is not admitted.
+
+### 2026-11-23 · A correction to a record is allowed and is not a record
+
+Supersedes: D69
+
+**Decision** — Admitted by Erez, 2026-11-23, in chat. Fixing a record that is already
+there, a mistake or something added by accident, is not part of the scene's action and
+is never refused for it. It is not the scene's record either: "no record" is answered
+only by a `## What was done` the scene adds, told from an edited one by the diff.
+Records copied by hand from one task file into another are not designed for: the gate
+does not try to tell a copy from new work.
+**Rejected** — Keeping the gate as it is and changing runbook 4.7 and Appendix D to say a
+correction counts as a record; refusing edits to merged records.
+**Why** — Erez: "The idea was never to prevent updates and fixes", and "If someone starts
+copy pasting stuff between tasks rather than using the available tools, then we shouldn't
+validate this by trying to figure how to support it." The runbook already says a touched
+task file is not a record; the gate is brought to it.
