@@ -934,3 +934,24 @@ decision explains it, which keeps the old head and patches it by hand.
 file wrong, the file is replaced.
 
 Source: [tasks/an-upgrade-may-rewrite-the-head.md](../tasks/an-upgrade-may-rewrite-the-head.md)
+
+## D68 · 2026-11-23 · Not admitted: a broken configuration crashes the gate
+
+**Decision** — Not built until Erez rules. The gate keeps its present checks of
+`unities.json`.
+**Rejected** — Building the refusals on the reader's word.
+**Why** — No broken configuration has met the gate in a repository, and until Erez
+admits a finding of this kind it is not admitted. The case for admitting it is in
+*Context*.
+
+Source: [tasks/a-broken-configuration-is-refused-not-crashed.md](../tasks/a-broken-configuration-is-refused-not-crashed.md)
+
+## D69 · 2026-11-23 · Not admitted: an edited merged record passes as a new one
+
+**Decision** — Not built. The gate keeps counting a section the scene edited as the
+scene's, judged whole.
+**Rejected** — Refusing an edited merged section, on the reader's constructed case.
+**Why** — It has not happened in a repository, and until Erez admits a finding of this
+kind it is not admitted.
+
+Source: [tasks/an-edited-merged-record-passes.md](../tasks/an-edited-merged-record-passes.md)
