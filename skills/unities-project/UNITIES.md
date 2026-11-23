@@ -1,4 +1,4 @@
-<!-- UNITIES.md 2026-11-23 · 0.6.9. Master copy: the unities-project skill folder (plugin `unities`). -->
+<!-- UNITIES.md 2026-11-23 · 0.6.10. Master copy: the unities-project skill folder (plugin `unities`). -->
 
 # UNITIES.md — adopting the Unities in a repository
 
@@ -968,6 +968,12 @@ not defaults:
 | `run` | optional: how the gate invokes the two compilers, `"node"` when absent (Appendix H). |
 | `plan` | optional: `false` in a repository that keeps no compiled plan. The record compiler then writes and checks `docs/DECISIONS.md` alone, the gate does not ask for `docs/PLAN.md`, and a file of that name, if there is one, is an ordinary doc. Absent or `true`, the plan is compiled (4.9, Appendix K). `Milestone:` and `Not in scope:` lines in decisions then go nowhere. Where it is `false`, whatever this runbook, the standing paragraph (Appendix E) and the gate's messages say of `docs/PLAN.md` as a compiled file does not apply: the adoption writes the paragraph with `docs/DECISIONS.md` alone, and an outcome box is moved to the promise. |
 | `plugin` | only in the plugin's own repository: the folder of the master files. A scene there that touches a master, a planted copy or the manifest is refused unless every planted copy and the manifest equal the masters. |
+
+The gate refuses by name, like a missing key, a file that is not a JSON object, a `rules`
+that is not a map, a rule or `releaseFiles` that is not a string or will not compile, and
+a `run` that is not a non-empty string (4.11). Both compilers refuse a file that is not
+valid JSON or not a JSON object; `compile-record.mjs` also a `plan` that is not a boolean,
+and `compile-changelog.mjs` a `changelog.recorded` that is not a string.
 
 **The manifest** is `files/manifest.json`: the plugin's version and the sha256 of each
 shipped script, under the path it is planted at. It is planted as

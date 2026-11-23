@@ -1324,6 +1324,83 @@ test("a plan setting that is not true or false stops the gate, naming the config
   assert.match(compiler().stderr, /unities\.json: not valid JSON/);
 });
 
+test("a configuration that is not an object, or whose rules are not a map, is refused by name", () => {
+  const { dir, write } = repo();
+  const cases = [
+    ["null", /unities\.json must hold a JSON object/],
+    ["[]", /unities\.json must hold a JSON object/],
+    ["5", /unities\.json must hold a JSON object/],
+    [JSON.stringify({ ...FIXTURE, rules: null }), /unities\.json: rules must be a map from role to regular expression/],
+    [JSON.stringify({ ...FIXTURE, rules: ["^src/"] }), /unities\.json: rules must be a map/],
+    [JSON.stringify({ ...FIXTURE, rules: "^src/" }), /unities\.json: rules must be a map/],
+  ];
+  for (const [text, message] of cases) {
+    write(CONFIG, text);
+    const result = run(dir, ["--staged"], { scene: "commit" });
+    assert.equal(result.status, 2, text);
+    assert.match(result.stderr, message);
+    assert.doesNotMatch(result.stderr, /TypeError|at readConfig/);
+  }
+});
+
+test("a rule or releaseFiles that will not compile is refused by name, and a Stop lets go on its second pass", () => {
+  const { dir, write } = repo();
+  const stop = (active) => JSON.stringify({ hook_event_name: "Stop", cwd: dir, stop_hook_active: active });
+  write(CONFIG, JSON.stringify({ ...FIXTURE, rules: { ...FIXTURE.rules, source: "(" } }));
+  const first = run(dir, ["--branch"], { scene: "commit", stdin: stop(false) });
+  assert.equal(first.status, 2);
+  assert.match(first.stderr, /unities\.json: rules\.source is not a valid regular expression: /);
+  assert.doesNotMatch(first.stderr, /SyntaxError: Invalid regular expression: \/\(\/: Unterminated group\n\s+at /);
+  const second = run(dir, ["--branch"], { scene: "commit", stdin: stop(true) });
+  assert.equal(second.status, 0);
+  assert.match(JSON.parse(second.stdout).systemMessage, /rules\.source is not a valid regular expression/);
+  // A role of the repository's own is held to the same.
+  write(CONFIG, JSON.stringify({ ...FIXTURE, rules: { ...FIXTURE.rules, procedure: "[" } }));
+  assert.match(run(dir, ["--pr", "main"]).stderr, /rules\.procedure is not a valid regular expression/);
+  for (const [releaseFiles, message] of [
+    [null, /releaseFiles must be a regular expression, as a string/],
+    [3, /releaseFiles must be a regular expression, as a string/],
+    ["(", /releaseFiles is not a valid regular expression/],
+  ]) {
+    write(CONFIG, JSON.stringify({ ...FIXTURE, releaseFiles }));
+    const result = run(dir, ["--staged"], { scene: "commit" });
+    assert.equal(result.status, 2);
+    assert.match(result.stderr, message);
+  }
+});
+
+test("a run setting that is not a non-empty string is refused by name", () => {
+  const { dir, write } = repo();
+  for (const value of [5, "", "  ", null, ["deno"]]) {
+    write(CONFIG, JSON.stringify({ ...FIXTURE, run: value }));
+    const result = run(dir, ["--staged"], { scene: "commit" });
+    assert.equal(result.status, 2, JSON.stringify(value));
+    assert.match(result.stderr, /unities\.json: run must be the command that replaces "node", as a non-empty string/);
+  }
+});
+
+test("the compilers stop on a configuration that is not an object, naming it", () => {
+  const { dir, write } = repo();
+  const record = () => spawnSync("node", ["scripts/compile-record.mjs", "--check"], { cwd: dir, encoding: "utf8" });
+  const changelog = () => spawnSync("node", ["scripts/compile-changelog.mjs", "--dry-run"], { cwd: dir, encoding: "utf8" });
+  for (const text of ["null", "[]", "7"]) {
+    write(CONFIG, text);
+    assert.equal(record().status, 3, text);
+    assert.match(record().stderr, /unities\.json: must hold a JSON object/);
+    assert.equal(changelog().status, 1, text);
+    assert.match(changelog().stderr, /unities\.json: must hold a JSON object/);
+  }
+  write(CONFIG, "{ not json");
+  assert.equal(changelog().status, 1);
+  assert.match(changelog().stderr, /unities\.json: not valid JSON/);
+  assert.doesNotMatch(changelog().stderr, /SyntaxError[^\n]*\n\s+at /);
+  for (const recorded of [5, null, { text: "x" }]) {
+    write(CONFIG, JSON.stringify({ ...FIXTURE, changelog: { recorded } }));
+    assert.equal(changelog().status, 1, JSON.stringify(recorded));
+    assert.match(changelog().stderr, /unities\.json: changelog\.recorded must be a string/);
+  }
+});
+
 // The gate run by hand from a script or an agent's shell, whose stdin is a pipe held open
 // and never written to. Killed after ten seconds, so a gate that waits shows as a failure.
 function runWithOpenStdin(dir, args, { scene = "pr", written = "" } = {}) {

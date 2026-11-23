@@ -76,7 +76,12 @@ const trimBlank = lines => {
 // The line that closes an entry is the one per-repo value here, read from the gate's
 // configuration ("changelog": {"recorded": ...}); {hash} is the short hash of the commit.
 const CONFIG = ".claude/hooks/unities.json";
-const recorded = (existsSync(CONFIG) && JSON.parse(lf(readFileSync(CONFIG, "utf8"))).changelog?.recorded) || "Recorded in `{hash}`.";
+let config = {};
+if (existsSync(CONFIG)) try { config = JSON.parse(lf(readFileSync(CONFIG, "utf8"))); }
+catch (e) { console.error(`${CONFIG}: not valid JSON: ${e.message}`); process.exit(1); }
+if (typeof config !== "object" || config === null || Array.isArray(config)) { console.error(`${CONFIG}: must hold a JSON object`); process.exit(1); }
+if (config.changelog?.recorded !== undefined && typeof config.changelog.recorded !== "string") { console.error(`${CONFIG}: changelog.recorded must be a string`); process.exit(1); }
+const recorded = config.changelog?.recorded || "Recorded in `{hash}`.";
 const formatEntry = (e) => `${trimBlank(e.lines.filter(l => !/^Reviewed by:/.test(l))).join("\n")}\n\n${recorded.replaceAll("{hash}", e.hash)}`;
 const today = new Date().toISOString().slice(0, 10);
 let out = `## ${version ?? "<version>"} — ${today}\n\n`;

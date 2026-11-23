@@ -357,15 +357,23 @@ function readConfig() {
   if (!existsSync(path)) fail(`${CONFIG} is missing; it holds this repository's roles and staging (UNITIES.md, Appendix A).`);
   let c;
   try { c = JSON.parse(lf(readFileSync(path, "utf8"))); } catch (e) { fail(`${CONFIG} is not valid JSON: ${e.message}`); }
+  const isMap = v => typeof v === "object" && v !== null && !Array.isArray(v);
+  if (!isMap(c)) fail(`${CONFIG} must hold a JSON object`);
   for (const key of ["scene", "rules", "required", "base", "releaseFiles"])
     if (c[key] === undefined) fail(`${CONFIG} has no "${key}"`);
-  for (const role of ["source", "test", "doc", "task", "shared", "retired"])
-    if (typeof c.rules[role] !== "string") fail(`${CONFIG}: rules.${role} must be a regular expression, as a string`);
+  if (!isMap(c.rules)) fail(`${CONFIG}: rules must be a map from role to regular expression`);
+  // A pattern is compiled here, so one that will not compile is refused rather than crashing the gate.
+  const pattern = (name, re) => {
+    if (typeof re !== "string") fail(`${CONFIG}: ${name} must be a regular expression, as a string`);
+    try { new RegExp(re); } catch (e) { fail(`${CONFIG}: ${name} is not a valid regular expression: ${e.message}`); }
+  };
+  for (const role of ["source", "test", "doc", "task", "shared", "retired"]) pattern(`rules.${role}`, c.rules[role]);
+  for (const [role, re] of Object.entries(c.rules)) pattern(`rules.${role}`, re);
+  pattern("releaseFiles", c.releaseFiles);
   if (!["commit", "pr"].includes(c.scene)) fail(`${CONFIG}: scene must be "commit" or "pr"`);
   if (c.plan !== undefined && typeof c.plan !== "boolean") fail(`${CONFIG}: plan must be true or false`);
-  for (const [role, re] of Object.entries(c.rules))
-    if (typeof re !== "string") fail(`${CONFIG}: rules.${role} must be a regular expression, as a string`);
-  const isMap = v => typeof v === "object" && v !== null && !Array.isArray(v);
+  if (c.run !== undefined && (typeof c.run !== "string" || !c.run.trim()))
+    fail(`${CONFIG}: run must be the command that replaces "node", as a non-empty string`);
   if (!Array.isArray(c.required) && !isMap(c.required))
     fail(`${CONFIG}: required must be a list of roles, or a map from role to list`);
   const required = Array.isArray(c.required) ? { source: c.required } : c.required;

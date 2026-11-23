@@ -7,7 +7,7 @@ what is not in scope are set by decisions. All of it is compiled from `tasks/` a
 
 ## Steps
 
-- [a-broken-configuration-is-refused-not-crashed](../tasks/a-broken-configuration-is-refused-not-crashed.md) — A broken configuration is refused, not crashed on
+- [a-broken-configuration-is-refused-not-crashed](../tasks/a-broken-configuration-is-refused-not-crashed.md) — A broken configuration is refused, not crashed on · done
 - [a-check-is-admitted-from-what-happened](../tasks/a-check-is-admitted-from-what-happened.md) — A check enters the gate because something happened · recorded, 1 box open
 - [a-marketplace-file](../tasks/a-marketplace-file.md) — Let the plugin be installed from this repository by name · recorded, 1 box open
 - [a-turn-may-stop-to-discuss](../tasks/a-turn-may-stop-to-discuss.md) — A turn may stop to discuss

@@ -978,3 +978,50 @@ Claude Code may show that line only in verbose mode or the transcript; that is n
 verified here.
 
 Source: [tasks/the-gate-does-not-wait-on-an-open-stdin.md](../tasks/the-gate-does-not-wait-on-an-open-stdin.md)
+
+## D71 · 2026-11-23 · A broken configuration is refused by name
+
+Supersedes: D68
+
+**Decision** — Admitted by Erez, 2026-11-23, in chat ("Yes, admit and build"), because
+runbook 4.11 already says a broken configuration is refused. `readConfig` refuses, by
+name, a file that is not a JSON object, a `rules` that is not a map, a rule or
+`releaseFiles` that is not a string or will not compile, and a `run` that is not a
+non-empty string, through the same `fail` as a missing key, so a `Stop` lets go on its
+second pass. Both compilers refuse a file that is not a JSON object, and
+`compile-changelog.mjs` one that is not valid JSON and a `changelog.recorded` that is not
+a string (`null` included, which used to fall back to the default line), by name.
+**Rejected** — A schema file, or validating keys nothing reads; checking `base` and
+`plugin` beyond their presence, which is the decision below.
+**Why** — A crash is exit 1, which Claude Code takes from a `PreToolUse` hook as a
+non-blocking error, so the commit the configuration was meant to hold could go through.
+
+Source: [tasks/a-broken-configuration-is-refused-not-crashed.md](../tasks/a-broken-configuration-is-refused-not-crashed.md)
+
+## D72 · 2026-11-23 · Not admitted: a record compiler that cannot be run passes
+
+**Decision** — Not built. The gate takes 3 from the record compiler as a refusal and 1
+as out of date, as before; any other exit, such as 127 when the runtime in `run` is not
+installed, or a kill by a signal, passes as if the record had been checked.
+**Rejected** — Refusing it, as the patch this task was built from did: Erez admitted the
+cases in *Context*, which do not include it.
+**Why** — It has not happened in a repository. What Claude would rule: admit it, since a
+`run` naming a runtime that is not installed is what the Deno task
+(`tasks/the-gate-runs-under-deno-without-a-shell.md`) can meet, and a gate that could not
+check the record should not answer as if it had. The patch's check and test are kept in
+the saved patch.
+
+Source: [tasks/a-broken-configuration-is-refused-not-crashed.md](../tasks/a-broken-configuration-is-refused-not-crashed.md)
+
+## D73 · 2026-11-23 · Not admitted: a wrong base or plugin passes silently
+
+**Decision** — Not built. Under the adapted staging, `--branch` with a `base` that is
+`null` or names no branch exits 0 without a word; `--pr` with a target that does not
+exist stops with its own error, as before. In the plugin's repository a `plugin` that is
+not a string skips the planted-copy check without a word.
+**Rejected** — Refusing them by name with the other keys, which the cold reader of this
+scene found and which nobody admitted.
+**Why** — Neither has happened in a repository. A wrong `base` in a team repository would
+silence the end-of-turn advice, not the pull request's gate, which names its target.
+
+Source: [tasks/a-broken-configuration-is-refused-not-crashed.md](../tasks/a-broken-configuration-is-refused-not-crashed.md)
