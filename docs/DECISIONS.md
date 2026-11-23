@@ -955,3 +955,26 @@ scene's, judged whole.
 kind it is not admitted.
 
 Source: [tasks/an-edited-merged-record-passes.md](../tasks/an-edited-merged-record-passes.md)
+
+## D70 · 2026-11-23 · The gate waits a second for a hook's JSON, then answers as a run by hand
+
+**Decision** — In the hook modes, `--branch` and `--staged`, the gate reads stdin until
+it closes, as before, but once stdin has been silent for a second, before the first byte
+or between two, it stops reading and closes stdin. What it read is used if it is whole
+JSON; otherwise it is dropped, the gate says so on stderr, and goes on with no hook
+input, as a run by hand does. `--pr` and a TTY still
+skip stdin.
+**Rejected** — A `--hook` flag in the wiring (Appendix B, the Codex hooks), with stdin
+read only under it: every adopted repository's `settings.json` would have to change with
+the scripts, and a wiring left without the flag would lose `stop_hook_active`, so a
+strict `Stop` would send every turn back without end. Telling a hook's pipe from an
+agent's shell by `fstat`: both are pipes.
+**Why** — A hook writes its JSON as it starts the gate, so a second of silence is far
+more than a hook needs, and a run by hand pays at most that second. A hook so slow that
+its input comes later loses it, and with it `stop_hook_active`. The stderr line says so
+to whoever reads stderr: a terminal, and the agent when the gate then refuses with exit 2,
+since Claude Code hands the agent a refusing hook's stderr. When the gate then exits 0,
+Claude Code may show that line only in verbose mode or the transcript; that is not
+verified here.
+
+Source: [tasks/the-gate-does-not-wait-on-an-open-stdin.md](../tasks/the-gate-does-not-wait-on-an-open-stdin.md)

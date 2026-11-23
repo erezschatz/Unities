@@ -1,8 +1,8 @@
 {
-  "version": "0.6.8",
+  "version": "0.6.9",
   "files": {
-    ".claude/hooks/check-unit.mjs": "e093c4ee47c023e37991ad0e1c0b6e7ca9df060eeb4227850ce835097495b772",
-    ".claude/hooks/check-unit.test.mjs": "e776481e643c87497212aa3a58505e3fc46d329281ec56db64362d666e7f1d5d",
+    ".claude/hooks/check-unit.mjs": "3a738dd0dfbae4b91a7e7f50309fd23bfb8862286826490d01e03bfb03f10c1d",
+    ".claude/hooks/check-unit.test.mjs": "f1ac41e601febdb4a0732904bb2e748e750066c6c378c8626363a346d941fc97",
     "scripts/compile-changelog.mjs": "4ae59a3d846217a3a73f14245d74e41eb059604c7d5883e359dda230433dee9c",
     "scripts/compile-record.mjs": "a38f643db4497ceaea38c15a60e6c28790d947b282f80f2f6e8ee8f7704a8562"
   }

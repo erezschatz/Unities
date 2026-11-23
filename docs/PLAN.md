@@ -26,7 +26,7 @@ what is not in scope are set by decisions. All of it is compiled from `tasks/` a
 - [the-essay-says-whose-idea-this-is](../tasks/the-essay-says-whose-idea-this-is.md) — The essay says whose idea this is · recorded, 1 box open
 - [the-form-has-its-own-version](../tasks/the-form-has-its-own-version.md) — The form has its own version · done
 - [the-gate-does-not-require-a-record](../tasks/the-gate-does-not-require-a-record.md) — The gate does not require a record · done
-- [the-gate-does-not-wait-on-an-open-stdin](../tasks/the-gate-does-not-wait-on-an-open-stdin.md) — The gate does not wait on an open stdin
+- [the-gate-does-not-wait-on-an-open-stdin](../tasks/the-gate-does-not-wait-on-an-open-stdin.md) — The gate does not wait on an open stdin · done
 - [the-gate-runs-under-deno-without-a-shell](../tasks/the-gate-runs-under-deno-without-a-shell.md) — The gate runs under Deno without a shell
 - [the-plan-can-be-switched-off](../tasks/the-plan-can-be-switched-off.md) — A repository that compiles no plan can say so · recorded, 1 box open
 - [the-plan-says-when-boxes-are-open](../tasks/the-plan-says-when-boxes-are-open.md) — The plan says when a recorded task still has boxes open · done

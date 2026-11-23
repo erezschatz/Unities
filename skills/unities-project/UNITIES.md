@@ -1,4 +1,4 @@
-<!-- UNITIES.md 2026-11-22 · 0.6.8. Master copy: the unities-project skill folder (plugin `unities`). -->
+<!-- UNITIES.md 2026-11-23 · 0.6.9. Master copy: the unities-project skill folder (plugin `unities`). -->
 
 # UNITIES.md — adopting the Unities in a repository
 
@@ -1024,6 +1024,11 @@ with `base`, and if the pull request would fail, tells the agent what is missing
 per turn, without blocking. In strict it compares the work tree with `HEAD` and refuses
 to let the turn end on an incomplete scene; on the second refusal it lets go and tells
 the person.
+
+A hook hands the gate its JSON on stdin and closes it. Run by hand, from a terminal or
+an agent's shell, the gate stops listening once stdin has been silent for a second, says
+so on stderr, and answers as a run by hand, so a stdin left open never holds it; `--pr`
+does not read stdin at all.
 
 ## Appendix C — git pre-commit
 

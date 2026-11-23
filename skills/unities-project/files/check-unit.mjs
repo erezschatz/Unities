@@ -37,7 +37,8 @@ const REVIEW_EXEMPT = /^(Done before adoption; no record\.|Migrated from )/m;
 const codex = process.argv.includes("--codex");
 const argv = process.argv.slice(2).filter(a => a !== "--codex");
 const mode = argv[0] ?? "--branch";
-// Only the hook modes are handed JSON on stdin; --pr must not wait on a pipe its caller left open.
+// Only the hook modes are handed JSON on stdin; --pr must not wait on a pipe its caller left
+// open, and the hook modes wait for it only briefly (readStdin).
 const input = mode === "--pr" || process.stdin.isTTY ? {} : JSON.parse((await readStdin()) || "{}");
 const cwd = input.cwd ?? process.cwd();
 const lines = s => s.split("\n").map(l => l.trim()).filter(Boolean);
@@ -406,9 +407,30 @@ function gitOk(args) {
   try { execSync(`git ${args}`, { cwd, stdio: "ignore" }); return true; }
   catch { return false; }
 }
+// A hook writes its JSON as it starts the gate and closes stdin. Run by hand from a script
+// or an agent's shell, stdin can be a pipe that is held open and never written to, and
+// waiting for its end would wait forever. So the gate stops listening once stdin has been
+// silent for a second, before the first byte or between two, and goes on as a run by hand.
+// It says so on stderr, because a hook's input it did not read is input it ignored. The
+// wait is inside the function because the gate calls it from the top of the file, before
+// a const below runs.
 function readStdin() {
-  return new Promise(r => {
+  const silentMs = 1000;
+  return new Promise(resolve => {
     let s = "";
-    process.stdin.on("data", d => s += d).on("end", () => r(s));
+    let timer;
+    const done = text => {
+      clearTimeout(timer);
+      process.stdin.destroy();   // or the open pipe keeps the process alive after the answer
+      resolve(text);
+    };
+    const giveUp = () => {
+      try { JSON.parse(s); return done(s); } catch {}   // whole JSON with stdin left open is a hook's input
+      console.error(`check-unit: stdin stayed open with ${s ? "an unfinished" : "no"} hook input for a second; going on as a run by hand.`);
+      done("");
+    };
+    const wait = () => { clearTimeout(timer); timer = setTimeout(giveUp, silentMs); };
+    wait();
+    process.stdin.on("data", d => { s += d; wait(); }).on("end", () => done(s));
   });
 }

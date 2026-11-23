@@ -5,7 +5,7 @@
 // roles of the repository they happen to run in.
 import test from "node:test";
 import assert from "node:assert/strict";
-import { execSync, spawnSync } from "node:child_process";
+import { execSync, spawn, spawnSync } from "node:child_process";
 import { createHash } from "node:crypto";
 import { copyFileSync, existsSync, mkdtempSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
@@ -1322,6 +1322,55 @@ test("a plan setting that is not true or false stops the gate, naming the config
   write(CONFIG, "{ not json");
   assert.equal(compiler().status, 3);
   assert.match(compiler().stderr, /unities\.json: not valid JSON/);
+});
+
+// The gate run by hand from a script or an agent's shell, whose stdin is a pipe held open
+// and never written to. Killed after ten seconds, so a gate that waits shows as a failure.
+function runWithOpenStdin(dir, args, { scene = "pr", written = "" } = {}) {
+  return new Promise(resolve => {
+    const child = spawn("node", [hook, ...args], { cwd: dir, env: { ...process.env, UNITIES_SCENE: scene } });
+    if (written) child.stdin.write(written);
+    let stdout = "", stderr = "";
+    child.stdout.on("data", d => stdout += d);
+    child.stderr.on("data", d => stderr += d);
+    const killer = setTimeout(() => child.kill(), 10_000);
+    child.on("close", (status, signal) => {
+      clearTimeout(killer);
+      child.stdin.destroy();
+      resolve({ status, signal, stdout, stderr });
+    });
+  });
+}
+
+test("with stdin held open and never written, every mode answers instead of waiting", async () => {
+  const { dir, git, write } = repo();
+  for (const [args, scene] of [[["--branch"], "commit"], [["--staged"], "commit"], [["--branch", "main"], "pr"], [["--pr", "main"], "pr"]]) {
+    const result = await runWithOpenStdin(dir, args, { scene });
+    assert.equal(result.signal, null, `${args.join(" ")} (${scene}) was killed waiting on stdin`);
+    assert.equal(result.status, 0, result.stderr);
+    // --pr never reads stdin, so it has nothing to say about it.
+    if (args[0] === "--pr") assert.doesNotMatch(result.stderr, /stdin stayed open/);
+    else assert.match(result.stderr, /stdin stayed open with no hook input/);
+  }
+  // Part of a hook's JSON, then silence: the gate does not wait for the rest, and says so.
+  const partial = await runWithOpenStdin(dir, ["--branch"], { scene: "commit", written: '{"hook_event_name":' });
+  assert.equal(partial.signal, null, "partial input held open was killed waiting on stdin");
+  assert.equal(partial.status, 0, partial.stderr);
+  assert.match(partial.stderr, /stdin stayed open with an unfinished hook input/);
+  // A whole hook input with stdin left open is read: the second Stop pass lets go, as it does with stdin closed.
+  write(SOURCE, "changed\n");
+  const whole = await runWithOpenStdin(dir, ["--branch"], { scene: "commit", written: JSON.stringify({ hook_event_name: "Stop", cwd: dir, stop_hook_active: true }) });
+  assert.equal(whole.signal, null);
+  assert.equal(whole.status, 0, whole.stderr);
+  assert.match(JSON.parse(whole.stdout).systemMessage, /Incomplete scene/);
+  assert.doesNotMatch(whole.stderr, /stdin stayed open/);
+  // Without a hook's JSON the gate goes on as a run by hand: an incomplete scene is still refused.
+  write(SOURCE, "changed\n");
+  git("add -A");
+  const staged = await runWithOpenStdin(dir, ["--staged"], { scene: "commit" });
+  assert.equal(staged.signal, null);
+  assert.equal(staged.status, 2);
+  assert.match(staged.stderr, /Incomplete scene/);
 });
 
 // ---- CRLF line endings and a byte-order mark are not content ----
