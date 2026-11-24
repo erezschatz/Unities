@@ -25,14 +25,14 @@ they are source too, held to a doc line and a record but not to a test: a change
 either carries a doc change (anything in `docs/` but the compiled `DECISIONS.md` and
 `PLAN.md`, or `README.md`, `CLAUDE.md`, `AGENTS.md`), and its record.
 This is enforced, not
-requested: a Stop hook refuses to end a turn with a half-recorded change, and a
-`git commit` made through Claude Code refuses an incomplete scene
-(`.claude/hooks/check-unit.mjs`). A commit from a shell is not checked here: there is no
+requested: a `git commit` made through Claude Code refuses an incomplete scene, and a
+Stop hook says what a half-recorded change still lacks (`.claude/hooks/check-unit.mjs`). A commit from a shell is not checked here: there is no
 git hook (D5). `CHANGELOG.md` is compiled from task records at release
 (`node scripts/compile-changelog.mjs <version>`), by Erez, who commits the release from
 his shell; a commit through Claude Code that touches it is refused (D8). It is never
-edited by hand. If a change cannot be completed with its record in this
-sitting, revert it; do not leave it for later. Any choice with a rejected alternative gets
+edited by hand. A scene ends at its commit, not at the end of a turn: if you
+are unsure, stop and ask Erez, and leave the change uncommitted until it is finished. If
+it is abandoned, revert it; do not leave it for later. Any choice with a rejected alternative gets
 a dated entry under `## Decisions` in the task file of the work that made it; a listed
 decision is not reopened quietly but by a new entry that supersedes it.
 `docs/DECISIONS.md` and `docs/PLAN.md` are read, never written: they are compiled from the

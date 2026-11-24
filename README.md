@@ -42,8 +42,9 @@ they cost something; the essay names the costs.
 
 The form says what a scene is, not how long one is. A repository chooses once.
 
-- **Strict: the commit is the scene.** `git commit` and the end of an agent's turn refuse
-  an incomplete scene. For one developer, or a team that already commits complete units.
+- **Strict: the commit is the scene.** `git commit` refuses an incomplete scene; the end
+  of an agent's turn says what is missing, since a turn may end to ask. For one developer,
+  or a team that already commits complete units.
 - **Adapted: the pull request is the scene.** Commits on the branch are free. The pull
   request must be complete, and a required check refuses it otherwise.
 

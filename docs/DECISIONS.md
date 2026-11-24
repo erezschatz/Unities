@@ -1172,3 +1172,26 @@ reader of this scene found and nobody admitted.
 **Why** — It has not happened in a repository; Appendix H's `run` carries `--allow-read`.
 
 Source: [tasks/a-broken-configuration-is-refused-not-crashed.md](../tasks/a-broken-configuration-is-refused-not-crashed.md)
+
+## D83 · 2026-11-24 · A scene ends at its commit; the strict Stop only advises
+
+**Decision** — Ruled by Erez, 2026-11-24, in chat ("Yes, build it"). A scene ends when its
+work is committed, or when the person decides to abandon it, and only an abandoned scene
+is reverted. A turn that ends to ask or to discuss does not end the scene, and an agent
+that is unsure stops and asks. In both stagings the `Stop` hook tells the agent once,
+and the person, what the uncommitted change still lacks, and never refuses the turn or
+says to revert; in strict the commit stays refused until the scene is complete. Under
+Codex, whose one channel to the agent at `Stop` is to continue the turn, the note
+continues it once, as the adapted staging already does, with a note that says stopping is
+fine. The runbook says what ends a scene in §1, and the standing paragraphs carry the
+stop-and-ask line.
+**Rejected** — Keeping the one send-back with a note that does not say revert: being sent
+back still reads to the agent as "you may not stop here", which argues against the
+question it stopped to ask, and in strict the commit already refuses what the send-back
+was there to catch.
+**Why** — Erez: "If anything here is telling the llm 'don't stop no matter what' then we
+are sailing down the wrong river." "The turn is not done just because a question is
+raised. A turn is done once the commit is made." A stop-and-ask line only helps where the
+agent sees something to ask about; it does not catch the agent that sees nothing to ask.
+
+Source: [tasks/a-turn-may-stop-to-discuss.md](../tasks/a-turn-may-stop-to-discuss.md)

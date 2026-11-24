@@ -1,4 +1,4 @@
-<!-- UNITIES.md 2026-11-24 · 0.6.14. Master copy: the unities-project skill folder (plugin `unities`). -->
+<!-- UNITIES.md 2026-11-24 · 0.6.15. Master copy: the unities-project skill folder (plugin `unities`). -->
 
 # UNITIES.md — adopting the Unities in a repository
 
@@ -93,8 +93,10 @@ asked twice: Phase 3 only checks the answer against the repository.
 **Strict: the commit is the scene.** Every commit that touches source also carries its
 test, its doc line and its task record, read cold before it is committed, and the gates
 refuse anything less: `git commit`
-refuses an incomplete scene and the agent cannot end a turn with one. If a scene cannot
-be finished in the sitting, it is reverted, not saved for tomorrow. This is the ideal.
+refuses an incomplete scene. A scene ends when its work is committed, or when the person
+decides to abandon it; an abandoned scene is reverted, not saved for tomorrow. Ending a
+turn does not end the scene: an agent that is unsure stops and asks, and one that stops
+to ask or to discuss leaves the scene uncommitted until it is finished. This is the ideal.
 It holds where commits are already complete units: one developer, or a team that works
 that way. Get it if you can.
 
@@ -122,11 +124,11 @@ difference is one value (`scene` in the configuration, Appendix A) and which bin
 | --- | --- | --- |
 | The scene | the commit | the pull request |
 | `scene` in `.claude/hooks/unities.json` | `"commit"` | `"pr"` |
-| `Stop` hook (end of an agent turn) | refuses; on the second pass lets go and tells the person | advises once and never refuses (Claude Code: through `additionalContext`; Codex: one continuation of the turn, 4.10) |
+| `Stop` hook (end of an agent turn) | advises once and never refuses, as in adapted: a turn may end to ask (above), and the commit refuses | advises once and never refuses (Claude Code: through `additionalContext`; Codex: one continuation of the turn, 4.10) |
 | `PreToolUse` on `git commit` | installed; blocks | not installed |
 | pre-commit hook (where commits happen outside the agent) | refuses | warns |
 | CI gate, `check-unit.mjs --pr` | optional backstop; install if there is CI | required; runs in CI or in the tool that merges (4.7) |
-| A half-finished scene | revert it | sits as an open PR |
+| A half-finished scene | stays uncommitted until finished; reverted if the person abandons it | sits as an open PR |
 | `docs/DECISIONS.md`, `docs/PLAN.md` | the commit is also the merge: it carries the record compiler's output, and the gate refuses a commit where they are out of date | no pull request touches them; the merge man compiles them on the target after each merge (4.5) |
 | Release | compiler output committed from a shell with `--no-verify`, the one bypass | a release PR, which passes only because its changelog equals the compiler's output |
 | Merge strategy | — | squash recommended: one commit per scene lands on `main`, so its history reads as strict; the gate does not depend on it |
@@ -311,7 +313,8 @@ already references `check-unit.mjs`.
 The `Stop` binding is installed in both stagings and does not depend on team size. At
 the end of every turn it compares the scene so far with its base and tells the agent —
 the party most likely to produce a fluent, simultaneous, incomplete scene — what is
-missing; strict refuses, adapted advises, per the table. A single developer is bound by
+missing, and never refuses the turn, since a turn may end to ask (§1); the commit (strict)
+or the pull request (adapted) is what refuses. A single developer is bound by
 it as much as a team; there is nobody else to notice the skipped test.
 
 The `PreToolUse` binding on `git commit` is strict only. Its `if` filter is best-effort
@@ -471,9 +474,9 @@ should be seen.
 **The record.** A change in a role that the configuration holds to a task change
 (source, by default; Appendix A) must add a `## What was done` section to a task file. A
 task file that was only touched, a line added to its Context or a box ticked, is not a
-record, and the gate refuses it as "no record": at the commit and at the end of the turn
-in strict, at the pull request in adapted, where a commit on the way is told and not
-refused, as with everything else. A section the base already held is not the scene's. A
+record, and the gate refuses it as "no record": at the commit in strict, at the pull
+request in adapted, where a commit on the way is told and not refused; the end of a turn
+tells, in both. A section the base already held is not the scene's. A
 record the scene corrects, a mistake fixed or a line added inside a `## What was done`
 the base held, is never refused and is not a record either: the gate takes a changed
 section for a correction when at least half its words are those of a record the scene no
@@ -623,13 +626,13 @@ configuration); note the size of `AGENTS.md` in the report.
 **The binding at the end of a turn.** Write `.codex/hooks.json` from Appendix L. It
 calls the same script as `.claude/settings.json`, with `--codex` after the mode, and is
 installed by the same table (§1): `Stop` in both stagings, `PreToolUse` on `git commit`
-in strict only. The flag changes one thing. In adapted, Claude Code is advised through
-`additionalContext`; Codex documents no such field for `Stop`, and its one way to tell
-the agent anything at the end of a turn is to continue the turn with the note as the
-prompt (`"decision": "block"`). The script does that once per turn and, on the second
-pass, lets go and tells the person, exactly as strict does. So under Codex the adapted
-advice is one further pass of the agent on every turn that ends with an incomplete
-scene, and the note says the branch is fine to keep. If that proves too loud in
+in strict only. The flag changes one thing. In both stagings, Claude Code is advised at
+`Stop` through `additionalContext`; Codex documents no such field for `Stop`, and its one
+way to tell the agent anything at the end of a turn is to continue the turn with the note
+as the prompt (`"decision": "block"`). The script does that once per turn and, on the
+second pass, lets go and tells the person. So under Codex the advice is one further pass
+of the agent on every turn that ends with an incomplete scene, and the note says the
+branch is fine to keep (adapted), or that stopping to ask or discuss is fine (strict). If that proves too loud in
 practice, the remedy is a decision to leave `Stop` out of `.codex/hooks.json`
 in this repository, recorded as one; it is not a change to the script.
 
@@ -663,12 +666,12 @@ essay's second part was cut as an older copy of this file; the statements about 
 Code's behaviour are as they stood then.
 
 Each binding enforces a different unity (S = strict, A = adapted). The table describes
-the Claude Code bindings; under Codex an adapted `Stop` continues the turn once instead
+the Claude Code bindings; under Codex the `Stop` continues the turn once instead
 (§1, 4.10):
 
 | Binding | Fires when | What it does | Unity |
 | --- | --- | --- | --- |
-| `Stop` hook | the agent finishes a turn | S: refuses to end on a half-recorded change, sends the agent back once, then lets go and tells the person. A: tells the agent once, in its own context, what the PR will still fail on | time |
+| `Stop` hook | the agent finishes a turn | tells the agent once, in its own context, what the commit (S) or the PR (A) will still refuse, then tells the person; never refuses the turn, since a turn may end to ask (§1) | time |
 | `PreToolUse` on `git commit` (S) | the agent is about to commit | refuses a commit that is not a complete scene | time |
 | `pre-commit` | a person commits | S: refuses. A: warns | time, place |
 | CI check on the PR (A; backstop in S) | a pull request is opened or updated | refuses the merge of an incomplete scene; the one gate with teeth in the adapted staging | time |
@@ -676,8 +679,8 @@ the Claude Code bindings; under Codex an adapted `Stop` continues the turn once 
 | `onFailure: "block"` (S) | the script is missing or crashes | blocks the commit; a policy that fails open is not a policy | time |
 | manifest check in the script | a scene touches a planted script or the manifest | refuses a planted copy that differs from the plugin's, or is missing | action |
 
-In strict, a clean tree passes at the commit and at the end of a turn, so reverting is
-always a way out. `--pr`, and `--branch` in adapted, read the commits since the fork, so
+In strict, a clean tree passes at the commit and at the end of a turn, so reverting an
+abandoned scene is always a way out. `--pr`, and `--branch` in adapted, read the commits since the fork, so
 there a clean tree says nothing.
 
 `check-unit.mjs` is the rule, in code. The essay said of a repository's own skill, if it
@@ -725,15 +728,17 @@ decision titled `Not admitted: …` (`docs/DECISIONS.md` there).
   turns end; the next gate catches the change. Keep the script in the repository and the
   path in `settings.json` correct. A missing or broken configuration is not silent: the
   gate refuses a commit and sends a turn back once, naming the file, and lets the second
-  pass end with a message, as for an incomplete scene.
+  pass end with a message. That is an adoption left incomplete, which the person fixes;
+  an incomplete scene is never sent back (§1).
 - Hooks in `.claude/settings.json` run only after the person has trusted the folder, and
   cloud sessions do not read a machine's user settings. Committing the project settings
   is what makes the staging travel with the repository.
 - The PR gate's being required lives outside the repository (a branch policy, or the
   merging tool's step). It is the one part of the staging that `git diff` cannot see, and
   the first thing to check when the gate seems to have stopped working.
-- The discard is not automated anywhere. The form says an interrupted scene is abandoned;
-  the strict staging says so, loudly, and leaves the `git checkout` to a person.
+- The discard is not automated anywhere. A scene the person abandons is reverted (§1);
+  the gate cannot tell an abandoned scene from one paused to ask, and leaves the
+  `git checkout` to a person.
 - Claude Code can also start the reader of Appendix G from a hook (an agent-type `Stop`
   hook), but that feature was marked experimental; an explicitly invoked subagent is the
   stable form.
@@ -898,9 +903,8 @@ to adapted, unmarked to both.
    still has the standing instructions (ask it what its project instructions say about
    the Unities; it must answer from `AGENTS.md`, through the import). Then, under Codex, in this order: trust the project and its hooks (`/hooks`);
    ask it what its project instructions say about the Unities (it must answer from
-   `AGENTS.md`); create the probe of step 2 and end a turn — (S) the turn is sent back
-   once naming the missing roles and ends on the second pass with a warning, (A) the
-   turn continues once with the note and ends; ask it to run the reader on a staged
+   `AGENTS.md`); create the probe of step 2 and end a turn — the turn continues once
+   with the note naming the missing roles and ends; ask it to run the reader on a staged
    diff and confirm a second agent named `unities_reader` did the reading. Remove the
    probe. Where no Codex is at hand, say so and name who will run this step (4.10).
 
@@ -921,8 +925,8 @@ sentences as the adoption task's record. Then tell the person:
   command that compiles them (`npm run record`), and who runs it: (S) whoever commits,
   before the commit; (A) the merge man named in 4.5, after each merge;
 - what remains manual: the reviewer before the record is committed (Appendix G); (A)
-  whatever makes the 4.7 gate required; (S) the decision to revert when the `Stop` hook
-  reports a half-scene twice;
+  whatever makes the 4.7 gate required; (S) the decision to abandon and revert a scene
+  the `Stop` hook reports as incomplete;
 - if 4.10 was installed: that each developer on Codex trusts the project's hooks once,
   and whether step 8 of Phase 6 was run under Codex or is still owed, and by whom.
 
@@ -1032,9 +1036,9 @@ Strict adds:
 
 In adapted the `Stop` hook compares the branch so far — commits and uncommitted work —
 with `base`, and if the pull request would fail, tells the agent what is missing, once
-per turn, without blocking. In strict it compares the work tree with `HEAD` and refuses
-to let the turn end on an incomplete scene; on the second refusal it lets go and tells
-the person.
+per turn, without blocking. In strict it compares the work tree with `HEAD` and does the
+same: it tells the agent what the commit will still refuse, and never refuses the turn,
+since a turn may end to ask (§1); the `PreToolUse` hook refuses the commit.
 
 A hook hands the gate its JSON on stdin and closes it. Run by hand, from a terminal or
 an agent's shell, the gate stops listening once stdin has been silent for a second, says
@@ -1180,11 +1184,13 @@ Strict:
 The work, its record and its location are the same thing at the same time. Every commit
 that changes source also carries its test, its doc line and a `## What was done` section
 appended to the task file in `tasks/`, read cold against the diff by a reader that did not
-write it: code, test, document, review are one unit. This is enforced, not requested: a Stop hook
-refuses to end a turn with a half-recorded change, and `git commit` refuses an incomplete
-scene (`.claude/hooks/check-unit.mjs`). `CHANGELOG.md` is compiled from task records at
-release (`npm run changelog -- <version>`) and is never edited by hand. If a change cannot
-be completed with its record in this sitting, revert it; do not leave it for later.
+write it: code, test, document, review are one unit. This is enforced, not requested:
+`git commit` refuses an incomplete scene, and a Stop hook says what a half-recorded change
+still lacks (`.claude/hooks/check-unit.mjs`). `CHANGELOG.md` is compiled from task records
+at release (`npm run changelog -- <version>`) and is never edited by hand. A scene ends at
+its commit, not at the end of a turn: if you are unsure, stop and ask, and leave the
+change uncommitted until it is finished. If it is abandoned, revert it; do not leave it
+for later.
 Any choice with a rejected alternative gets a dated entry under `## Decisions` in the task
 file of the work that made it; a listed decision is not reopened quietly but by a new
 entry that supersedes it. `docs/DECISIONS.md` and `docs/PLAN.md` are read, never written:
@@ -1217,7 +1223,8 @@ opened with all four done. Commits on the way are free: a stage may be
 committed to keep one's place before its record exists. This is enforced at the pull
 request, not at the commit: the gate runs `.claude/hooks/check-unit.mjs --pr` — as a CI
 job, or in the tool that merges — and the PR cannot merge with an incomplete scene.
-`git commit` and the end of a turn only warn, naming what the PR will still fail on.
+`git commit` and the end of a turn only warn, naming what the PR will still fail on. If
+you are unsure, stop and ask; ending a turn to ask does not end the scene.
 `CHANGELOG.md` is compiled from task records at release (`npm run changelog -- <version>`)
 and is never edited by hand; a release PR passes the gate only because its changelog
 equals the compiler's output. Any choice with a rejected alternative gets a dated entry
@@ -1350,11 +1357,10 @@ agent waits for it. Where the `Agent` tool takes `run_in_background`, run the re
 with it set to `false`: the report comes back in the tool result, the `Reviewed by:` line
 is written, and the turn ends with a complete scene. Where the tool has no such option
 and subagents only run in the background, the report arrives after the turn ends, and the
-Stop hook refuses that turn once because the record has no `Reviewed by:` line yet. That
-refusal is correct and expected: at that moment the change *is* unreviewed. Write the line
-when the report arrives, and the hook lets go on the next pass as §1 describes. Neither
-case is a reason to relax the hook or to commit ahead of the review; the commit waits for
-the report in both.
+Stop hook says the record has no `Reviewed by:` line yet. That is correct and expected: at
+that moment the change *is* unreviewed, and the scene is not over (§1). Write the line
+when the report arrives. Neither case is a reason to commit ahead of the review; the
+commit waits for the report in both.
 
 ## Appendix H — runtimes
 
@@ -1511,7 +1517,7 @@ is not a record, and the compiled record:
 numbers that never change, a pull request that may not touch `docs/DECISIONS.md` or
 `docs/PLAN.md`, the compile that may, and the strict commit that must carry them up to
 date; that the same script called from Codex's hooks (`--codex`, 4.10) checks the same
-things and differs only in how an adapted `Stop` reaches the agent; and that the roles
+things and differs only in how a `Stop` reaches the agent; and that the roles
 come from the configuration and a planted script edited in place is refused.
 
 Run them with `node --test .claude/hooks/check-unit.test.mjs` in a repository, or

@@ -29,7 +29,7 @@ The scripts the runbook plants are masters too: the files in this skill's `files
 
 The form says what a scene is, not how long. There are two stagings, and the choice is the **first decision** of any project, before any file is written — the runbook's §1 lays out exactly what follows from it, in a table. Ask it once, here, as kickoff question 7; the runbook's discovery does not ask again, it only checks the answer against the repository.
 
-- **Strict — the commit is the scene.** `git commit` and the end of an agent turn refuse an incomplete scene; an interrupted scene is reverted. The ideal. One developer, or a team that already commits complete units.
+- **Strict — the commit is the scene.** `git commit` refuses an incomplete scene; the end of an agent turn only says what is missing, since a turn may end to ask; an abandoned scene is reverted. The ideal. One developer, or a team that already commits complete units.
 - **Adapted — the pull request is the scene.** Commits on the branch are the developer's own. The PR must be complete and a required check refuses it otherwise; commit and end-of-turn only warn. Squash-merge is recommended (one commit per scene lands on `main`, so its history reads as strict) but the gate does not depend on it.
 
 Default: strict for one developer, adapted for a team. The answer and its reason are the first decision of the project: the first entry under `## Decisions` in task 00 (in a migration, in the adoption task), compiled into `docs/DECISIONS.md` as D1.

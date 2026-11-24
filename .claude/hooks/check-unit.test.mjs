@@ -396,7 +396,8 @@ test("strict: a commit with an incomplete scene is refused", () => {
   git("add -A");
   const result = run(dir, ["--staged"], { scene: "commit" });
   assert.equal(result.status, 2);
-  assert.match(result.stderr, /revert it/);
+  assert.match(result.stderr, /Complete the record in this same change before committing it/);
+  assert.doesNotMatch(result.stderr, /revert/);
 });
 
 test("strict: deleting a retired file is a complete scene on its own", () => {
@@ -414,12 +415,17 @@ test("strict: PreToolUse ignores shell commands that are not a git commit", () =
   assert.equal(run(dir, ["--staged"], { scene: "commit", stdin: pre("git commit -m \"$(cat <<'EOF'\nwip\nEOF\n)\"") }).status, 2);
 });
 
-test("strict: the Stop hook sends the agent back once, then lets go and tells the person", () => {
+// A scene ends at its commit; a turn may end to ask or discuss (runbook §1).
+test("strict: the Stop hook never sends the agent back; it tells it once what is missing, then tells the person", () => {
   const { dir, write, compile } = repo();
   write(SOURCE, "wip\n");
   const stop = (active) => JSON.stringify({ hook_event_name: "Stop", cwd: dir, stop_hook_active: active });
   const first = run(dir, ["--branch"], { scene: "commit", stdin: stop(false) });
-  assert.equal(first.status, 2);
+  assert.equal(first.status, 0);
+  const advice = JSON.parse(first.stdout).hookSpecificOutput.additionalContext;
+  assert.match(advice, /no \w+ change/);
+  assert.match(advice, /If you stopped to ask or to discuss, that is fine/);
+  assert.doesNotMatch(advice, /revert/);
   const second = run(dir, ["--branch"], { scene: "commit", stdin: stop(true) });
   assert.equal(second.status, 0);
   assert.match(JSON.parse(second.stdout).systemMessage, /no \w+ change/);
@@ -463,13 +469,15 @@ test("codex: the flag is not read as the base, wherever it stands", () => {
   }
 });
 
-test("codex, strict: Stop and PreToolUse refuse as they do under Claude Code", () => {
+test("codex, strict: Stop continues the turn once with the note, as in adapted; PreToolUse refuses the commit", () => {
   const { dir, write, git } = repo();
   write(SOURCE, "wip\n");
   const stop = (active) => JSON.stringify({ hook_event_name: "Stop", cwd: dir, turn_id: "t1", stop_hook_active: active });
   const first = run(dir, ["--branch", "--codex"], { scene: "commit", stdin: stop(false) });
-  assert.equal(first.status, 2);
-  assert.match(first.stderr, /no \w+ change/);
+  assert.equal(first.status, 0);
+  const cont = JSON.parse(first.stdout);
+  assert.equal(cont.decision, "block");
+  assert.match(cont.reason, /no \w+ change.*If you stopped to ask or to discuss, that is fine/s);
   const second = run(dir, ["--branch", "--codex"], { scene: "commit", stdin: stop(true) });
   assert.equal(second.status, 0);
   assert.match(JSON.parse(second.stdout).systemMessage, /no \w+ change/);

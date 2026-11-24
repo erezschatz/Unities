@@ -286,21 +286,20 @@ if (mode === "--pr") {
   process.exit(1);
 }
 
-if (strict) {
-  const note = `${reason} Complete the record in this same change, or revert it. Do not leave it for later.`;
-  // Stop, second pass: the agent was already sent back once. Let the turn end,
-  // but make the half-scene visible to the person; the revert is theirs to decide.
-  if (input.hook_event_name === "Stop" && input.stop_hook_active) {
-    console.log(JSON.stringify({ systemMessage: note }));
-    process.exit(0);
-  }
-  console.error(note);
-  process.exit(2);   // PreToolUse: deny the commit. Stop: send the agent back. pre-commit: refuse.
+// A scene ends at its commit, not at the end of a turn: a turn may end to ask or to
+// discuss. So the strict staging refuses the commit and only advises at Stop, as the
+// adapted one does; being sent back would argue the agent out of the question it stopped
+// to ask.
+if (strict && input.hook_event_name !== "Stop") {
+  console.error(`${reason} Complete the record in this same change before committing it.`);
+  process.exit(2);   // PreToolUse: deny the commit. pre-commit: refuse.
 }
 
-const note = `${reason} ${what} is fine to keep, but the pull request will be refused until it is complete.`;
+const note = strict
+  ? `${reason} The commit will be refused until the scene is complete. If you stopped to ask or to discuss, that is fine; say what is still missing.`
+  : `${reason} ${what} is fine to keep, but the pull request will be refused until it is complete.`;
 if (input.hook_event_name === "Stop") {
-  // Advise the agent once, in its own context, so it can act; never refuse the scene.
+  // Advise the agent once, in its own context, so it can act; never refuse the turn.
   // Claude Code takes the note as additionalContext. Codex has no such field at Stop: its
   // one channel to the agent is to continue the turn with the note as the prompt.
   if (input.stop_hook_active)
@@ -424,8 +423,8 @@ function contents(file, absent = "") {   // the file as this scene has it
 }
 function sha256(text) { return createHash("sha256").update(text.replace(/\r\n/g, "\n")).digest("hex"); }
 function readConfig() {
-  // The configuration missing or broken is an incomplete adoption: refused like an
-  // incomplete scene, and like one, a Stop that was already sent back lets the turn end.
+  // The configuration missing or broken is an incomplete adoption, which the person fixes:
+  // refused at a commit and sent back once at a Stop, whose second pass lets the turn end.
   const fail = message => {
     if (input.hook_event_name === "Stop" && input.stop_hook_active) {
       console.log(JSON.stringify({ systemMessage: message }));
