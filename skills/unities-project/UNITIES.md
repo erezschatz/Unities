@@ -1,4 +1,4 @@
-<!-- UNITIES.md 2026-11-23 · 0.6.10. Master copy: the unities-project skill folder (plugin `unities`). -->
+<!-- UNITIES.md 2026-11-24 · 0.6.11. Master copy: the unities-project skill folder (plugin `unities`). -->
 
 # UNITIES.md — adopting the Unities in a repository
 
@@ -474,8 +474,11 @@ task file that was only touched, a line added to its Context or a box ticked, is
 record, and the gate refuses it as "no record": at the commit and at the end of the turn
 in strict, at the pull request in adapted, where a commit on the way is told and not
 refused, as with everything else. A section the base already held is not the scene's. A
-scene that changes nothing held to a task change, one that only opens a task, owes no
-record.
+record the scene corrects, a mistake fixed or a line added inside a `## What was done`
+the base held, is never refused and is not a record either: the gate takes a changed
+section for a correction when at least half its words are those of a record the scene no
+longer holds as it was. A scene that changes nothing held to a task change, one that only
+opens a task or corrects a record, owes no record.
 
 **The reader.** Every `## What was done` section a scene adds ends with a line
 `Reviewed by: <who>` naming the reader that read the diff cold against it (Appendix G: a
@@ -520,7 +523,8 @@ equivalent) for them, and link it from the README's setup path and from
    opened with all four done. The test, the doc line and the `## What was done` section — written last,
    because its presence marks the task done; read by someone who did not write it,
    against `docs/reviewer.md`, before the pull request is opened and not only at merge;
-   appended, never edited once merged; it becomes the changelog entry. And, where the
+   appended, and once merged only corrected, never added to as new work; it becomes the
+   changelog entry. And, where the
    work chose something over something else, a `## Decisions` entry in the same task
    file: the developer never opens `docs/DECISIONS.md` or `docs/PLAN.md` to write, only
    to read; both are compiled from the task files after the merge. And who ticks a box
@@ -710,7 +714,8 @@ decision titled `Not admitted: …` (`docs/DECISIONS.md` there).
   at all. The reviewer covers truth; nothing covers it for free.
 - A touched task file is not a recorded scene, and since 0.6.8 the gate says so: a
   change in a role held to a task change must add a `## What was done` section, and a
-  line added elsewhere in a task file is refused as "no record" (4.7). What stays a
+  line added elsewhere in a task file, or inside a record it held, is refused as "no
+  record" (4.7). What stays a
   presence test is the section's content: the gate sees that one was added and that a
   reader is named, not that it describes the change.
 - The `Stop` hook judges one session's tree or branch. Two sessions in one repository
@@ -1081,7 +1086,8 @@ A task file has:
   in production") is an outcome, not a check; it belongs in the promise or in
   `docs/PLAN.md` under *Milestones*, and the gate refuses it;
 - `## What was done`: appended in the same unit (commit or pull request, by the repo's
-  staging) as the change it describes, once, never edited afterwards once merged. A task
+  staging) as the change it describes, once. Once merged it may be corrected, a mistake
+  fixed, but a correction is not a record: new work gets a new section (4.7). A task
   may accumulate several such sections over several units; each is a separate entry in
   the compiled changelog. Its last line is `Reviewed by: <who>`: the reader that had not
   seen the work and read the diff against this section before it was committed. The gate

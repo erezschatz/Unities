@@ -165,9 +165,12 @@ if (files.length && existsSync(join(cwd, RECORD_COMPILER))) {
   missing.push(`compiled record edited directly: ${record.join(", ")}`);
 }
 
-// Acceptance boxes in the task files this scene touches.
+// Acceptance boxes in the task files this scene touches, in path order, so that every mode
+// sees them in the same order.
 let recorded = false;   // has the scene added a "## What was done" section, in any task file?
-for (const f of files.filter(f => RULES.task.test(f) && !deleted.includes(f))) {
+const taskFiles = files.filter(f => RULES.task.test(f) && !deleted.includes(f)).sort();
+const corrected = corrections();
+for (const f of taskFiles) {
   let heading = "";
   for (const line of contents(f).split("\n")) {
     if (/^## /.test(line)) heading = line;
@@ -177,10 +180,13 @@ for (const f of files.filter(f => RULES.task.test(f) && !deleted.includes(f))) {
       missing.push(`acceptance box in ${f} names an outcome, not a check: "${m[1].trim()}" (make it the promise${config.plan === false ? "" : " or a PLAN.md milestone"})`);
   }
   // Every record this scene adds names its cold reader. A section is the scene's unless
-  // the base held it word for word, in any task file (scenesSections).
+  // the base held it word for word, in any task file (scenesSections). A changed record
+  // is a correction, not a new one, when it is mostly a record the scene no longer holds
+  // as it was (corrections): a correction is neither refused nor the scene's record.
   const sections = scenesSections(f);
   for (const section of sections) {
-    if (!/^## What was done/.test(section)) continue;
+    if (!isRecord(section)) continue;
+    if (corrected.get(section) > 0) { corrected.set(section, corrected.get(section) - 1); continue; }
     recorded = true;
     if (!REVIEW.test(section) && !REVIEW_EXEMPT.test(section))
       missing.push(`record in ${f} has no "Reviewed by:" line (a reader that has not seen the work; see Appendix G)`);
@@ -295,12 +301,68 @@ process.exit(0);
 function adopted(ref) { return gitOk(`cat-file -e ${ref}:${SELF}`); }
 // The sections of a task file that are this scene's: every one the base did not hold, word
 // for word, in some task file. A section that only moved (reordered, renamed with its file,
-// split or copied into another) is still the base's. One the scene edited is the scene's,
-// and is judged whole: a record is not edited once merged, and one that is must then say
-// who read it. Nothing is paired or guessed, so no deletion, length or git setting can
-// make one section stand for another.
+// split or copied into another) is still the base's.
 function scenesSections(file) {
   return sectionsOf(contents(file)).filter(section => !baseSections().has(section));
+}
+function isRecord(section) { return /^## What was done/.test(section); }
+// A record the scene changed is a correction of one the base held when at least half its
+// words are that record's, and the base held that record more times than the scene still
+// does. Each such record corrects at most one, so a new record cannot pass as a second
+// correction of the same one; as many are paired as can be, across all task files read in
+// path order, so every mode gives the same answer. Moving a record by hand into another file
+// and rewriting it there is not told from new work, and is not meant to be.
+// Returns how many times each changed record's text is a correction.
+function corrections() {
+  const changed = taskFiles.flatMap(f => scenesSections(f).filter(isRecord));
+  const gone = [];
+  const left = new Map();
+  for (const s of sceneSections().all) left.set(s, (left.get(s) ?? 0) + 1);
+  for (const s of baseSections().all) {
+    if (left.get(s) > 0) left.set(s, left.get(s) - 1);
+    else if (isRecord(s)) gone.push(s);
+  }
+  // Each changed record's possible originals, closest first.
+  const partners = changed.map(c => gone
+    .map((g, j) => [likeness(c, g), j])
+    .filter(([l]) => l >= 0.5)
+    .sort((a, b) => b[0] - a[0] || a[1] - b[1])
+    .map(([, j]) => j));
+  // Pair as many as can be paired: taking the closest pair first can leave a second
+  // correction with no original when a different pairing would have found both theirs.
+  // A changed record takes a free original, or one whose holder can move to another. The
+  // closest records try first, so where not all can be paired, the closest are.
+  const best = i => partners[i].length ? likeness(changed[i], gone[partners[i][0]]) : 0;
+  const order = changed.map((_, i) => i).sort((x, y) => best(y) - best(x) || x - y);
+  const holder = new Array(gone.length).fill(-1);
+  const take = (i, tried) => {
+    for (const j of partners[i]) {
+      if (tried.has(j)) continue;
+      tried.add(j);
+      if (holder[j] < 0 || take(holder[j], tried)) { holder[j] = i; return true; }
+    }
+    return false;
+  };
+  for (const i of order) take(i, new Set());
+  const out = new Map();
+  for (const i of holder) if (i >= 0) out.set(changed[i], (out.get(changed[i]) ?? 0) + 1);
+  return out;
+}
+function likeness(a, b) {   // the share of the longer section's words, below the heading, that both hold
+  const words = s => s.split("\n").slice(1).join(" ").split(/\s+/).filter(Boolean);
+  const left = new Map();
+  for (const w of words(b)) left.set(w, (left.get(w) ?? 0) + 1);
+  let shared = 0;
+  for (const w of words(a)) if (left.get(w) > 0) { shared++; left.set(w, left.get(w) - 1); }
+  return shared / Math.max(words(a).length, words(b).length, 1);
+}
+function sceneSections() {   // every section of every task file as the scene has it
+  if (sceneSections.cache) return sceneSections.cache;
+  const paths = mode === "--pr" ? lines(git("ls-tree -r --name-only HEAD -- tasks/"))
+    : mode === "--staged" ? lines(git("ls-files -- tasks/"))
+    : [...lines(git("ls-files -- tasks/")), ...lines(git("ls-files --others --exclude-standard -- tasks/"))];
+  const all = paths.filter(p => RULES.task.test(p)).flatMap(p => sectionsOf(contents(p)));
+  return sceneSections.cache = Object.assign(new Set(all), { all });
 }
 function baseSections() {   // every section of every task file at the scene's base
   if (baseSections.cache) return baseSections.cache;
@@ -323,7 +385,8 @@ function baseSections() {   // every section of every task file at the scene's b
       at = eol + 1 + size + 1;
     }
   }
-  return baseSections.cache = new Set(texts.flatMap(sectionsOf));
+  const all = texts.flatMap(sectionsOf);   // as many times as the base holds each, for corrections
+  return baseSections.cache = Object.assign(new Set(all), { all });
 }
 function sectionsOf(text) {   // the "## " sections of a file; line endings and trailing blanks are not content
   const out = [];

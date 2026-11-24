@@ -13,7 +13,7 @@ what is not in scope are set by decisions. All of it is compiled from `tasks/` a
 - [a-turn-may-stop-to-discuss](../tasks/a-turn-may-stop-to-discuss.md) — A turn may stop to discuss
 - [acceptance-boxes-are-judged-where-the-scene-wrote](../tasks/acceptance-boxes-are-judged-where-the-scene-wrote.md) — Acceptance boxes are judged where the scene wrote them
 - [adopt-unities](../tasks/adopt-unities.md) — Adopt the Unities in this repository · done
-- [an-edited-merged-record-passes](../tasks/an-edited-merged-record-passes.md) — An edited merged record passes the "no record" check
+- [an-edited-merged-record-passes](../tasks/an-edited-merged-record-passes.md) — An edited merged record passes the "no record" check · done
 - [an-upgrade-may-rewrite-the-head](../tasks/an-upgrade-may-rewrite-the-head.md) — An upgrade may rewrite the compiled files' head
 - [convert-the-adopted-repositories](../tasks/convert-the-adopted-repositories.md) — Convert the repositories adopted before 0.6.0 · recorded, 4 boxes open
 - [diffs-are-read-under-any-git-config](../tasks/diffs-are-read-under-any-git-config.md) — The release check and the changelog compiler read diffs under any git configuration

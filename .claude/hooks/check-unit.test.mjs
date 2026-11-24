@@ -1073,13 +1073,13 @@ test("a review round inserted above an older one with the same heading is judged
   assert.equal(out.pr.status, 0, out.pr.stderr);
 });
 
-test("an older record the scene edits becomes the scene's: refused until it names its reader", () => {
+test("an older record the scene corrects is not refused, with or without a reader line", () => {
   const pre = "# t\n\n## What was done\n\nan old record, before the rule\n";
   let r = onBranch(pre);
   r.write(TASK, "# t\n\n## What was done\n\nan old record, before the rule\nwith a line added\n");
   let out = everyMode(r);
-  for (const mode of ["branch", "staged"]) { assert.equal(out[mode].status, 2, mode); assert.match(out[mode].stderr, unreadIn(TASK)); }
-  assert.equal(out.pr.status, 1);
+  for (const mode of ["branch", "staged"]) assert.equal(out[mode].status, 0, `${mode}: ${out[mode].stderr}`);
+  assert.equal(out.pr.status, 0, out.pr.stderr);
   r = onBranch(pre);
   r.write(TASK, "# t\n\n## What was done\n\nan old record, before the rule\n\nReviewed by: a reader, at last\n");
   out = everyMode(r);
@@ -1220,19 +1220,90 @@ test("a task file that is new in the scene is judged throughout", () => {
   refusedEverywhere(everyMode(r), "new file");
 });
 
-test("edited older records without a reader are each refused; after a rename too", () => {
+test("corrected older records are not asked for a reader, only the new one is; after a rename too", () => {
   const two = "# t\n\n## What was done\n\nfirst, before the rule\n\n## What was done\n\nsecond, before the rule\n";
   let r = onBranch(two);
   r.write(TASK, `${two.replace("first,", "first, fixed,").replace("second,", "second, fixed,")}\n${RECORD_NEW_UNREAD}`);
   let out = everyMode(r);
   assert.equal(out.staged.status, 2);
-  assert.equal(out.staged.stderr.match(/has no "Reviewed by:" line/g).length, 3);
+  assert.equal(out.staged.stderr.match(/has no "Reviewed by:" line/g).length, 1);
   r = onBranch("# t\n\n## What was done\n\nan old record, before the rule\n", "tasks/t.md");
   r.git(`mv tasks/t.md ${TASK}`);
   r.write(TASK, `# t\n\n## What was done\n\nan old record, before the rule, fixed\n\n${RECORD_NEW_READ}`);
   out = everyMode(r);
-  assert.equal(out.staged.status, 2);
-  assert.equal(out.staged.stderr.match(/has no "Reviewed by:" line/g).length, 1);
+  for (const mode of ["branch", "staged"]) assert.equal(out[mode].status, 0, `${mode}: ${out[mode].stderr}`);
+});
+
+// The base as several task files, then a branch, as onBranch does for one.
+function onBranchWith(tasks) {
+  const r = repo();
+  for (const [file, text] of Object.entries(tasks)) r.write(file, text);
+  r.compile();
+  r.commit("base-tasks");
+  r.git("update-ref refs/remotes/origin/main HEAD");
+  r.git("checkout -q -b feature");
+  return r;
+}
+
+test("a correction passes when its record is also in another file, is one of two alike, or has a close new record beside it", () => {
+  const shared = "# t\n\n## What was done\n\nshared record, before the rule\n";
+  let r = onBranchWith({ [TASK]: shared, "tasks/2-u.md": shared });
+  r.write(TASK, shared.replace("before the rule", "before the rule, fixed"));
+  passesEverywhere(everyMode(r), "also in another file");
+  const twice = "# t\n\n## What was done\n\nthe same record, before the rule\n\n## What was done\n\nthe same record, before the rule\n";
+  r = onBranchWith({ [TASK]: twice });
+  r.write(TASK, twice.replace(/before the rule\n$/, "before the rule, fixed\n"));
+  passesEverywhere(everyMode(r), "one of two alike");
+  // A new read record in an earlier file, close to the corrected one: the correction is
+  // still the correction, in every mode, whatever order the files are read in.
+  const old = "# t\n\n## What was done\n\na record about the parser and its tests, before the rule\n";
+  r = onBranchWith({ "tasks/5-t.md": old });
+  r.write("tasks/5-t.md", old.replace("before the rule", "before the rule, fixed"));
+  r.write("tasks/0-a.md", "# a\n\n## What was done\n\na record about the parser and its tests\n\nReviewed by: a reader\n");
+  passesEverywhere(everyMode(r), "close new record");
+  // Two records corrected, where the closest pair first would leave the second with none.
+  const words = (from, to, tag) => Array.from({ length: to - from + 1 }, (_, k) => `${tag}${from + k}`).join(" ");
+  const a = words(1, 10, "a"), b = `${words(1, 5, "a")} ${words(6, 10, "b")}`;
+  const both = `# t\n\n## What was done\n\n${a}\n\n## What was done\n\n${b}\n`;
+  r = onBranchWith({ [TASK]: both });
+  // The first: a with one word changed (0.9 to a, 0.5 to b). The second: 0.8 to a, 0.4 to b.
+  const first = a.replace("a10", "x10");
+  const second = `${words(1, 4, "a")} ${words(6, 9, "a")} y9 y10`;
+  r.write(TASK, `# t\n\n## What was done\n\n${first}\n\n## What was done\n\n${second}\n`);
+  passesEverywhere(everyMode(r), "two corrections");
+});
+
+// A correction is allowed and is not a record (runbook 4.7): with source, a box ticked or a
+// line added inside a merged record does not answer "no record"; a new record still does.
+test("source with a corrected merged record and no new one is refused as no record", () => {
+  const merged = "## What was done\n\ndone, with a box:\n\n- [ ] a check → an outcome\n\nReviewed by: a reader\n";
+  const sourced = r => { r.write(SOURCE, "changed\n"); r.write(TEST, "test\n"); r.write(DOC, "documented\n"); };
+  const noRecord = /no record: a task file changed but no "## What was done" section was added/;
+  for (const [label, corrected] of [
+    ["box ticked", merged.replace("- [ ]", "- [x]")],
+    ["line added", merged.replace("Reviewed by:", "one more line\n\nReviewed by:")],
+  ]) {
+    let r = onBranch(`# t\n\n${merged}`);
+    sourced(r);
+    r.write(TASK, `# t\n\n${corrected}`);
+    let out = everyMode(r);
+    for (const mode of ["branch", "staged"]) { assert.equal(out[mode].status, 2, `${label} ${mode}`); assert.match(out[mode].stderr, noRecord); }
+    assert.equal(out.pr.status, 1, label);
+    assert.match(out.pr.stderr, noRecord);
+    // The same correction with a new, read record passes.
+    r = onBranch(`# t\n\n${merged}`);
+    sourced(r);
+    r.write(TASK, `# t\n\n${corrected}\n${RECORD_NEW_READ}`);
+    out = everyMode(r);
+    for (const mode of ["branch", "staged"]) assert.equal(out[mode].status, 0, `${label} + new ${mode}: ${out[mode].stderr}`);
+    // A ticked box changes the compiled plan, which an adapted pull request does not carry;
+    // only the record messages are this test's business there.
+    assert.doesNotMatch(out.pr.stderr, /no record|Reviewed by/, `${label} + new pr`);
+    // The correction alone, with no source change, passes.
+    r = onBranch(`# t\n\n${merged}`);
+    r.write(TASK, `# t\n\n${corrected}`);
+    passesEverywhere(everyMode(r), `${label} alone`);
+  }
 });
 
 test("trailing spaces or tabs, removed or added, do not make an older record the scene's", () => {
@@ -1242,10 +1313,11 @@ test("trailing spaces or tabs, removed or added, do not make an older record the
   let out = everyMode(r);
   for (const mode of ["branch", "staged"]) assert.equal(out[mode].status, 0, `${mode}: ${out[mode].stderr}`);
   assert.equal(out.pr.status, 0, out.pr.stderr);
+  // A tab inside a line is a change, and a change to an older record is a correction.
   r = onBranch(pre);
   r.write(TASK, `${pre.replace("second line", "second\tline")}\n${RECORD_NEW_READ}`);
   out = everyMode(r);
-  assert.equal(out.staged.status, 2);   // a changed word, or a tab inside a line, is a change
+  for (const mode of ["branch", "staged"]) assert.equal(out[mode].status, 0, `${mode}: ${out[mode].stderr}`);
 });
 
 // ---- a repository that keeps no plan ("plan": false in the configuration) ----

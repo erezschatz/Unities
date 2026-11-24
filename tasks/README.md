@@ -28,7 +28,8 @@ A task file has:
   in production") is an outcome, not a check; it belongs in the promise or in
   `docs/PLAN.md` under *Milestones*, and the gate refuses it;
 - `## What was done`: appended in the same unit (commit or pull request, by the repo's
-  staging) as the change it describes, once, never edited afterwards once merged. A task
+  staging) as the change it describes, once. Once merged it may be corrected, a mistake
+  fixed, but a correction is not a record: new work gets a new section. A task
   may accumulate several such sections over several units; each is a separate entry in
   the compiled changelog. Its last line is `Reviewed by: <who>`: the reader that had not
   seen the work and read the diff against this section before it was committed. The gate

@@ -1044,3 +1044,44 @@ validate this by trying to figure how to support it." The runbook already says a
 task file is not a record; the gate is brought to it.
 
 Source: [tasks/an-edited-merged-record-passes.md](../tasks/an-edited-merged-record-passes.md)
+
+## D75 · 2026-11-24 · A changed record is a correction when half its words are a record the scene no longer holds
+
+**Decision** — A `## What was done` the base did not hold word for word, in any task
+file, is a correction when at least half the words below its heading, counted against the
+longer of the two, are those of a record the base held more times than the scene still
+does, across all task files. Each such base record corrects at most one section, and as
+many changed records are paired with originals as can be; the closest records try first,
+so where not all can be paired, the closest are. Task files are read in path order, so
+every mode gives the same answer. Anything else is new: it is the scene's record and must name
+its reader. Corrections are not asked for
+a reader and do not answer "no record". Records that only moved, word for word, are still
+the base's, as before.
+**Rejected** — Counting `## What was done` sections per task file against its own
+version at the base, the rule first proposed: it needs git's rename detection to find a
+renamed file's base version, and it cannot say which of a file's changed sections is the
+new one, so a correction in the same file as a new record would be asked for a reader.
+Taking the changed sections least like the base as the new ones, up to the count: a
+ranking, where a fixed share is one rule. Reading which lines git's diff marks as added:
+the same heading line repeats in every record, and git may pair a new record's heading
+with an old one's.
+**Why** — It tells an edit from new work by the words, which is what the diff shows a
+person, without pairing files or reading git's alignment. A long new record is judged on
+its own words, not hidden by a short edited one. A new record written in place of a
+deleted one is judged when it shares less than half that one's words; one that shares
+more passes as its correction (the decision below).
+
+Source: [tasks/an-edited-merged-record-passes.md](../tasks/an-edited-merged-record-passes.md)
+
+## D76 · 2026-11-24 · Not admitted: a new record that reuses half the words of one it deletes passes as a correction
+
+**Decision** — Not built. The cold reader of this scene deleted a read record of 15 words
+and wrote new work sharing 9 of them, with no reader; it passed as a correction. Among
+this repository's 42 records, two pairs from separate scenes score 0.50 and 0.51.
+**Rejected** — Raising the share, or judging corrections by more than their words, on
+the reader's constructed case.
+**Why** — It has not happened in a repository, and it needs a record deleted, which is
+not a correction. Erez has not ruled on this case. What Claude would rule: not admitted,
+in the spirit of his ruling on records copied between task files.
+
+Source: [tasks/an-edited-merged-record-passes.md](../tasks/an-edited-merged-record-passes.md)
