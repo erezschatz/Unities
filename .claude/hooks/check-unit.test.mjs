@@ -323,6 +323,21 @@ test("only records this scene adds are asked for a reader; earlier and migrated 
   assert.equal(ok.status, 0, ok.stderr);
 });
 
+test("the compiler writes a changelog whose history since the release is longer than 1 MiB", () => {
+  const { dir, write, commit, read } = repo();
+  // About 1.06 MiB of record, and 1.1 MiB of git log -p: past Node's default buffer of 1 MiB.
+  const body = Array.from({ length: 40_000 }, (_, i) => `line ${i} of a long record`).join("\n");
+  write(SOURCE, "changed\n");
+  write(TEST, "test\n");
+  write(DOC, "documented\n");
+  write(TASK, `# t\n\n## What was done\n\n${body}\n\nReviewed by: a reader\n`);
+  commit("long");
+  const result = spawnSync("node", ["scripts/compile-changelog.mjs", "1.0.0", "--since", "v0"], { cwd: dir, encoding: "utf8" });
+  assert.equal(result.status, 0, result.stderr);
+  assert.match(read(SHARED), /^## 1\.0\.0 — /m);
+  assert.match(read(SHARED), /line 39999 of a long record/);
+});
+
 test("the compiler leaves the Reviewed by line out of the changelog", () => {
   const { dir, git, write, commit } = repo();
   write(SOURCE, "changed\n");

@@ -1,4 +1,4 @@
-<!-- UNITIES.md 2026-11-24 · 0.6.13. Master copy: the unities-project skill folder (plugin `unities`). -->
+<!-- UNITIES.md 2026-11-24 · 0.6.14. Master copy: the unities-project skill folder (plugin `unities`). -->
 
 # UNITIES.md — adopting the Unities in a repository
 
