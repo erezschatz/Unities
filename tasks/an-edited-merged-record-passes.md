@@ -98,7 +98,7 @@ Reviewed by: a read-only Claude Code subagent (Explore) that had not seen the wo
 `docs/reviewer.md`. It probed the gate with scenes of its own in throwaway clones, in
 every mode, over three readings: the first found the three refused corrections, the
 gaming case and the overclaims, the second the closest-first pairing, and the third found
-every ticked line held and nothing new. Its findings are the 2026-11-24 review above,
+every ticked line held and nothing new. Its findings are the 2026-11-24 review below,
 answered before commit.
 
 ## Review · 2026-11-24
