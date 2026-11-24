@@ -1473,6 +1473,42 @@ test("the compilers stop on a configuration that is not an object, naming it", (
   }
 });
 
+test("no planted script starts a program through a shell", () => {
+  for (const file of [hook, compiler, recordCompiler]) {
+    const text = readFileSync(file, "utf8");
+    // child_process's exec, execSync and a shell option; a regular expression's .exec is not one.
+    assert.doesNotMatch(text, /\bexecSync\b|(?<!\.)\bexec\(|shell:\s*true/, file);
+  }
+});
+
+// Appendix H's Deno line for the gate. Under Deno a program the gate starts must be
+// allowed by name, and the environment is read whole because a child is given all of it.
+const DENO_GATE = ["run", "--allow-run=git,deno", "--allow-read", "--allow-env"];
+const deno = spawnSync("deno", ["--version"], { encoding: "utf8" });
+test("under Deno, with Appendix H's permissions, the gate refuses an incomplete scene and passes a complete one",
+  { skip: deno.error ? "Deno is not installed here" : false }, () => {
+  const { dir, git, write, compile } = repo({ config: { ...FIXTURE, run: "deno run --allow-read --allow-write=docs" } });
+  const gate = args => spawnSync("deno", [...DENO_GATE, join(dir, ".claude/hooks/check-unit.mjs"), ...args],
+    { cwd: dir, input: "", encoding: "utf8", env: { ...process.env, UNITIES_SCENE: "commit" } });
+  write(SOURCE, "changed\n");
+  git("add -A");
+  const incomplete = gate(["--staged"]);
+  assert.equal(incomplete.status, 2, incomplete.stderr);
+  assert.match(incomplete.stderr, /Incomplete scene: no test change/);
+  assert.doesNotMatch(incomplete.stderr, /NotCapable|Requires|Command failed/);
+  complete(write);
+  compile();
+  git("add -A");
+  const ok = gate(["--staged"]);
+  assert.equal(ok.status, 0, ok.stderr);
+  // The record compiler runs under Deno, through "run": a decision not yet compiled is refused.
+  write(TASK, `${readFileSync(join(dir, TASK), "utf8")}\n## Decisions\n\n### 2026-11-24 · A choice\n\n**Decision** — this\n**Rejected** — that\n**Why** — because\n`);
+  git("add -A");
+  const stale = gate(["--staged"]);
+  assert.equal(stale.status, 2, stale.stderr);
+  assert.match(stale.stderr, /compiled record is out of date/);
+});
+
 // The gate run by hand from a script or an agent's shell, whose stdin is a pipe held open
 // and never written to. Killed after ten seconds, so a gate that waits shows as a failure.
 function runWithOpenStdin(dir, args, { scene = "pr", written = "" } = {}) {

@@ -13,7 +13,7 @@
 //
 // This file is the same in every repository. What differs between repositories is read
 // from CONFIG; the hashes of the planted files, from MANIFEST.
-import { execSync, spawnSync } from "node:child_process";
+import { spawnSync } from "node:child_process";
 import { createHash } from "node:crypto";
 import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
@@ -62,7 +62,9 @@ const RELEASE_FILES = new RegExp(config.releaseFiles);     // what a release PR 
 // A repository that keeps no plan ("plan": false) compiles only the decisions, and a
 // docs/PLAN.md there, if any, is an ordinary file.
 const RECORD_FILES = config.plan === false ? /^docs\/DECISIONS\.md$/ : /^docs\/(DECISIONS|PLAN)\.md$/;
-const RUN = config.run ?? "node";                          // how the compilers are invoked (Deno, Bun: Appendix H)
+// How the compilers are invoked (Deno, Bun: Appendix H): a command and its arguments,
+// split on spaces, since no shell reads it.
+const RUN = (config.run ?? "node").trim().split(/\s+/);
 const strict = SCENE === "commit";
 
 let files, base, deleted;   // deleting a tombstone is not editing it
@@ -70,23 +72,23 @@ if (mode === "--pr") {
   const target = argv[1];
   if (!target) fail("usage: check-unit.mjs --pr <target>");
   // A name git does not know is not a target that has yet to adopt: refuse, do not skip.
-  if (!gitOk(`cat-file commit ${target}`))
+  if (!gitOk(["cat-file", "commit", target]))
     fail(`${target} is not a commit this checkout knows; check the name, or fetch the branch (a single-branch or shallow clone may not have it).`);
   if (!adopted(target)) skip(`${target} has no ${SELF}; the record is not required until the target adopts it.`);
   // The PR's own change, measured from where it forked. The target's tip may have
   // moved on since, and its new commits are not this PR's.
-  if (!gitOk(`merge-base ${target} HEAD`))
+  if (!gitOk(["merge-base", target, "HEAD"]))
     fail(`no merge base between ${target} and HEAD; the checkout needs the history back to where the branch forked (a shallow clone may not have it).`);
-  base = git(`merge-base ${target} HEAD`).trim();
-  files = lines(git(`diff --name-only ${base} HEAD`));
-  deleted = lines(git(`diff --name-only --diff-filter=D ${base} HEAD`));
+  base = git(["merge-base", target, "HEAD"]).trim();
+  files = lines(git(["diff", "--name-only", base, "HEAD"]));
+  deleted = lines(git(["diff", "--name-only", "--diff-filter=D", base, "HEAD"]));
 } else if (mode === "--staged") {
-  files = lines(git("diff --cached --name-only"));
-  deleted = lines(git("diff --cached --name-only --diff-filter=D"));
+  files = lines(git(["diff", "--cached", "--name-only"]));
+  deleted = lines(git(["diff", "--cached", "--name-only", "--diff-filter=D"]));
   // A merge carries scenes recorded on the other branch. Only what the merge
   // commit itself writes — a file that differs from both parents — is new.
-  if (gitOk("rev-parse -q --verify MERGE_HEAD")) {
-    const fromTheirs = new Set(lines(git("diff --cached --name-only MERGE_HEAD")));
+  if (gitOk(["rev-parse", "-q", "--verify", "MERGE_HEAD"])) {
+    const fromTheirs = new Set(lines(git(["diff", "--cached", "--name-only", "MERGE_HEAD"])));
     files = files.filter(f => fromTheirs.has(f));
   }
 } else if (mode === "--branch") {
@@ -95,14 +97,14 @@ if (mode === "--pr") {
     base = "HEAD";
   } else {
     base = argv[1] ?? BASE;
-    if (!gitOk(`rev-parse -q --verify ${base}`) || !adopted(base)) process.exit(0);
-    base = git(`merge-base ${base} HEAD`).trim();
+    if (!gitOk(["rev-parse", "-q", "--verify", base]) || !adopted(base)) process.exit(0);
+    base = git(["merge-base", base, "HEAD"]).trim();
   }
   files = [...new Set([
-    ...lines(git(`diff --name-only ${base}`)),              // committed since base, plus the work tree
-    ...lines(git("ls-files --others --exclude-standard")),
+    ...lines(git(["diff", "--name-only", base])),              // committed since base, plus the work tree
+    ...lines(git(["ls-files", "--others", "--exclude-standard"])),
   ])];
-  deleted = lines(git(`diff --name-only --diff-filter=D ${base}`));
+  deleted = lines(git(["diff", "--name-only", "--diff-filter=D", base]));
 } else {
   fail(`unknown mode ${mode}`);
 }
@@ -120,12 +122,12 @@ let shared = files.filter(f => RULES.shared.test(f) || (RULES.retired.test(f) &&
 // A release PR: only RELEASE_FILES changed, and the changelog it adds is exactly
 // what the compiler produces from the record. The blob must equal compile(sources).
 if (mode === "--pr" && shared.length && files.every(f => RELEASE_FILES.test(f))) {
-  const added = lines(git(`diff ${base} HEAD -- CHANGELOG.md`))
+  const added = lines(git(["diff", base, "HEAD", "--", "CHANGELOG.md"]))
     .filter(l => l.startsWith("+") && !l.startsWith("+++")).map(l => l.slice(1).trim()).filter(Boolean);
   let compiled, why;
   try {
-    const since = sh(`git describe --tags --abbrev=0 ${base}`) || git("rev-list --max-parents=0 HEAD").trim();
-    const out = sh(`${RUN} ${COMPILER} --dry-run --since ${since}`);
+    const since = git(["describe", "--tags", "--abbrev=0", base]).trim() || git(["rev-list", "--max-parents=0", "HEAD"]).trim();
+    const out = program(RUN[0], [...RUN.slice(1), COMPILER, "--dry-run", "--since", since]).trim();
     if (/^\(no task records/.test(out)) why = " (no task records to release)";
     else compiled = lines(out).slice(1);                       // drop the version heading
   } catch { why = " (compiler failed)"; }
@@ -145,7 +147,7 @@ const record = files.filter(f => RECORD_FILES.test(f) && head(show(from, f)) !==
 const compileOnly = files.length > 0 && files.every(f => RECORD_FILES.test(f));
 if (files.length && existsSync(join(cwd, RECORD_COMPILER))) {
   // The compiler reads the work tree; in --pr that is the checkout of the PR's tip.
-  const run = spawnSync(`${RUN} ${RECORD_COMPILER} --check`, { cwd, shell: true, encoding: "utf8" });
+  const run = spawnSync(RUN[0], [...RUN.slice(1), RECORD_COMPILER, "--check"], { cwd, encoding: "utf8" });
   if (run.status === 3) missing.push(run.stderr.trim());
   if (strict || compileOnly) {
     if (run.status === 1) missing.push(`compiled record is out of date: ${run.stderr.trim()}`);
@@ -153,7 +155,7 @@ if (files.length && existsSync(join(cwd, RECORD_COMPILER))) {
       if (!deleted.includes(f) && head(show(from, f)) !== head(contents(f)))
         missing.push(`the hand-written head of ${f} was edited; everything in it is changed by a new decision in a task file`);
     if (mode === "--staged" && !run.status) {
-      const unstaged = lines(git("diff --name-only")).filter(f => RECORD_FILES.test(f));
+      const unstaged = lines(git(["diff", "--name-only"])).filter(f => RECORD_FILES.test(f));
       if (unstaged.length) missing.push(`compiled record not staged: ${unstaged.join(", ")}`);
     }
   } else if (record.length) {
@@ -298,7 +300,7 @@ if (input.hook_event_name === "Stop") {
 }
 process.exit(0);
 
-function adopted(ref) { return gitOk(`cat-file -e ${ref}:${SELF}`); }
+function adopted(ref) { return gitOk(["cat-file", "-e", `${ref}:${SELF}`]); }
 // The sections of a task file that are this scene's: every one the base did not hold, word
 // for word, in some task file. A section that only moved (reordered, renamed with its file,
 // split or copied into another) is still the base's.
@@ -358,9 +360,9 @@ function likeness(a, b) {   // the share of the longer section's words, below th
 }
 function sceneSections() {   // every section of every task file as the scene has it
   if (sceneSections.cache) return sceneSections.cache;
-  const paths = mode === "--pr" ? lines(git("ls-tree -r --name-only HEAD -- tasks/"))
-    : mode === "--staged" ? lines(git("ls-files -- tasks/"))
-    : [...lines(git("ls-files -- tasks/")), ...lines(git("ls-files --others --exclude-standard -- tasks/"))];
+  const paths = mode === "--pr" ? lines(git(["ls-tree", "-r", "--name-only", "HEAD", "--", "tasks/"]))
+    : mode === "--staged" ? lines(git(["ls-files", "--", "tasks/"]))
+    : [...lines(git(["ls-files", "--", "tasks/"])), ...lines(git(["ls-files", "--others", "--exclude-standard", "--", "tasks/"]))];
   const all = paths.filter(p => RULES.task.test(p)).flatMap(p => sectionsOf(contents(p)));
   return sceneSections.cache = Object.assign(new Set(all), { all });
 }
@@ -369,14 +371,16 @@ function baseSections() {   // every section of every task file at the scene's b
   // One git call for all of them: a repository keeps a task file for every task it ever had.
   let blobs = [];
   try {
-    blobs = lines(git(`ls-tree -r ${from} -- tasks/`))
+    blobs = lines(git(["ls-tree", "-r", from, "--", "tasks/"]))
       .map(l => /^\d+ blob ([0-9a-f]+)\t(.+)$/.exec(l))
       .filter(m => m && RULES.task.test(m[2]))
       .map(m => m[1]);
   } catch {}
   const texts = [];
   if (blobs.length) {
-    const out = execSync("git cat-file --batch", { cwd, input: blobs.join("\n") + "\n", stdio: ["pipe", "pipe", "ignore"], maxBuffer: 1 << 30 });
+    // Bytes out, since the sizes git gives are in bytes; bytes in, since the encoding
+    // option would otherwise be applied to the input as well.
+    const out = program("git", ["cat-file", "--batch"], { input: Buffer.from(blobs.join("\n") + "\n"), stdio: ["pipe", "pipe", "ignore"], encoding: "buffer" });
     // Each object: "<oid> blob <size>\n", then <size> bytes, then "\n".
     for (let at = 0; at < out.length;) {
       const eol = out.indexOf(10, at);
@@ -399,8 +403,8 @@ function sectionsOf(text) {   // the "## " sections of a file; line endings and 
 }
 function contents(file, absent = "") {   // the file as this scene has it
   try {
-    if (mode === "--pr") return lf(git(`show HEAD:${file}`));
-    if (mode === "--staged") return lf(git(`show :${file}`));
+    if (mode === "--pr") return lf(git(["show", `HEAD:${file}`]));
+    if (mode === "--staged") return lf(git(["show", `:${file}`]));
     return lf(readFileSync(join(cwd, file), "utf8"));
   } catch { return absent; }
 }
@@ -450,7 +454,7 @@ function readConfig() {
   return c;
 }
 function show(ref, file) {   // the file as the scene's base has it; "" if absent
-  try { return lf(git(`show ${ref}:${file}`)); } catch { return ""; }
+  try { return lf(git(["show", `${ref}:${file}`])); } catch { return ""; }
 }
 // A Windows checkout commits and hands back CRLF line endings, and some editors put a
 // byte-order mark first; neither is content. Without this a line such as "- [ ] box\r"
@@ -468,16 +472,17 @@ function firstDifference(a, b) {
   const at = i < 0 ? a.length : i;
   return `\n  PR line ${at + 1}: ${JSON.stringify(a[at] ?? "(end)")}\n  compiled: ${JSON.stringify(b[at] ?? "(end)")}`;
 }
-function git(args) {
-  return execSync(`git ${args}`, { cwd, encoding: "utf8", stdio: ["ignore", "pipe", "ignore"] });
+// git and the compilers are started by name with a list of arguments, never through a
+// shell: under Deno a shell is one more program to allow, and allowing it allows any
+// program. It also keeps a file name with a space in it one argument.
+function program(command, args, options = {}) {
+  const result = spawnSync(command, args, { cwd, encoding: "utf8", stdio: ["ignore", "pipe", "ignore"], maxBuffer: 1 << 30, ...options });
+  if (result.error) throw result.error;
+  if (result.status !== 0) throw new Error(`${command} ${args.join(" ")} exited ${result.status}`);
+  return result.stdout;
 }
-function sh(cmd) {
-  return execSync(cmd, { cwd, encoding: "utf8", stdio: ["ignore", "pipe", "ignore"] }).trim();
-}
-function gitOk(args) {
-  try { execSync(`git ${args}`, { cwd, stdio: "ignore" }); return true; }
-  catch { return false; }
-}
+function git(args) { return program("git", args); }
+function gitOk(args) { return spawnSync("git", args, { cwd, stdio: "ignore" }).status === 0; }
 // A hook writes its JSON as it starts the gate and closes stdin. Run by hand from a script
 // or an agent's shell, stdin can be a pipe that is held open and never written to, and
 // waiting for its end would wait forever. So the gate stops listening once stdin has been

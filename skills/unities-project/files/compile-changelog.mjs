@@ -3,7 +3,7 @@
 // compile-changelog <version> [--since <ref>] [--dry-run]
 // The only writer CHANGELOG.md has. Reads "## What was done" sections added to tasks/
 // since the last release and prepends them under a version heading.
-import { execSync } from "node:child_process";
+import { spawnSync } from "node:child_process";
 import { readFileSync, writeFileSync, existsSync } from "node:fs";
 
 const argv = process.argv.slice(2);
@@ -12,14 +12,22 @@ const sinceIdx = argv.indexOf("--since");
 const version = argv.find((a, i) => !a.startsWith("--") && argv[i - 1] !== "--since");
 if (!version && !dry) { console.error("usage: compile-changelog <version> [--since <ref>] [--dry-run]"); process.exit(1); }
 
-const sh = c => execSync(c, { encoding: "utf8", stdio: ["ignore", "pipe", "ignore"] }).trim();
+// git is started by name with a list of arguments, never through a shell: under Deno a
+// shell is one more program to allow, and allowing it allows any program. The buffer is
+// large because the log of a long-unreleased history is long.
+const git = args => {
+  const result = spawnSync("git", args, { encoding: "utf8", stdio: ["ignore", "pipe", "ignore"], maxBuffer: 1 << 30 });
+  if (result.error) throw result.error;
+  if (result.status !== 0) throw new Error(`git ${args.join(" ")} exited ${result.status}`);
+  return result.stdout.trim();
+};
 // A Windows checkout commits and hands back CRLF line endings, and some editors put a
 // byte-order mark first; neither is content.
 const lf = text => text.replace(/^\uFEFF/, "").replace(/\r\n/g, "\n");
-const since = sinceIdx >= 0 ? argv[sinceIdx + 1]
-  : (sh("git describe --tags --abbrev=0 2>/dev/null || true") || sh("git rev-list --max-parents=0 HEAD"));
+const lastTag = () => { try { return git(["describe", "--tags", "--abbrev=0"]); } catch { return ""; } };
+const since = sinceIdx >= 0 ? argv[sinceIdx + 1] : (lastTag() || git(["rev-list", "--max-parents=0", "HEAD"]));
 
-const raw = sh(`git log --no-merges --reverse --format=%x1e%h%x1f%as -p ${since}..HEAD -- tasks/`);
+const raw = git(["log", "--no-merges", "--reverse", "--format=%x1e%h%x1f%as", "-p", `${since}..HEAD`, "--", "tasks/"]);
 const entries = [];                       // { file, hash, date, lines[] }
 
 for (const chunk of raw.split("\x1e").filter(Boolean)) {
@@ -40,7 +48,7 @@ for (const chunk of raw.split("\x1e").filter(Boolean)) {
 // Task files get renamed (e.g. when a work item id is assigned). Records written
 // under an earlier name must land under the file's current name.
 const renamed = new Map();
-for (const line of sh(`git log --reverse --format= --name-status -M --diff-filter=R ${since}..HEAD -- tasks/`).split("\n")) {
+for (const line of git(["log", "--reverse", "--format=", "--name-status", "-M", "--diff-filter=R", `${since}..HEAD`, "--", "tasks/"]).split("\n")) {
   const [, from, to] = line.split("\t");
   if (from && to) renamed.set(from, to);
 }

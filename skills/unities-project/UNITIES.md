@@ -1,4 +1,4 @@
-<!-- UNITIES.md 2026-11-24 · 0.6.11. Master copy: the unities-project skill folder (plugin `unities`). -->
+<!-- UNITIES.md 2026-11-24 · 0.6.12. Master copy: the unities-project skill folder (plugin `unities`). -->
 
 # UNITIES.md — adopting the Unities in a repository
 
@@ -1365,15 +1365,25 @@ runner. The check script shells out to `node scripts/compile-changelog.mjs` for 
 release verification and to `node scripts/compile-record.mjs --check` for the compiled
 record; on Deno or Bun set `run` in the configuration (Appendix A) to the invocation that
 replaces `node` in those two calls, for example
-`"run": "deno run --allow-run=git --allow-read"`. The script itself is not edited. The
-record compiler needs no `--allow-run`; it reads `tasks/` and writes the two files in
-`docs/` (`deno run --allow-read --allow-write=docs scripts/compile-record.mjs`), and
-gets a `record` entry in the task runner beside `changelog`.
+`"run": "deno run --allow-run=git --allow-read --allow-env"`. No shell reads it: it is
+split on spaces into a command and its arguments, so it holds no quotes, pipes or
+variables. The script itself is not edited. The record compiler starts no program; it
+reads `tasks/` and writes the two files in `docs/` (`deno run --allow-read
+--allow-write=docs scripts/compile-record.mjs`), and gets a `record` entry in the task
+runner beside `changelog`.
+
+The scripts start git, and the runtime in `run`, by name with a list of arguments, never
+through a shell, so `--allow-run` names only those. `--allow-env` is whole: Deno refuses
+to start any program unless it may read the whole environment, so a list of names fails
+with `NotCapable` (measured under Deno 2.9.8). The scripts do not hand a program a chosen
+environment instead, because git needs what its caller set, such as a hook's
+`GIT_INDEX_FILE` and `HOME` for its configuration. Under Deno, set `run` too: without it
+the gate starts the compilers with `node`, which `--allow-run` does not name.
 
 | Runtime | `command` | `args` prefix | Task runner entry |
 | --- | --- | --- | --- |
 | Node | `node` | — | `package.json` → `"scripts": {"changelog": "node scripts/compile-changelog.mjs"}` |
-| Deno | `deno` | check: `run --allow-run=git,deno --allow-read --allow-env=TF_BUILD,UNITIES_SCENE`; compiler: `run --allow-run=git --allow-read --allow-write=CHANGELOG.md` | `deno.json` → `"tasks": {"changelog": "deno run --allow-run=git --allow-read --allow-write=CHANGELOG.md scripts/compile-changelog.mjs"}` |
+| Deno | `deno` | check: `run --allow-run=git,deno --allow-read --allow-env`; changelog compiler: `run --allow-run=git --allow-read --allow-env --allow-write=CHANGELOG.md`; record compiler: `run --allow-read --allow-write=docs` | `deno.json` → `"tasks": {"changelog": "deno run --allow-run=git --allow-read --allow-env --allow-write=CHANGELOG.md scripts/compile-changelog.mjs"}` |
 | Bun | `bun` | `run` | `package.json` scripts as for Node, with `bun` |
 
 Deno example for `.claude/settings.json`:
@@ -1382,7 +1392,7 @@ Deno example for `.claude/settings.json`:
 {
   "type": "command",
   "command": "deno",
-  "args": ["run", "--allow-run=git,deno", "--allow-read", "--allow-env=TF_BUILD,UNITIES_SCENE",
+  "args": ["run", "--allow-run=git,deno", "--allow-read", "--allow-env",
            "${CLAUDE_PROJECT_DIR}/.claude/hooks/check-unit.mjs", "--branch"]
 }
 ```
@@ -1397,7 +1407,7 @@ the repository root itself, with `--codex` after the mode:
 | Runtime | `command` in `.codex/hooks.json` |
 | --- | --- |
 | Node | `node "$(git rev-parse --show-toplevel)/.claude/hooks/check-unit.mjs" --branch --codex` |
-| Deno | `deno run --allow-run=git,deno --allow-read --allow-env=TF_BUILD,UNITIES_SCENE "$(git rev-parse --show-toplevel)/.claude/hooks/check-unit.mjs" --branch --codex` |
+| Deno | `deno run --allow-run=git,deno --allow-read --allow-env "$(git rev-parse --show-toplevel)/.claude/hooks/check-unit.mjs" --branch --codex` |
 | Bun | `bun run "$(git rev-parse --show-toplevel)/.claude/hooks/check-unit.mjs" --branch --codex` |
 
 That line needs a POSIX shell. Where a developer runs Codex on Windows outside WSL,

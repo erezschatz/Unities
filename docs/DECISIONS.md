@@ -1101,3 +1101,33 @@ probably ok if you really think about it, we're working in a software project, n
 proving a mathematical theorem here."
 
 Source: [tasks/an-edited-merged-record-passes.md](../tasks/an-edited-merged-record-passes.md)
+
+## D78 · 2026-11-24 · Programs by name, the environment whole
+
+**Decision** — The gate and the changelog compiler start git, and the runtime named in
+`run`, with `spawnSync` and a list of arguments, never a shell; `run` is split on spaces.
+Under Deno, `--allow-run` names `git` (and `deno` for the gate); `--allow-env` is given
+whole, to the gate and to the changelog compiler.
+**Rejected** — Keeping `--allow-env=TF_BUILD,UNITIES_SCENE`, or adding `PATH` and `HOME`
+to it: measured under Deno 2.9.8, spawning git without a shell still throws `NotCapable`
+with either, because Deno gives a child the whole environment and asks leave to read all
+of it. Handing each child a chosen environment instead: git needs what its caller set,
+such as `GIT_INDEX_FILE` from a hook, and a chosen list would drop what nobody listed.
+Allowing `/bin/sh`, which allows any program.
+**Why** — Which programs the scripts may start is what a Deno permission protects;
+reading the environment the scripts already run in gives nothing a shell would.
+
+Source: [tasks/the-gate-runs-under-deno-without-a-shell.md](../tasks/the-gate-runs-under-deno-without-a-shell.md)
+
+## D79 · 2026-11-24 · Not admitted: a release pull request with no tag at its base is refused
+
+**Decision** — Not built. In the gate's release check, `git describe` throws where the
+base has no tag, so the fallback to the root commit is never reached and a release pull
+request is refused with "(compiler failed)". The old shell call did the same; this
+scene's conversion kept it.
+**Rejected** — Catching the throw so the fallback runs, as `compile-changelog.mjs` now
+does, which the cold reader of this scene found and nobody admitted.
+**Why** — It has not happened in a repository: every adopted one releases from a tag.
+What Claude would rule: admit it, since the code's own fallback says what was meant.
+
+Source: [tasks/the-gate-runs-under-deno-without-a-shell.md](../tasks/the-gate-runs-under-deno-without-a-shell.md)
