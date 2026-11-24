@@ -1,4 +1,4 @@
-<!-- UNITIES.md 2026-11-24 · 0.6.12. Master copy: the unities-project skill folder (plugin `unities`). -->
+<!-- UNITIES.md 2026-11-24 · 0.6.13. Master copy: the unities-project skill folder (plugin `unities`). -->
 
 # UNITIES.md — adopting the Unities in a repository
 
@@ -970,7 +970,7 @@ not defaults:
 | `base` | the branch pull requests target. |
 | `releaseFiles` | what a release pull request may touch: `CHANGELOG.md` and the version files (4.7). |
 | `changelog.recorded` | optional: the line that closes each changelog entry, `{hash}` standing for the commit's short hash (Appendix F). |
-| `run` | optional: how the gate invokes the two compilers, `"node"` when absent (Appendix H). |
+| `run` | optional: how the gate invokes the two compilers, `"node"` when absent (Appendix H). A record compiler that cannot be run that way, or that exits with anything but its own answers, is refused, naming `run`. |
 | `plan` | optional: `false` in a repository that keeps no compiled plan. The record compiler then writes and checks `docs/DECISIONS.md` alone, the gate does not ask for `docs/PLAN.md`, and a file of that name, if there is one, is an ordinary doc. Absent or `true`, the plan is compiled (4.9, Appendix K). `Milestone:` and `Not in scope:` lines in decisions then go nowhere. Where it is `false`, whatever this runbook, the standing paragraph (Appendix E) and the gate's messages say of `docs/PLAN.md` as a compiled file does not apply: the adoption writes the paragraph with `docs/DECISIONS.md` alone, and an outcome box is moved to the promise. |
 | `plugin` | only in the plugin's own repository: the folder of the master files. A scene there that touches a master, a planted copy or the manifest is refused unless every planted copy and the manifest equal the masters. |
 
@@ -1378,7 +1378,8 @@ to start any program unless it may read the whole environment, so a list of name
 with `NotCapable` (measured under Deno 2.9.8). The scripts do not hand a program a chosen
 environment instead, because git needs what its caller set, such as a hook's
 `GIT_INDEX_FILE` and `HOME` for its configuration. Under Deno, set `run` too: without it
-the gate starts the compilers with `node`, which `--allow-run` does not name.
+the gate starts the compilers with `node`, which `--allow-run` does not name, and refuses
+every scene that touches a file, saying the record compiler could not be run.
 
 | Runtime | `command` | `args` prefix | Task runner entry |
 | --- | --- | --- | --- |

@@ -49,7 +49,7 @@ refused, and the gate crashing instead breaks what the runbook promises.
 
 **Done when**
 
-- [x] a configuration with any of the cases in *Context* → the gate is unchanged
+- [x] a configuration with any of the cases in *Context* → the gate is unchanged, while D68 stood (superseded by D71)
 
 **Not asked** — validating keys the gate does not read; a schema file.
 
@@ -105,6 +105,31 @@ scene found and which nobody admitted.
 **Why** — Neither has happened in a repository. A wrong `base` in a team repository would
 silence the end-of-turn advice, not the pull request's gate, which names its target.
 
+### 2026-11-24 · A record compiler that cannot be run is refused
+
+Supersedes: D72
+
+**Decision** — Admitted by Erez, 2026-11-24, in chat ("Admit both"). The gate takes 0, 1
+and 3 as the record compiler's answers; a compiler that does not start, is killed, or
+exits with anything else is refused as an incomplete scene, "record compiler could not be
+run", with the command, what happened, and `run` named as the thing to check.
+**Rejected** — Ending the message with something other than the incomplete-scene advice
+the gate gives every refusal: the `run` pointer inside the message says what to fix.
+**Why** — Once the scripts ran under Deno without a shell (0.6.12), a repository on Deno
+with `run` unset had its compilers started with `node`, which Deno does not allow, and
+every uncompiled decision passed unchecked.
+
+### 2026-11-24 · Not admitted: a record compiler Deno will not let read answers as out of date
+
+**Decision** — Not built. With `run` set to `deno run` or `deno` without `--allow-read`,
+the record compiler starts, fails with `NotCapable` and exits 1, which is its "out of
+date" answer: in the adapted staging the gate passes without a word, in strict it refuses
+with "compiled record is out of date" and Deno's stack trace. The gate cannot tell that 1
+from the real one without the compiler answering differently.
+**Rejected** — Giving the compiler an exit code of its own for a failure, which the cold
+reader of this scene found and nobody admitted.
+**Why** — It has not happened in a repository; Appendix H's `run` carries `--allow-read`.
+
 ## What was done
 
 Built from a patch written on 2026-11-23 by another Claude Code session, one asked to fix
@@ -151,7 +176,7 @@ case has not happened, and Erez admitted only the cases in *Context*.
 
 **Done when**
 
-- [x] a compiler that exits 127, or another status outside 0, 1 and 3 → the gate is unchanged, under a `Not admitted:` decision, unless Erez admits it himself
+- [x] a compiler that exits 127, or another status outside 0, 1 and 3 → the gate is unchanged, under a `Not admitted:` decision, unless Erez admits it himself (he did: D80)
 - [x] exits 0, 1 and 3 → unchanged
 
 **Not asked** — any other exit-code policy.
@@ -199,3 +224,70 @@ does not fix a missing runtime.
 - [x] 127 or a kill by a signal → the message names `run` as the thing to fix, or the check is not built
 
 **Not asked** — a separate message channel.
+
+## What was done
+
+Built as the 2026-11-24 decision says, in the same commit as the release fallback of
+`tasks/the-gate-runs-under-deno-without-a-shell.md`. In `check-unit.mjs`, after the
+compiler's refusal (exit 3), any status but 0 and 1 is refused: "record compiler could
+not be run (`<run> scripts/compile-record.mjs --check` did not start: ENOENT, was killed
+by a signal, exited N, or, where Deno refuses to start it and gives neither a status nor an
+error, was not allowed to start); check "run" in .claude/hooks/unities.json (Appendix H)". The
+check and its test come from the patch this task was first built from, saved on
+2026-11-23; the message now names `run`, which answers the earlier review's last item.
+
+Test: "a record compiler that cannot be run is refused, naming run; one that answers is
+not": a runtime that is not installed, `node -e process.exit(9)`, and `node` spelled out,
+which passes. The Deno test gains the case that set this off: `run` unset under Appendix
+H's gate line, refused, naming `run`. Both fail on the previous gate. Runbook Appendix A's
+`run` row says the compiler that cannot be run is refused; Appendix H says what Deno with
+`run` unset now does. A repository on Deno that has not set `run` is refused at every
+scene that touches a file once it takes this version, until it sets `run`.
+
+Because a script changed, the plugin is 0.6.13: the runbook's first line,
+`.claude-plugin/plugin.json`, the manifest (both copies) and SPEC's "as of 0.6.13". The
+form is unchanged at 1.0. The planted copies here are the masters. `node --test` at the
+root, on Node 26.13.1 with Deno 2.9.8: 102 tests, 102 pass, none skipped.
+
+Reviewed by: a read-only Claude Code subagent (Explore) that had not seen the work, given
+`docs/reviewer.md`. It ran the suite and probed the compiler check under Node and Deno in
+a throwaway clone, and ran the three new or extended tests against the previous gate,
+where all fail. Its three findings, for this record and the release one of
+`tasks/the-gate-runs-under-deno-without-a-shell.md`, are the review below.
+
+## Review · 2026-11-24
+
+### Deno's refused spawn reads "exited undefined"
+
+**Found** — When Deno refuses to start the program, `run.error` and `run.status` are both
+`undefined`, and the message said "exited undefined"; the earlier review said `null`.
+
+**Done when**
+
+- [x] Deno gate, runtime not in `--allow-run` → message says the program was not allowed to start
+- [x] ENOENT, signal, exit N under Node → unchanged
+
+**Not asked** — any other message wording.
+
+### A compiler Deno will not let read passes unchecked
+
+**Found** — With `run` lacking `--allow-read`, the compiler exits 1 with `NotCapable`:
+adapted passes silently, strict refuses as out of date with a stack trace.
+
+**Done when**
+
+- [x] `run` without `--allow-read`, any scene → the gate is unchanged, under "Not admitted: a record compiler Deno will not let read answers as out of date"
+- [x] Appendix H's `run` → unchanged
+
+**Not asked** — new compiler exit codes.
+
+### Earlier ticked boxes no longer hold
+
+**Found** — Ticked boxes in this file's 2026-11-23 reviews and in the Deno task's
+2026-11-24 review still read "→ the gate is unchanged" for cases D80 and D81 changed.
+
+**Done when**
+
+- [x] each superseded box → says it is answered by D80 or D81
+
+**Not asked** — rewriting the old records.

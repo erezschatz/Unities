@@ -1131,3 +1131,44 @@ does, which the cold reader of this scene found and nobody admitted.
 What Claude would rule: admit it, since the code's own fallback says what was meant.
 
 Source: [tasks/the-gate-runs-under-deno-without-a-shell.md](../tasks/the-gate-runs-under-deno-without-a-shell.md)
+
+## D80 · 2026-11-24 · A record compiler that cannot be run is refused
+
+Supersedes: D72
+
+**Decision** — Admitted by Erez, 2026-11-24, in chat ("Admit both"). The gate takes 0, 1
+and 3 as the record compiler's answers; a compiler that does not start, is killed, or
+exits with anything else is refused as an incomplete scene, "record compiler could not be
+run", with the command, what happened, and `run` named as the thing to check.
+**Rejected** — Ending the message with something other than the incomplete-scene advice
+the gate gives every refusal: the `run` pointer inside the message says what to fix.
+**Why** — Once the scripts ran under Deno without a shell (0.6.12), a repository on Deno
+with `run` unset had its compilers started with `node`, which Deno does not allow, and
+every uncompiled decision passed unchecked.
+
+Source: [tasks/a-broken-configuration-is-refused-not-crashed.md](../tasks/a-broken-configuration-is-refused-not-crashed.md)
+
+## D81 · 2026-11-24 · A release pull request with no tag at its base is compared from the first commit
+
+Supersedes: D79
+
+**Decision** — Admitted by Erez, 2026-11-24, in chat ("Admit both"). Where `git describe`
+finds no tag at the base, the release check compares the changelog with the compiler's
+output from the first commit, as `compile-changelog.mjs` does.
+**Rejected** — Leaving it to refuse with "(compiler failed)".
+**Why** — The fallback was always written there; it never ran.
+
+Source: [tasks/the-gate-runs-under-deno-without-a-shell.md](../tasks/the-gate-runs-under-deno-without-a-shell.md)
+
+## D82 · 2026-11-24 · Not admitted: a record compiler Deno will not let read answers as out of date
+
+**Decision** — Not built. With `run` set to `deno run` or `deno` without `--allow-read`,
+the record compiler starts, fails with `NotCapable` and exits 1, which is its "out of
+date" answer: in the adapted staging the gate passes without a word, in strict it refuses
+with "compiled record is out of date" and Deno's stack trace. The gate cannot tell that 1
+from the real one without the compiler answering differently.
+**Rejected** — Giving the compiler an exit code of its own for a failure, which the cold
+reader of this scene found and nobody admitted.
+**Why** — It has not happened in a repository; Appendix H's `run` carries `--allow-read`.
+
+Source: [tasks/a-broken-configuration-is-refused-not-crashed.md](../tasks/a-broken-configuration-is-refused-not-crashed.md)

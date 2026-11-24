@@ -126,7 +126,10 @@ if (mode === "--pr" && shared.length && files.every(f => RELEASE_FILES.test(f)))
     .filter(l => l.startsWith("+") && !l.startsWith("+++")).map(l => l.slice(1).trim()).filter(Boolean);
   let compiled, why;
   try {
-    const since = git(["describe", "--tags", "--abbrev=0", base]).trim() || git(["rev-list", "--max-parents=0", "HEAD"]).trim();
+    // The last release's tag, or the first commit where there has been no release.
+    let since;
+    try { since = git(["describe", "--tags", "--abbrev=0", base]).trim(); }
+    catch { since = git(["rev-list", "--max-parents=0", "HEAD"]).trim(); }
     const out = program(RUN[0], [...RUN.slice(1), COMPILER, "--dry-run", "--since", since]).trim();
     if (/^\(no task records/.test(out)) why = " (no task records to release)";
     else compiled = lines(out).slice(1);                       // drop the version heading
@@ -149,6 +152,17 @@ if (files.length && existsSync(join(cwd, RECORD_COMPILER))) {
   // The compiler reads the work tree; in --pr that is the checkout of the PR's tip.
   const run = spawnSync(RUN[0], [...RUN.slice(1), RECORD_COMPILER, "--check"], { cwd, encoding: "utf8" });
   if (run.status === 3) missing.push(run.stderr.trim());
+  // 0, 1 and 3 are the compiler's answers. Anything else means it did not run (the runtime
+  // in "run" is not installed, or Deno does not allow the gate to start it), and a record
+  // nobody checked does not pass.
+  else if (run.status !== 0 && run.status !== 1) {
+    // Deno, refusing to start a program --allow-run does not name, gives no status and no error.
+    const what = run.error ? `did not start: ${run.error.code ?? run.error.message}`
+      : run.signal ? `was killed by ${run.signal}`
+      : typeof run.status === "number" ? `exited ${run.status}`
+      : "was not allowed to start (under Deno, --allow-run must name it)";
+    missing.push(`record compiler could not be run (\`${[...RUN, RECORD_COMPILER, "--check"].join(" ")}\` ${what}); check "run" in ${CONFIG} (Appendix H)`);
+  }
   if (strict || compileOnly) {
     if (run.status === 1) missing.push(`compiled record is out of date: ${run.stderr.trim()}`);
     for (const f of record)

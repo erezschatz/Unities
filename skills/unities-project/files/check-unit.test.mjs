@@ -173,6 +173,43 @@ test("a release pull request whose changelog equals the compiler's output passes
   assert.match(bad.stderr, /does not equal the compiler's output/);
 });
 
+test("a release pull request with no tag at its base is compared from the first commit", () => {
+  const { dir, git, write, commit } = repo();
+  git("tag -d v0");
+  git("checkout -q -b feature");
+  write(SOURCE, "changed\n");
+  complete(write);
+  commit("feature");
+  git("checkout -q main");
+  git("merge -q --no-ff -m merge feature");
+  git("checkout -q -b release");
+  execSync("node scripts/compile-changelog.mjs 1.0.0", { cwd: dir, stdio: "ignore" });
+  commit("release");
+  const ok = run(dir, ["--pr", "main"]);
+  assert.equal(ok.status, 0, ok.stderr);
+});
+
+test("a record compiler that cannot be run is refused, naming run; one that answers is not", () => {
+  const { dir, git, write, commit } = repo();
+  git("checkout -q -b feature");
+  write(SOURCE, "changed\n");
+  complete(write);
+  write(CONFIG, JSON.stringify({ ...FIXTURE, run: "no-such-runtime-for-the-unities" }));
+  commit("feature");
+  const missing = run(dir, ["--pr", "main"]);
+  assert.equal(missing.status, 1);
+  assert.match(missing.stderr, /record compiler could not be run \(`no-such-runtime-for-the-unities scripts\/compile-record\.mjs --check` did not start: ENOENT\); check "run" in \.claude\/hooks\/unities\.json/);
+  // Any exit that is not one of the compiler's answers is refused the same way.
+  write(CONFIG, JSON.stringify({ ...FIXTURE, run: "node -e process.exit(9)" }));
+  commit("nine");
+  assert.match(run(dir, ["--pr", "main"]).stderr, /record compiler could not be run \(.* exited 9\)/);
+  // "node" spelled out answers as the default does.
+  write(CONFIG, JSON.stringify({ ...FIXTURE, run: "node" }));
+  commit("node");
+  const ok = run(dir, ["--pr", "main"]);
+  assert.equal(ok.status, 0, ok.stderr);
+});
+
 test("a pull request into a target that has not adopted the hook is not checked", () => {
   const { dir, git, write, commit } = repo({ adopted: false });
   git("checkout -q -b feature");
@@ -1507,6 +1544,13 @@ test("under Deno, with Appendix H's permissions, the gate refuses an incomplete 
   const stale = gate(["--staged"]);
   assert.equal(stale.status, 2, stale.stderr);
   assert.match(stale.stderr, /compiled record is out of date/);
+  // Without "run" the compilers would be started with node, which Deno does not allow:
+  // refused, naming run, not passed unchecked.
+  write(CONFIG, JSON.stringify(FIXTURE));
+  git("add -A");
+  const unset = gate(["--staged"]);
+  assert.equal(unset.status, 2, unset.stderr);
+  assert.match(unset.stderr, /record compiler could not be run \(`node scripts\/compile-record\.mjs --check` was not allowed to start \(under Deno, --allow-run must name it\)\); check "run"/);
 });
 
 // The gate run by hand from a script or an agent's shell, whose stdin is a pipe held open

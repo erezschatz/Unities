@@ -57,6 +57,16 @@ does, which the cold reader of this scene found and nobody admitted.
 **Why** — It has not happened in a repository: every adopted one releases from a tag.
 What Claude would rule: admit it, since the code's own fallback says what was meant.
 
+### 2026-11-24 · A release pull request with no tag at its base is compared from the first commit
+
+Supersedes: D79
+
+**Decision** — Admitted by Erez, 2026-11-24, in chat ("Admit both"). Where `git describe`
+finds no tag at the base, the release check compares the changelog with the compiler's
+output from the first commit, as `compile-changelog.mjs` does.
+**Rejected** — Leaving it to refuse with "(compiler failed)".
+**Why** — The fallback was always written there; it never ran.
+
 ## What was done
 
 `skills/unities-project/files/check-unit.mjs` starts every program through `program`, a
@@ -104,12 +114,12 @@ were, under D72 and the decision above, and the third, the wording of Appendix H
 ### A compiler that cannot be started passes the record check
 
 **Found** — Under Deno with `run` unset, the gate starts the record compiler with `node`,
-which `--allow-run` does not name; the status is `null`, neither 1 nor 3, so an
+which `--allow-run` does not name; the status is `undefined`, neither 1 nor 3, so an
 uncompiled decision passes. The old shell call let 127 through the same way.
 
 **Done when**
 
-- [x] `run` names a runtime that cannot be started (not installed, or not allowed by `--allow-run`) → the gate is unchanged, under D72, "Not admitted: a record compiler that cannot be run passes"
+- [x] `run` names a runtime that cannot be started (not installed, or not allowed by `--allow-run`) → the gate is unchanged, under D72, "Not admitted: a record compiler that cannot be run passes", while it stood (superseded by D80)
 - [x] `run` starts and exits 0, 1 or 3 → unchanged
 
 **Not asked** — changing the release-PR path, which already refuses with "(compiler failed)".
@@ -121,7 +131,7 @@ uncompiled decision passes. The old shell call let 127 through the same way.
 
 **Done when**
 
-- [x] release PR, no tag at base → the gate is unchanged, under "Not admitted: a release pull request with no tag at its base is refused"
+- [x] release PR, no tag at base → the gate is unchanged, under "Not admitted: a release pull request with no tag at its base is refused", while it stood (superseded by D81)
 - [x] release PR, tagged base → unchanged
 
 **Not asked** — anything else in the release check.
@@ -137,3 +147,17 @@ chosen.
 - [x] the paragraph → gives Deno's whole-environment check as the cause of `NotCapable`, and git's needs as the reason the environment is passed whole
 
 **Not asked** — no change to the permissions.
+
+## What was done
+
+Built as the second 2026-11-24 decision says, in 0.6.13 with the record-compiler check of
+`tasks/a-broken-configuration-is-refused-not-crashed.md`, whose record has the version
+lines. In `check-unit.mjs` the release check's `git describe` is in a `try`, and the root
+commit is taken when it throws. Test: "a release pull request with no tag at its base is
+compared from the first commit", the existing release test with the base's tag deleted
+and the changelog compiled without `--since`; it passes, and fails on the previous gate.
+
+Reviewed by: the read-only Claude Code subagent named in the last record of
+`tasks/a-broken-configuration-is-refused-not-crashed.md`, which read both records of this
+commit; it found the no-tag fallback gives the same `since` as the changelog compiler and
+the tagged case unchanged. Its findings are in that file's 2026-11-24 review.
