@@ -220,3 +220,17 @@ the reader's constructed case.
 **Why** — It has not happened in a repository, and it needs a record deleted, which is
 not a correction. Erez has not ruled on this case. What Claude would rule: not admitted,
 in the spirit of his ruling on records copied between task files.
+
+### 2026-11-24 · Not admitted, by Erez: a new record that reuses half the words of one it deletes
+
+Supersedes: D76
+
+**Decision** — Not built, and not to be. Erez ruled on 2026-11-24, in chat, after the
+case was put to him as it affects people using the plugin: an earlier record can be
+overwritten in a task file without being flagged and without a reader named for the
+rewrite, but a change to source still needs a new record.
+**Rejected** — Raising the share, or judging an entry by its meaning, to catch it.
+**Why** — Erez: "it feels like an edge case that is just dipping into heuristics that are
+never going to fully pick up the 1% of cases that should be flagged, and even that 1% is
+probably ok if you really think about it, we're working in a software project, not
+proving a mathematical theorem here."
