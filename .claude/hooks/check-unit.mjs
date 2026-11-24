@@ -147,6 +147,11 @@ if (shared.length) missing.push(`shared file edited directly: ${shared.join(", "
 //            those files), and then they must equal the compiler's output.
 const from = base ?? "HEAD";
 const record = files.filter(f => RECORD_FILES.test(f) && head(show(from, f)) !== null);
+// An upgrade, the scene that installs a new version of the plugin, is told by the planted
+// manifest's version, which only the plugin's own copy writes and the gate checks by hash.
+const versionOf = text => { try { return JSON.parse(text).version ?? null; } catch { return null; } };
+const upgrade = versionOf(show(from, MANIFEST)) !== null && versionOf(contents(MANIFEST, "")) !== null
+  && versionOf(show(from, MANIFEST)) !== versionOf(contents(MANIFEST, ""));
 const compileOnly = files.length > 0 && files.every(f => RECORD_FILES.test(f));
 if (files.length && existsSync(join(cwd, RECORD_COMPILER))) {
   // The compiler reads the work tree; in --pr that is the checkout of the PR's tip.
@@ -165,15 +170,21 @@ if (files.length && existsSync(join(cwd, RECORD_COMPILER))) {
   }
   if (strict || compileOnly) {
     if (run.status === 1) missing.push(`compiled record is out of date: ${run.stderr.trim()}`);
-    for (const f of record)
-      if (!deleted.includes(f) && head(show(from, f)) !== head(contents(f)))
-        missing.push(`the hand-written head of ${f} was edited; everything in it is changed by a new decision in a task file`);
+    for (const f of record) {
+      if (deleted.includes(f) || head(show(from, f)) === head(contents(f)) || headMayChange(f)) continue;
+      missing.push(upgrade
+        ? `the decisions in the hand-written head of ${f}, recorded before adoption, were edited; an upgrade may change the head above them, and a decision is reversed by a new one in a task file`
+        : `the hand-written head of ${f} was edited; everything in it is changed by a new decision in a task file, or above its decisions by an upgrade`);
+    }
     if (mode === "--staged" && !run.status) {
       const unstaged = lines(git(["diff", "--name-only"])).filter(f => RECORD_FILES.test(f));
       if (unstaged.length) missing.push(`compiled record not staged: ${unstaged.join(", ")}`);
     }
-  } else if (record.length) {
-    missing.push(`compiled record edited in this scene: ${record.join(", ")} (write the decision in your task file under "## Decisions"; it is compiled after the merge)`);
+  } else {
+    // An upgrade may rewrite the head; what is below the marker is compiled after the merge.
+    const edited = record.filter(f => deleted.includes(f) || !(headMayChange(f) && below(show(from, f)) === below(contents(f))));
+    if (edited.length)
+      missing.push(`compiled record edited in this scene: ${edited.join(", ")} (write the decision in your task file under "## Decisions"; it is compiled after the merge)`);
   }
   const gone = record.filter(f => deleted.includes(f));
   if (gone.length) missing.push(`compiled record deleted: ${gone.join(", ")}`);
@@ -476,6 +487,24 @@ function lf(text) { return text.replace(/^\uFEFF/, "").replace(/\r\n/g, "\n"); }
 function head(text) {        // the part above the compile marker; null if the file is not compiled
   const i = text.indexOf(RECORD_MARKER);
   return i < 0 ? null : text.slice(0, i).trimEnd();
+}
+function below(text) {       // the marker and what the compiler wrote under it
+  const i = text.indexOf(RECORD_MARKER);
+  return i < 0 ? null : text.slice(i);
+}
+// The decisions a DECISIONS.md head holds, recorded before adoption (runbook 5.4) in
+// whatever form they were written: from the first numbered entry, or the first heading
+// below the title, whichever comes first, to the marker. "" if none. A PLAN.md head holds
+// no decisions (5.4 moves its milestones out), so nothing in it is closed to an upgrade.
+function headDecisions(text, file) {
+  if (file !== "docs/DECISIONS.md") return "";
+  const m = /^[#* \t]*D\d+\s*·|^#{2,}[ \t]/m.exec(text);
+  return m ? text.slice(m.index) : "";
+}
+// An upgrade may change a compiled file's head above its decisions, never the decisions.
+function headMayChange(file) {
+  const before = head(show(from, file)), now = head(contents(file));
+  return upgrade && before !== null && now !== null && headDecisions(before, file) === headDecisions(now, file);
 }
 function skip(message) { console.log(message); process.exit(0); }
 function fail(message) { console.error(message); process.exit(2); }

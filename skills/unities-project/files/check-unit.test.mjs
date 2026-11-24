@@ -837,6 +837,109 @@ test("an upgrade copies a script and the manifest together, and passes", () => {
   assert.equal(run(dir, ["--staged"], { scene: "commit" }).status, 0);
 });
 
+// An upgrade is told by the planted manifest's version (tasks/an-upgrade-may-rewrite-the-head.md).
+const upgradeManifest = r => {
+  const manifest = JSON.parse(r.read(MANIFEST));
+  manifest.version = "next";
+  r.write(MANIFEST, JSON.stringify(manifest, null, 2) + "\n");
+};
+const STALE = "An introduction the next version makes wrong.";
+const OLD = "## D1 · 2026-01-01 · Decided before adoption\n\nKept as it was.\n";
+// A planted repository whose DECISIONS.md head holds an introduction and a decision from before adoption.
+function withOldHead() {
+  const r = planted();
+  const text = r.read(DECISIONS);
+  r.write(DECISIONS, `# Decisions\n\n${STALE}\n\n${OLD}\n${text.slice(text.indexOf("<!-- Compiled"))}`);
+  r.compile();
+  r.commit("old-head");
+  return r;
+}
+const rewriteIntro = r => r.write(DECISIONS, r.read(DECISIONS).replace(STALE, "An introduction for the next version."));
+
+test("strict: an upgrade may rewrite a compiled file's head above its old decisions; no other scene may", () => {
+  const r = withOldHead();
+  rewriteIntro(r);
+  r.git("add -A");
+  const plain = run(r.dir, ["--staged"], { scene: "commit" });
+  assert.equal(plain.status, 2);
+  assert.match(plain.stderr, /the hand-written head of docs\/DECISIONS\.md was edited/);
+  upgradeManifest(r);
+  r.git("add -A");
+  const upgrade = run(r.dir, ["--staged"], { scene: "commit" });
+  assert.equal(upgrade.status, 0, upgrade.stderr);
+  // The decision recorded before adoption stays closed, upgrade or not.
+  r.write(DECISIONS, r.read(DECISIONS).replace("Kept as it was.", "Rewritten."));
+  r.git("add -A");
+  const old = run(r.dir, ["--staged"], { scene: "commit" });
+  assert.equal(old.status, 2);
+  assert.match(old.stderr, /the decisions in the hand-written head of docs\/DECISIONS\.md, recorded before adoption, were edited/);
+});
+
+test("an upgrade keeps old decisions closed from their first D<n> · line or heading, and only them", () => {
+  const variants = [
+    ["## D1 — Decided before adoption\n\nKept as it was.\n", "refused"],
+    ["### 2026-01-01 · Decided before adoption\n\nKept as it was.\n", "refused"],
+  ];
+  for (const [entry] of variants) {
+    const r = planted();
+    const text = r.read(DECISIONS);
+    r.write(DECISIONS, `# Decisions\n\n${STALE}\n\n${entry}\n${text.slice(text.indexOf("<!-- Compiled"))}`);
+    r.compile();
+    r.commit("old-head");
+    upgradeManifest(r);
+    r.write(DECISIONS, r.read(DECISIONS).replace("Kept as it was.", "Rewritten."));
+    r.git("add -A");
+    assert.equal(run(r.dir, ["--staged"], { scene: "commit" }).status, 2, entry);
+  }
+  // A blank line added between the introduction and the first decision is the introduction's.
+  let r = withOldHead();
+  upgradeManifest(r);
+  r.write(DECISIONS, r.read(DECISIONS).replace(`${STALE}\n\n`, `${STALE}\n\n\n`));
+  r.git("add -A");
+  const blank = run(r.dir, ["--staged"], { scene: "commit" });
+  assert.equal(blank.status, 0, blank.stderr);
+  // A head with no decisions is the upgrade's throughout; so is a PLAN.md head, headings and all.
+  r = planted();
+  const plan = r.read(PLAN);
+  r.write(PLAN, `# Plan\n\n## Phases\n\n${STALE}\n\n${plan.slice(plan.indexOf("<!-- Compiled"))}`);
+  r.compile();
+  r.commit("plan-head");
+  upgradeManifest(r);
+  r.write(PLAN, r.read(PLAN).replace(STALE, "Phases for the next version."));
+  r.git("add -A");
+  const planUp = run(r.dir, ["--staged"], { scene: "commit" });
+  assert.equal(planUp.status, 0, planUp.stderr);
+});
+
+test("adapted: an upgrade's pull request may rewrite the head and nothing below the marker", () => {
+  const r = withOldHead();
+  r.git("checkout -q -b upgrade");
+  rewriteIntro(r);
+  upgradeManifest(r);
+  r.commit("upgrade");
+  const up = run(r.dir, ["--pr", "main"]);
+  assert.equal(up.status, 0, up.stderr);
+  // Without the version, the same head edit is refused: a pull request of the compiled files
+  // alone is the compile, held to the head as strict is.
+  r.git("checkout -q main");
+  r.git("checkout -q -b plain");
+  rewriteIntro(r);
+  r.commit("plain");
+  assert.match(run(r.dir, ["--pr", "main"]).stderr, /the hand-written head of docs\/DECISIONS\.md was edited/);
+  // With anything else beside it, it is a compiled file edited in the scene.
+  r.write(DOC, "documented\n");
+  r.commit("plain-and-doc");
+  assert.match(run(r.dir, ["--pr", "main"]).stderr, /compiled record edited in this scene: docs\/DECISIONS\.md/);
+  // An upgrade that also changes what the compiler wrote is refused the same way.
+  r.git("checkout -q main");
+  r.git("checkout -q -b below");
+  rewriteIntro(r);
+  upgradeManifest(r);
+  r.write(DECISIONS, r.read(DECISIONS) + "\nWritten by hand below the marker.\n");
+  r.commit("below");
+  assert.match(run(r.dir, ["--pr", "main"]).stderr, /compiled record edited in this scene: docs\/DECISIONS\.md/);
+});
+
 test("a checkout that writes CRLF has not edited a planted script", () => {
   const { dir, git, write, read } = planted();
   write("scripts/compile-record.mjs", read("scripts/compile-record.mjs").replace(/\n/g, "\r\n"));

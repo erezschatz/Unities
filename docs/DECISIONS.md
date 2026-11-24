@@ -1195,3 +1195,52 @@ raised. A turn is done once the commit is made." A stop-and-ask line only helps 
 agent sees something to ask about; it does not catch the agent that sees nothing to ask.
 
 Source: [tasks/a-turn-may-stop-to-discuss.md](../tasks/a-turn-may-stop-to-discuss.md)
+
+## D84 · 2026-11-24 · An upgrade is told by the manifest's version; the decisions before adoption stay closed
+
+**Decision** — Ruled by Erez, 2026-11-24, in chat ("Use the manifest version, keep the
+old decisions closed, build it"). A scene is an upgrade when the planted manifest
+(`.claude/hooks/unities.manifest.json`) carries a different `version` at the scene than at
+its base. An upgrade may change the head of either compiled file above the first decision
+the head holds, the one recorded before adoption (5.4); from that decision to the marker
+the head stays as it was, and one that is wrong is superseded by a new decision, as now.
+In the adapted staging an upgrade may touch the compiled files for their head alone:
+what is below the marker must be as the base had it, since it is compiled after the merge.
+**Rejected** — Treating the whole head as the upgrade's, which would make the decisions
+recorded before adoption editable once per version; telling an upgrade by the runbook's
+first line in `docs/UNITIES.md`, which is a document any scene may edit, where the
+manifest is checked by hash against the planted scripts.
+**Why** — The head holds two things: words about the record, which a new version can make
+wrong, and decisions, which are history and are reversed only by a new entry.
+
+Source: [tasks/an-upgrade-may-rewrite-the-head.md](../tasks/an-upgrade-may-rewrite-the-head.md)
+
+## D85 · 2026-11-24 · The closed part of a head starts at its first numbered entry or heading
+
+**Decision** — In `docs/DECISIONS.md` the decisions recorded before adoption begin at the
+head's first line that is a numbered entry (`D<n> ·`) or a heading below the title (`##`,
+`###`), whichever comes first, and run to the marker; spaces and tabs before the entry
+belong to it, blank lines before it to the introduction. A `docs/PLAN.md` head holds no
+decisions (5.4 moves its milestones out), so an upgrade may rewrite all of it.
+**Rejected** — Taking only `D<n> ·` entries, which left a decision written `## D1 — …` or
+`### <date> · …` open to an upgrade, as the cold reader of this scene showed; applying the
+same rule to `PLAN.md`, where a heading such as `## Phases` is the introduction 5.4 keeps.
+**Why** — Runbook 5.4 keeps the old entries exactly as they were written, so their form
+varies; a numbered line or a heading is what they usually start with, and an introduction
+rarely has one. An entry written some other way, such as `**D1** — …` or a numbered list,
+is not closed, and none is known to be written so.
+
+Source: [tasks/an-upgrade-may-rewrite-the-head.md](../tasks/an-upgrade-may-rewrite-the-head.md)
+
+## D86 · 2026-11-24 · Not admitted: a manifest whose version alone is changed passes as an upgrade
+
+**Decision** — Not built. A scene that changes only the planted manifest's `version`,
+installing nothing, counts as an upgrade and may rewrite the heads above their decisions.
+**Rejected** — Requiring an upgrade to change a planted script as well, which the cold
+reader of this scene suggested: an upgrade whose version changed only the runbook leaves
+every hash the same and would be refused.
+**Why** — It needs the manifest edited by hand, which nothing else in a repository does,
+and what it can reach is the introduction of two files, never a decision. Erez chose the
+manifest's version as the signal. What Claude would rule: not admitted.
+
+Source: [tasks/an-upgrade-may-rewrite-the-head.md](../tasks/an-upgrade-may-rewrite-the-head.md)

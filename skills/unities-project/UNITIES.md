@@ -1,4 +1,4 @@
-<!-- UNITIES.md 2026-11-24 · 0.6.15. Master copy: the unities-project skill folder (plugin `unities`). -->
+<!-- UNITIES.md 2026-11-24 · 0.6.16. Master copy: the unities-project skill folder (plugin `unities`). -->
 
 # UNITIES.md — adopting the Unities in a repository
 
@@ -388,8 +388,9 @@ what is committed.
   are not; a session that needs to be sure runs the compiler with `--check`.
 - **What is not compiled.** Whatever stands above the marker line in either file is its
   hand-written head: a title, an introduction, and in an adopted repository the decisions
-  recorded before this version (5.4). The compiler carries it over untouched and the gate
-  refuses changes to it.
+  recorded before this version (5.4). The compiler carries it over untouched. The gate
+  refuses changes to it, except in an upgrade, which may change it above those decisions
+  (4.7).
 
 ### 4.6 Standing instructions
 
@@ -433,8 +434,12 @@ touch them at all, the one exception being a scene that contains nothing else an
 the compiler's output, which is the compile itself. In both, a task file that removes or
 retitles a decision already compiled is refused, and so is a change to the hand-written
 head. A file becomes compiled when the version at the scene's base carries the marker,
-so the scene that installs this — a new project's first, an adoption, an upgrade — is not
-held to it. The compiled files do not count as a scene's doc change. The files the
+so the scene that installs this — a new project's first, an adoption — is not held to it.
+An upgrade, a scene whose planted manifest carries a different `version` from its base,
+may change the head above the decisions recorded before adoption, which stay as they
+were and are reversed only by a new decision (in `docs/DECISIONS.md` they begin at the
+head's first numbered entry or heading below the title; a `docs/PLAN.md` head holds none); in adapted it may touch the compiled files
+for their head alone, leaving what is below the marker as the base had it. The compiled files do not count as a scene's doc change. The files the
 migration retired in place (`rules.retired`: a `TODO.md`, a `ROADMAP.md`) are
 *tombstones*: editing one is refused, deleting one is not, so a repo may remove them once
 the version that retired them has shipped. A new project has no tombstones; if a
@@ -794,6 +799,10 @@ of spec, decisions and plan were created and which found, and the release bounda
 chosen. This is the record of this scene. Its `## Decisions` section carries the
 decisions of 4.9. A re-run that installs a newer version of this procedure appends a
 further `## What was done` section here saying what was added, and any decision it took.
+The re-run also reads the head of `docs/DECISIONS.md` and `docs/PLAN.md` against the new
+version: a sentence there that the version makes wrong (how a task is done, what is
+compiled, who compiles) is rewritten in the same scene, and the record says which. The
+decisions in the head are left as they are (4.7).
 
 ### 5.4 An existing `docs/DECISIONS.md` and `docs/PLAN.md`
 
