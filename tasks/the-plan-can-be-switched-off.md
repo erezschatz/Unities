@@ -21,7 +21,8 @@ compiled files. The local change has not been seen here; only the session's repo
 - [x] script: with the plan switched off in `.claude/hooks/unities.json`, the record compiler writes `docs/DECISIONS.md` and no `docs/PLAN.md`, and its check passes while `docs/PLAN.md` is absent
 - [x] script: with the plan switched off, the gate does not ask for `docs/PLAN.md` to be up to date
 - [x] script: with no such setting, every existing test passes unchanged
-- [ ] the assignee: the team repository's conversion is re-run on the version that carries this, and what its gate and compiler did about the plan is written into `tasks/convert-the-adopted-repositories.md`
+- Withdrawn (tasks/a-box-never-waits-on-another-project.md): the assignee: the team repository's conversion is re-run on the version that carries this, and what its gate and compiler did about the plan is written into `tasks/convert-the-adopted-repositories.md`
+- [ ] the assignee: runbook 5.5 is carried out in a repository set up for the check, whose `compile-record.mjs` had been changed to compile no plan, and what its gate and compiler did about the plan is written into this file
 
 ## Decisions
 

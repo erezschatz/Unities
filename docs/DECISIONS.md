@@ -1244,3 +1244,88 @@ and what it can reach is the introduction of two files, never a decision. Erez c
 manifest's version as the signal. What Claude would rule: not admitted.
 
 Source: [tasks/an-upgrade-may-rewrite-the-head.md](../tasks/an-upgrade-may-rewrite-the-head.md)
+
+## D87 · 2026-11-26 · A box runs what the project ships; it never waits on another thing's state
+
+**Decision** — An acceptance box may exercise what the project ships wherever it runs:
+another operating system, another agent, a clean machine, a week as someone's main app, a
+client trying it on their side. A box may not wait on the state of anything that is not
+the project: another repository taking a version, an old app removed, a client leaving a
+tool, a third person installing it. Such a box is an outcome, moved to the promise or a
+milestone as the runbook already says of users and production. Runbook 4.7 states it, and
+Appendix D, the skill and `tasks/README.md` point to it. This reverses the clause of D6
+that the plugin is verified in other repositories "which each open task names in its own
+acceptance", and the last sentence of D5, that `tasks/verify-the-codex-binding.md` is run
+in another repository: it is run in a repository set up for the check. The rest of D5 and
+D6 stands: the bindings D5 left out stay out, and D6's plan still has no phases and no
+final run.
+**Rejected** — Refusing any box checked outside this repository, which would leave
+Windows, Codex and a clean install, features of this project, untestable; keeping the
+rule at users and production, which is what let the two boxes in.
+**Why** — Erez's line, above. The work, its record and its place are one; a box closed
+by another project's state closes this task somewhere else.
+Supersedes: D5, D6
+
+Source: [tasks/a-box-never-waits-on-another-project.md](../tasks/a-box-never-waits-on-another-project.md)
+
+## D88 · 2026-11-26 · Not admitted: an acceptance box that waits on another repository
+
+**Decision** — Not built. The gate's outcome pattern does not catch "the team
+repository's conversion is re-run" or "runbook 5.5 is carried out in each", and is not
+extended to.
+**Rejected** — Adding repository words to `ACCEPTANCE_FORBIDDEN`, which would refuse boxes
+this decision allows, such as "under Codex in one repository" in
+`tasks/verify-the-codex-binding.md`.
+**Why** — The case happened here, so it is admissible. It is judged by the rule's words
+and at review instead, because any repository word added to the pattern also matches the
+boxes this task allows. Erez has not ruled on it in words of his own. What Claude would
+rule: not admitted.
+
+Source: [tasks/a-box-never-waits-on-another-project.md](../tasks/a-box-never-waits-on-another-project.md)
+
+## D89 · 2026-11-26 · A withdrawn box stays in Context as a plain line
+
+**Decision** — A box this task withdraws loses its checkbox and keeps its words, as
+`- Withdrawn (tasks/a-box-never-waits-on-another-project.md): <the box as it was>`. The
+line is not a box, so the record compiler, unchanged, does not count it as open.
+**Rejected** — Ticking it, when no one performed its check; deleting it, when Context is
+the brief as it arrived; leaving it open, when no work here can close it.
+**Why** — The record keeps what was asked and says why it no longer binds.
+
+Source: [tasks/a-box-never-waits-on-another-project.md](../tasks/a-box-never-waits-on-another-project.md)
+
+## D90 · 2026-11-26 · The conversion of the adopted repositories is withdrawn
+
+**Decision** — All four boxes of `tasks/convert-the-adopted-repositories.md` are
+withdrawn, and the task gains none. Its promise and its record stay; the compiled plan
+will call it done, and this decision is why. A conversion is the work of the repository
+converted, recorded in its own task file. What a conversion brings back to the plugin
+arrives here as a task file of its own, as the four it brought already did.
+**Rejected** — Replacing its boxes with checks here, when there is no work here to
+check; deleting the file, which carries a record and its review.
+**Why** — Every box waited on another repository's state.
+
+Source: [tasks/a-box-never-waits-on-another-project.md](../tasks/a-box-never-waits-on-another-project.md)
+
+## D91 · 2026-11-26 · The plan-off conversion is checked in a repository set up for it
+
+**Decision** — The last box of `tasks/the-plan-can-be-switched-off.md`, which waited on
+the team repository's conversion, is withdrawn and replaced by a box for the assignee:
+runbook 5.5 carried out in a repository set up for the check, whose compiler had been
+changed to compile no plan.
+**Rejected** — Withdrawing it with nothing in its place: the three script boxes test the
+compiler and the gate, not that 5.5 converts such a repository.
+**Why** — What 5.5 does to a plan-off repository is a feature of this project, and a
+repository set up for the check runs it without waiting on anyone's.
+
+Source: [tasks/a-box-never-waits-on-another-project.md](../tasks/a-box-never-waits-on-another-project.md)
+
+## D92 · 2026-11-26 · 0.6.17
+
+**Decision** — The runbook and the skill change, so the plugin is 0.6.17. The form is
+unchanged at 1.0.
+**Rejected** — A form version: the form's four statements are unchanged; this says what
+one of them already meant for an acceptance box.
+**Why** — A change to the procedure is a version (`docs/SPEC.md`, *Versions*).
+
+Source: [tasks/a-box-never-waits-on-another-project.md](../tasks/a-box-never-waits-on-another-project.md)

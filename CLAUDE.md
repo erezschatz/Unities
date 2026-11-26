@@ -94,7 +94,8 @@ seen.
 - **Claude** edits the runbook, the skill, the README, the spec and the task files; runs
   the tests (`node --test` at the root, the master files), reporting the output as it
   came, not as a verdict on the plugin.
-- **Erez** owns the essay, judges the prose, runs the plugin in real repositories (that
-  is where it runs, and where it is verified), decides versions, compiles and commits releases from his shell, and pushes.
+- **Erez** owns the essay, judges the prose, runs the plugin in repositories (that
+  is where it runs, and where it is verified; one set up for the check, since no task here
+  waits on another project's state: runbook 4.7, *Acceptance boxes*), decides versions, compiles and commits releases from his shell, and pushes.
 - Tests here run on whatever Node is installed (26 on Erez's machine); the README's
   claim is Node 22.

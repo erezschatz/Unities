@@ -26,7 +26,10 @@ A task file has:
   that actor can perform, and a moment before the task closes. A box about the user,
   customers, adoption or production ("the user replaced the old app", "schema is running
   in production") is an outcome, not a check; it belongs in the promise or in
-  `docs/PLAN.md` under *Milestones*, and the gate refuses it;
+  `docs/PLAN.md` under *Milestones*, and the gate refuses it. So is a box that waits on
+  anything that is not the project ("the other repositories run the new version"), though
+  the gate does not catch every wording of it; a box that runs what the project ships
+  somewhere else (another operating system, a clean machine) is a check;
 - `## What was done`: appended in the same unit (commit or pull request, by the repo's
   staging) as the change it describes, once. Once merged it may be corrected, a mistake
   fixed, but a correction is not a record: new work gets a new section. A task

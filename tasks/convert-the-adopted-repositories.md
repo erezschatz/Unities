@@ -20,10 +20,10 @@ verified. This file is where the results come back to.
 
 **Acceptance**
 
-- [ ] the assignee: the repositories adopted before 0.6.0 are listed in this file, without the names of those that are not public
-- [ ] the assignee: runbook 5.5 is carried out in each, and for each the version it was on, its local changes and what was decided for each change are written into this file
-- [ ] the assignee: in each, the planted copies are compared with this repository's `manifest.json` and the result is written into this file
-- [ ] the assignee: every local change that is brought to the plugin is a task file here before this task closes
+- Withdrawn (tasks/a-box-never-waits-on-another-project.md): the assignee: the repositories adopted before 0.6.0 are listed in this file, without the names of those that are not public
+- Withdrawn (tasks/a-box-never-waits-on-another-project.md): the assignee: runbook 5.5 is carried out in each, and for each the version it was on, its local changes and what was decided for each change are written into this file
+- Withdrawn (tasks/a-box-never-waits-on-another-project.md): the assignee: in each, the planted copies are compared with this repository's `manifest.json` and the result is written into this file
+- Withdrawn (tasks/a-box-never-waits-on-another-project.md): the assignee: every local change that is brought to the plugin is a task file here before this task closes
 
 ## Decisions
 

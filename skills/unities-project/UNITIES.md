@@ -1,4 +1,4 @@
-<!-- UNITIES.md 2026-11-24 · 0.6.16. Master copy: the unities-project skill folder (plugin `unities`). -->
+<!-- UNITIES.md 2026-11-26 · 0.6.17. Master copy: the unities-project skill folder (plugin `unities`). -->
 
 # UNITIES.md — adopting the Unities in a repository
 
@@ -464,6 +464,14 @@ old by active users" — is an outcome, not a check: it is the promise or a mile
 `docs/PLAN.md`, and the gate refuses it (`ACCEPTANCE_FORBIDDEN` in the script) in every
 mode, so it is caught at the commit or the turn, not only at merge. Move the sentence up
 to the promise or out to the plan and replace it with the checks it decomposes into.
+
+The same holds for anything that is not the project. A box may exercise what the project
+ships wherever it runs: on another operating system, under another agent, on a clean
+machine, as someone's main app for a week, with a client trying it on their side. That is
+a check of the project. A box may not wait on the state of something else: another
+repository taking the new version, an old app removed from a phone, a client leaving the
+tool they use now, a third person installing it. That is an outcome, moved as above. The
+gate catches only some wordings of it; the rule is this paragraph, not the pattern.
 
 A box, here or in a review round, is ticked by whoever performed its check, and that
 includes the agent: a scene's developer is one person with the agents that act for them
@@ -1097,7 +1105,10 @@ A task file has:
   that actor can perform, and a moment before the task closes. A box about the user,
   customers, adoption or production ("the user replaced the old app", "schema is running
   in production") is an outcome, not a check; it belongs in the promise or in
-  `docs/PLAN.md` under *Milestones*, and the gate refuses it;
+  `docs/PLAN.md` under *Milestones*, and the gate refuses it. So is a box that waits on
+  anything that is not the project ("the other repositories run the new version"), though
+  the gate does not catch every wording of it; a box that runs what the project ships
+  somewhere else (another operating system, a clean machine) is a check;
 - `## What was done`: appended in the same unit (commit or pull request, by the repo's
   staging) as the change it describes, once. Once merged it may be corrected, a mistake
   fixed, but a correction is not a record: new work gets a new section (4.7). A task

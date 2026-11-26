@@ -7,6 +7,7 @@ what is not in scope are set by decisions. All of it is compiled from `tasks/` a
 
 ## Steps
 
+- [a-box-never-waits-on-another-project](../tasks/a-box-never-waits-on-another-project.md) — An acceptance box never waits on another project · recorded, 1 box open
 - [a-broken-configuration-is-refused-not-crashed](../tasks/a-broken-configuration-is-refused-not-crashed.md) — A broken configuration is refused, not crashed on · done
 - [a-check-is-admitted-from-what-happened](../tasks/a-check-is-admitted-from-what-happened.md) — A check enters the gate because something happened · recorded, 1 box open
 - [a-marketplace-file](../tasks/a-marketplace-file.md) — Let the plugin be installed from this repository by name · recorded, 1 box open
@@ -15,7 +16,7 @@ what is not in scope are set by decisions. All of it is compiled from `tasks/` a
 - [adopt-unities](../tasks/adopt-unities.md) — Adopt the Unities in this repository · done
 - [an-edited-merged-record-passes](../tasks/an-edited-merged-record-passes.md) — An edited merged record passes the "no record" check · done
 - [an-upgrade-may-rewrite-the-head](../tasks/an-upgrade-may-rewrite-the-head.md) — An upgrade may rewrite the compiled files' head · done
-- [convert-the-adopted-repositories](../tasks/convert-the-adopted-repositories.md) — Convert the repositories adopted before 0.6.0 · recorded, 4 boxes open
+- [convert-the-adopted-repositories](../tasks/convert-the-adopted-repositories.md) — Convert the repositories adopted before 0.6.0 · done
 - [diffs-are-read-under-any-git-config](../tasks/diffs-are-read-under-any-git-config.md) — The release check and the changelog compiler read diffs under any git configuration
 - [essay-part-two-and-licences](../tasks/essay-part-two-and-licences.md) — Cut the essay's second part; licence the prose and the scripts · done
 - [new-records-are-found-by-heading-text](../tasks/new-records-are-found-by-heading-text.md) — A second record in a task file makes the first one count as new · recorded, 7 boxes open
