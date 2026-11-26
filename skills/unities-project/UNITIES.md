@@ -1,4 +1,4 @@
-<!-- UNITIES.md 2026-11-26 · 0.6.19. Master copy: the unities-project skill folder (plugin `unities`). -->
+<!-- UNITIES.md 2026-11-26 · 0.6.20. Master copy: the unities-project skill folder (plugin `unities`). -->
 
 # UNITIES.md — adopting the Unities in a repository
 
@@ -472,6 +472,13 @@ a check of the project. A box may not wait on the state of something else: anoth
 repository taking the new version, an old app removed from a phone, a client leaving the
 tool they use now, a third person installing it. That is an outcome, moved as above. The
 gate catches only some wordings of it; the rule is this paragraph, not the pattern.
+
+A task is held to the rule as it is while it is open. Once it is closed, with a
+`## What was done` record and no `- [ ]` outside a fenced block, a rule made later does not reach
+the boxes it closed with: a scene that adds a record to it, and leaves it closed, is
+judged on the boxes it adds, edits or copies. An open task, or one the scene reopens with
+a new open box, is judged whole by today's rule, so no task keeps a rule of its own. A
+task file renamed is read as a new one.
 
 A box, here or in a review round, is ticked by whoever performed its check, and that
 includes the agent: a scene's developer is one person with the agents that act for them

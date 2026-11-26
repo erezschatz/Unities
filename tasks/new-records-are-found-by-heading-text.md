@@ -184,9 +184,11 @@ that file.
 
 **Done when**
 
-- [ ] a scene adds a record beside an older box the rule refuses, and leaves it alone → no acceptance message
-- [ ] a box the scene adds or edits that the rule refuses → refused as now
-- [ ] a new task file with such a box → refused as now
+- Withdrawn (tasks/acceptance-boxes-are-judged-where-the-scene-wrote.md): a scene adds a record beside an older box the rule refuses, and leaves it alone → no acceptance message
+- [x] a scene adds a record beside an older box the rule refuses, in a task closed at its base, and leaves it alone → no acceptance message
+- [x] the same in a task open at its base → refused
+- [x] a box the scene adds or edits that the rule refuses → refused as now
+- [x] a new task file with such a box → refused as now
 
 **Not asked** — A change to `ACCEPTANCE_FORBIDDEN`.
 

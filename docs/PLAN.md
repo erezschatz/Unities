@@ -9,11 +9,11 @@ what is not in scope are set by decisions. All of it is compiled from `tasks/` a
 
 - [a-box-never-waits-on-another-project](../tasks/a-box-never-waits-on-another-project.md) — An acceptance box never waits on another project · recorded, 1 box open
 - [a-broken-configuration-is-refused-not-crashed](../tasks/a-broken-configuration-is-refused-not-crashed.md) — A broken configuration is refused, not crashed on · done
-- [a-check-is-admitted-from-what-happened](../tasks/a-check-is-admitted-from-what-happened.md) — A check enters the gate because something happened · recorded, 1 box open
+- [a-check-is-admitted-from-what-happened](../tasks/a-check-is-admitted-from-what-happened.md) — A check enters the gate because something happened · done
 - [a-marketplace-file](../tasks/a-marketplace-file.md) — Let the plugin be installed from this repository by name · recorded, 1 box open
 - [a-record-inserted-above-another-compiles-empty](../tasks/a-record-inserted-above-another-compiles-empty.md) — A record inserted above another compiles as an empty entry
 - [a-turn-may-stop-to-discuss](../tasks/a-turn-may-stop-to-discuss.md) — A turn may stop to discuss · done
-- [acceptance-boxes-are-judged-where-the-scene-wrote](../tasks/acceptance-boxes-are-judged-where-the-scene-wrote.md) — Acceptance boxes are judged where the scene wrote them
+- [acceptance-boxes-are-judged-where-the-scene-wrote](../tasks/acceptance-boxes-are-judged-where-the-scene-wrote.md) — Acceptance boxes are judged where the scene wrote them · done
 - [adopt-unities](../tasks/adopt-unities.md) — Adopt the Unities in this repository · done
 - [an-edited-merged-record-passes](../tasks/an-edited-merged-record-passes.md) — An edited merged record passes the "no record" check · done
 - [an-upgrade-may-rewrite-the-head](../tasks/an-upgrade-may-rewrite-the-head.md) — An upgrade may rewrite the compiled files' head · done
@@ -21,7 +21,7 @@ what is not in scope are set by decisions. All of it is compiled from `tasks/` a
 - [diffs-are-read-under-any-git-config](../tasks/diffs-are-read-under-any-git-config.md) — The release check and the changelog compiler read diffs under any git configuration · done
 - [essay-part-two-and-licences](../tasks/essay-part-two-and-licences.md) — Cut the essay's second part; licence the prose and the scripts · done
 - [left-unchecked-replaces-not-admitted](../tasks/left-unchecked-replaces-not-admitted.md) — A case the gate deliberately does not check is called "left unchecked" · done
-- [new-records-are-found-by-heading-text](../tasks/new-records-are-found-by-heading-text.md) — A second record in a task file makes the first one count as new · recorded, 3 boxes open
+- [new-records-are-found-by-heading-text](../tasks/new-records-are-found-by-heading-text.md) — A second record in a task file makes the first one count as new · done
 - [pr-measures-from-the-fork-point](../tasks/pr-measures-from-the-fork-point.md) — `--pr` measures a pull request from where it forked · done
 - [run-the-gate-under-cmd-exe](../tasks/run-the-gate-under-cmd-exe.md) — Run the gate where the shell is `cmd.exe`
 - [the-changelog-compiler-reads-a-long-history](../tasks/the-changelog-compiler-reads-a-long-history.md) — The changelog compiler reads a long history · done

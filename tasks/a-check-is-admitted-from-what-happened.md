@@ -30,7 +30,7 @@ something that might.
 
 - [x] the assignee: the rule for when a finding changes the gate, and who rules on it, are recorded under `## Decisions` in this file
 - [x] the assignee: `CLAUDE.md` states the rule, and runbook 4.11 says where a finding that is not admitted is written
-- [ ] the assignee: the two findings of D35 are each ruled on by it, and the ruling is written into their task files
+- [x] the assignee: the two findings of D35 are each ruled on by it, and the ruling is written into their task files
 
 ## Decisions
 

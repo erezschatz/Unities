@@ -37,7 +37,10 @@ What it does:
   check and the changelog compiler set git's diff output back to its defaults (colour,
   external tools and text conversion off, `a/` and `b/` prefixes, three lines of context,
   rename detection, the default algorithm), and the compiler prints file names unquoted,
-  so a developer's own git settings for these do not change what they decide.
+  so a developer's own git settings for these do not change what they decide. The gate
+  judges an open task's acceptance boxes by its rule as it is now; a task closed at the
+  scene's base, and still closed in it, is judged only on the boxes the scene adds, edits
+  or copies.
   `make-manifest.mjs` rewrites the manifest and is not planted.
 - **The plugin manifest**, `.claude-plugin/plugin.json`, and beside it the marketplace
   file, `.claude-plugin/marketplace.json`: one marketplace, `erezschatz`, listing this
@@ -46,7 +49,7 @@ What it does:
   Claude Code requires). The plugin's entry carries no version and no description; both
   are read from `plugin.json`.
 
-What it explicitly does not do, as of 0.6.19:
+What it explicitly does not do, as of 0.6.20:
 
 - The Codex binding has not been run under Codex (`tasks/verify-the-codex-binding.md`),
   and the gate has not been run on Windows outside WSL

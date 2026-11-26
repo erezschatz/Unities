@@ -290,6 +290,61 @@ test("strict: an outcome acceptance box is refused at the commit, not only at me
   assert.match(result.stderr, /names an outcome/);
 });
 
+test("a rule made after a task closed does not reach its boxes; an open task is held to today's rule", () => {
+  // A box today's rule refuses, written before the rule was: committed on main directly,
+  // as if the pattern had been narrower then.
+  const old = "- [x] the user uninstalled the old app";
+  const closed = `# t\n\n## Context\n\n**Acceptance**\n\n${old}\n\n## What was done\n\ndone\n\nReviewed by: a reader\n`;
+  const open = `# t\n\n## Context\n\n**Acceptance**\n\n${old}\n- [ ] a check still to do\n\n## What was done\n\ndone\n\nReviewed by: a reader\n`;
+  const unrecorded = `# t\n\n## Context\n\n**Acceptance**\n\n${old}\n`;
+  const added = "\n## What was done\n\nmore\n\nReviewed by: a reader\n";
+  const scene = (atBase, now) => {
+    const { dir, git, write, commit } = repo();
+    write(TASK, atBase);
+    commit("before-the-rule");
+    git("checkout -q -b feature");
+    write(SOURCE, "changed\n");
+    write(TEST, "test\n");
+    write(DOC, "documented\n");
+    write(TASK, now);
+    commit("feature");
+    const pr = run(dir, ["--pr", "main"]);
+    git("checkout -q main");
+    git("merge -q --squash feature");
+    const staged = run(dir, ["--staged"]);
+    return [pr, staged];
+  };
+  for (const result of scene(closed, closed + added))
+    assert.doesNotMatch(result.stderr, /names an outcome/, "closed task, its old box left alone");
+  for (const result of scene(closed, closed.replace(old, `${old}, every one`) + added))
+    assert.match(result.stderr, /names an outcome/, "closed task, its old box edited");
+  for (const result of scene(closed, closed.replace("## What was done", "- [ ] new schema is running in production\n\n## What was done") + added))
+    assert.match(result.stderr, /running in production/, "closed task, a box added");
+  for (const result of scene(open, open.replace("- [ ] a check still to do", "- [x] a check still to do") + added))
+    assert.match(result.stderr, /uninstalled the old app/, "open task: today's rule");
+  for (const result of scene(unrecorded, unrecorded + added))
+    assert.match(result.stderr, /uninstalled the old app/, "a task with no record: open");
+  // Each acceptance box the base held passes once, anywhere outside a review; a second
+  // copy of it is the scene's.
+  for (const result of scene(closed, closed.replace(old, `${old}\n${old}`) + added))
+    assert.match(result.stderr, /uninstalled the old app/, "closed task, the old box copied");
+  for (const result of scene(closed, closed.replace(old, `  ${old}`) + added))
+    assert.doesNotMatch(result.stderr, /names an outcome/, "closed task, the old box re-indented");
+  for (const result of scene(closed, closed.replace("[x]", "[X]") + added))
+    assert.match(result.stderr, /uninstalled the old app/, "closed task, the old box edited to [X]");
+  const reviewed = `${closed}\n## Review · 2026-01-01\n\n### an item\n\n**Found** — here\n\n**Done when**\n\n- [x] the user sees the message → shown\n\n**Not asked** — more\n`;
+  for (const result of scene(reviewed, reviewed.replace(old, `${old}\n- [x] the user sees the message → shown`) + added))
+    assert.match(result.stderr, /the user sees the message/, "closed task, a review line copied into Acceptance");
+  // A scene that reopens the task is held to today's rule, as an open task is.
+  for (const result of scene(closed, closed.replace(old, `${old}\n- [ ] a new check`) + added))
+    assert.match(result.stderr, /uninstalled the old app/, "closed task reopened by the scene");
+  // Closed is a record and no open box outside a fenced block: a box quoted in a fence is
+  // not open.
+  const quoted = closed.replace("## What was done", "```\n- [ ] a quoted box\n```\n\n## What was done");
+  for (const result of scene(quoted, quoted + added))
+    assert.doesNotMatch(result.stderr, /names an outcome/, "closed task, an open box only in a fence");
+});
+
 // ---- the reader (both stagings, every mode) ----
 
 test("a record without a Reviewed by line is refused; the one with it passes", () => {

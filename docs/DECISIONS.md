@@ -1457,3 +1457,59 @@ compiles as an empty entry, is `tasks/a-record-inserted-above-another-compiles-e
 promise, and it needs its own record.
 
 Source: [tasks/diffs-are-read-under-any-git-config.md](../tasks/diffs-are-read-under-any-git-config.md)
+
+## D100 · 2026-11-26 · A later rule does not reach a closed task; an open task is held to today's
+
+**Decision** — Ruled by the developer on 2026-11-26, in chat: "if we change the rules, it
+should not affect closed tasks. If a task is opened, then it should be subjected to
+whatever rules there are, I don't want to maintain 10 versions for 10 tasks." A task
+file closed at the scene's base and still closed in the scene keeps the acceptance boxes
+it closed with: each box line the base held outside a review section, trimmed, passes
+once, and a box the scene adds, edits or copies is judged. Closed is what the compiled
+plan calls done: a `## What was done` record, and no `- [ ]` outside a fenced block. A
+task file open at the base, or one the scene reopens with a new open box, is judged
+whole by the rule as it is now. The first acceptance box, which asked
+for every older box to be left alone, is withdrawn in the form of D89 and replaced by two
+that say this.
+**Rejected** — Leaving every box a scene did not write alone, which this task first
+asked, so that an open task keeps the rule it was opened under; judging every box in
+every file touched, as before, so that a closed task is refused for a box it closed with;
+recording which rule a task was opened under, a version per task.
+**Why** — The developer's words: a closed task is history and stays as it closed, and
+an open one has one rule to meet, today's.
+
+Source: [tasks/acceptance-boxes-are-judged-where-the-scene-wrote.md](../tasks/acceptance-boxes-are-judged-where-the-scene-wrote.md)
+
+## D101 · 2026-11-26 · A closed task renamed is read as a new task file
+
+**Decision** — The gate reads a task file at the base under the name the scene gives it,
+so a closed task renamed in the scene has no base and is judged whole, as a new task
+file is.
+**Rejected** — Following the rename to the old name, which no other part of the
+acceptance check does.
+**Why** — A rename of a task file is rare, its acceptance can then be read as written
+anew, and following it would add rename detection for this one check.
+
+Source: [tasks/acceptance-boxes-are-judged-where-the-scene-wrote.md](../tasks/acceptance-boxes-are-judged-where-the-scene-wrote.md)
+
+## D102 · 2026-11-26 · A review line is withdrawn in the same form as a box
+
+**Decision** — A *Done when* line a ruling makes untrue is withdrawn in D89's form,
+`- Withdrawn (<the task file whose decision withdraws it>): <the line as it was>`, and
+the lines the ruling makes true stand below it, ticked when they hold. The first review
+line of "Acceptance boxes were still judged across the whole file" in
+`tasks/new-records-are-found-by-heading-text.md` is withdrawn so.
+**Rejected** — Ticking it, when it holds only for a closed task; leaving it open, which
+no work can close; rewriting it in place, which loses what was asked.
+**Why** — D89 already says how a line that no longer binds stays in the record.
+
+Source: [tasks/acceptance-boxes-are-judged-where-the-scene-wrote.md](../tasks/acceptance-boxes-are-judged-where-the-scene-wrote.md)
+
+## D103 · 2026-11-26 · 0.6.20
+
+**Decision** — The gate and the runbook change, so the plugin is 0.6.20. The form is
+unchanged at 1.0.
+**Rejected** — Carrying it in 0.6.19, which is committed.
+**Why** — A change to the procedure is a version (`docs/SPEC.md`, *Versions*).
+
+Source: [tasks/acceptance-boxes-are-judged-where-the-scene-wrote.md](../tasks/acceptance-boxes-are-judged-where-the-scene-wrote.md)

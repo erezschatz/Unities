@@ -206,10 +206,22 @@ let recorded = false;   // has the scene added a "## What was done" section, in 
 const taskFiles = files.filter(f => RULES.task.test(f) && !deleted.includes(f)).sort();
 const corrected = corrections();
 for (const f of taskFiles) {
+  // A task closed at the base, and still closed in the scene, keeps the acceptance boxes
+  // it closed with: a rule made since does not reach them. Each one the base held passes
+  // once, anywhere outside a review section; a box the scene adds, edits or copies is
+  // judged, and an open or reopened task is judged whole, by the rule as it is now.
+  const atBase = show(from, f);
+  const closedWith = new Map();
+  if (closed(atBase) && closed(contents(f)))
+    for (const box of acceptanceBoxes(atBase)) closedWith.set(box, (closedWith.get(box) ?? 0) + 1);
   let heading = "";
   for (const line of contents(f).split("\n")) {
     if (/^## /.test(line)) heading = line;
     const m = /^\s*[-*] \[[ xX]\]\s+(.+)$/.exec(line);
+    if (m && !REVIEW_SECTION.test(heading) && closedWith.get(line.trim()) > 0) {
+      closedWith.set(line.trim(), closedWith.get(line.trim()) - 1);
+      continue;
+    }
     // "Done when" boxes of a review describe behaviour and may well start with "the user".
     if (m && !REVIEW_SECTION.test(heading) && ACCEPTANCE_FORBIDDEN.test(m[1].trim()))
       missing.push(`acceptance box in ${f} names an outcome, not a check: "${m[1].trim()}" (make it the promise${config.plan === false ? "" : " or a PLAN.md milestone"})`);
@@ -340,6 +352,26 @@ function scenesSections(file) {
   return sectionsOf(contents(file)).filter(section => !baseSections().has(section));
 }
 function isRecord(section) { return /^## What was done/.test(section); }
+// Closed: a "## What was done" record, and no box open outside a fenced block, since a
+// task file may quote a box without having one. The record compiler counts done the same.
+function closed(text) {
+  let fenced = false, open = 0;
+  for (const line of text.split("\n")) {
+    if (/^\s*```/.test(line)) fenced = !fenced;
+    else if (!fenced && /^\s*[-*] \[ \]/.test(line)) open++;
+  }
+  return /^## What was done/m.test(text) && open === 0;
+}
+// The acceptance boxes of a task file, trimmed: every box outside a review section.
+function acceptanceBoxes(text) {
+  let heading = "";
+  const boxes = [];
+  for (const line of text.split("\n")) {
+    if (/^## /.test(line)) heading = line;
+    if (/^\s*[-*] \[[ xX]\]\s+\S/.test(line) && !REVIEW_SECTION.test(heading)) boxes.push(line.trim());
+  }
+  return boxes;
+}
 // A record the scene changed is a correction of one the base held when at least half its
 // words are that record's, and the base held that record more times than the scene still
 // does. Each such record corrects at most one, so a new record cannot pass as a second
