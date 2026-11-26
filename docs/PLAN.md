@@ -24,6 +24,7 @@ what is not in scope are set by decisions. All of it is compiled from `tasks/` a
 - [new-records-are-found-by-heading-text](../tasks/new-records-are-found-by-heading-text.md) — A second record in a task file makes the first one count as new · done
 - [pr-measures-from-the-fork-point](../tasks/pr-measures-from-the-fork-point.md) — `--pr` measures a pull request from where it forked · done
 - [run-the-gate-under-cmd-exe](../tasks/run-the-gate-under-cmd-exe.md) — Run the gate where the shell is `cmd.exe`
+- [the-adopter-chooses-what-runs-the-gate](../tasks/the-adopter-chooses-what-runs-the-gate.md) — The adopter chooses what runs the gate · recorded, 1 box open
 - [the-changelog-compiler-reads-a-long-history](../tasks/the-changelog-compiler-reads-a-long-history.md) — The changelog compiler reads a long history · done
 - [the-compilers-read-crlf-and-a-bom](../tasks/the-compilers-read-crlf-and-a-bom.md) — The compilers read a task file the same with CRLF, or with a BOM · done
 - [the-essay-says-whose-idea-this-is](../tasks/the-essay-says-whose-idea-this-is.md) — The essay says whose idea this is · recorded, 1 box open

@@ -1513,3 +1513,48 @@ unchanged at 1.0.
 **Why** — A change to the procedure is a version (`docs/SPEC.md`, *Versions*).
 
 Source: [tasks/acceptance-boxes-are-judged-where-the-scene-wrote.md](../tasks/acceptance-boxes-are-judged-where-the-scene-wrote.md)
+
+## D104 · 2026-11-26 · The runbook states the gate's place and contract; what runs it is the person's
+
+**Decision** — Ruled by the developer, above. In adapted the runbook says the gate runs
+before each merge into the branch in `base`, as `check-unit.mjs --pr <target>` in a
+checkout of the source tip reaching the fork point, the merge going ahead only on exit 0;
+and that after each merge the record compiler runs on that branch and its output is
+committed there. What runs either is the person's choice; discovery notes how pull
+requests are merged, the report asks what will run them, and the agent builds nothing for
+them unless asked. Until something compiles after a merge, a person does it through a
+pull request of only the compiled files.
+**Rejected** — Keeping "Add a CI job" in 4.7, and the ranking of who compiles in 4.5,
+which made an adoption build CI; keeping Appendix I as a reference in the runbook, read
+by every adoption; deleting what Appendix I held.
+**Why** — The developer: what does the gate "is none of our concern", and "we only give
+the means".
+
+Source: [tasks/the-adopter-chooses-what-runs-the-gate.md](../tasks/the-adopter-chooses-what-runs-the-gate.md)
+
+## D105 · 2026-11-26 · What is known about running the gate is a file of its own, read on request
+
+**Decision** — `skills/unities-project/RUNNING-THE-GATE.md` holds the two contracts in
+brief, making the gate binding (a required check, or a merging tool that refuses on a
+non-zero exit, and why the two collide), the merge man as a job, Appendix I's Azure
+DevOps listings and their prose word for word, and how to approach another service. The
+runbook does not send an adoption there; the skill reads it only when the person asks
+for something to run the gate or the record compiler. Appendix I stays as a two-line
+pointer, so the letters of J, K and L do not move. In this repository the file is in the
+procedure role (`.claude/hooks/unities.json`), held to a doc and a task change.
+**Rejected** — Putting it under `docs/`, which is this repository's and is not shipped
+with the plugin; renumbering the appendices, which every reference to J, K and L would
+have to follow; leaving the new file in no role, so a change to it is held to nothing.
+**Why** — The developer: "I don't want to lose the stuff that's there", in "another file
+that is not required reading in the skill".
+
+Source: [tasks/the-adopter-chooses-what-runs-the-gate.md](../tasks/the-adopter-chooses-what-runs-the-gate.md)
+
+## D106 · 2026-11-26 · 0.6.21
+
+**Decision** — The runbook and the skill change, so the plugin is 0.6.21. The form is
+unchanged at 1.0.
+**Rejected** — Carrying it in 0.6.20, which is committed.
+**Why** — A change to the procedure is a version (`docs/SPEC.md`, *Versions*).
+
+Source: [tasks/the-adopter-chooses-what-runs-the-gate.md](../tasks/the-adopter-chooses-what-runs-the-gate.md)

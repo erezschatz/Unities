@@ -32,7 +32,8 @@ they cost something; the essay names the costs.
 | --- | --- |
 | [`docs/the-unities.md`](docs/the-unities.md) | The essay: the form, where it comes from, what it forces, what it costs. Start here. |
 | [`skills/unities-project/SKILL.md`](skills/unities-project/SKILL.md) | The front door. It runs the kickoff interview for a new project, or migrates an existing repository. |
-| [`skills/unities-project/UNITIES.md`](skills/unities-project/UNITIES.md) | The runbook. The skill plants it in a repository as `docs/UNITIES.md` and carries it out: the task record, the gate script and its tests, the two compilers, the CI example. This copy is the master. |
+| [`skills/unities-project/UNITIES.md`](skills/unities-project/UNITIES.md) | The runbook. The skill plants it in a repository as `docs/UNITIES.md` and carries it out: the task record, the gate script and its tests, the two compilers. This copy is the master. |
+| [`skills/unities-project/RUNNING-THE-GATE.md`](skills/unities-project/RUNNING-THE-GATE.md) | What runs the gate before a merge and the record compiler after it is the adopter's choice; this is read only when someone asks for one built. It holds what is known: making the gate binding, the merge man as a job, and an Azure DevOps listing. |
 | [`skills/unities-project/files/`](skills/unities-project/files/) | The scripts the runbook plants, as files: the gate, its tests, the two compilers, and a manifest of their hashes. They are copied as they are; each repository keeps its own values in one configuration file. |
 | `tasks/` | The record of this repository's own work, one file per task. |
 | [`CLAUDE.md`](CLAUDE.md), [`docs/SPEC.md`](docs/SPEC.md) | How to work in this repository, and what the plugin is and how a version is made. |

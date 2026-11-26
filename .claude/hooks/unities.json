@@ -7,7 +7,7 @@
     "task": "^tasks/(?!README\\.md$)[^/_][^/]*\\.md$",
     "shared": "^CHANGELOG\\.md$",
     "retired": "^$",
-    "procedure": "^skills/unities-project/(UNITIES|SKILL)\\.md$"
+    "procedure": "^skills/unities-project/(UNITIES|SKILL|RUNNING-THE-GATE)\\.md$"
   },
   "required": {
     "source": [

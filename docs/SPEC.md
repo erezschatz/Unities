@@ -22,9 +22,14 @@ What it does:
   runs the kickoff interview and writes `CLAUDE.md`, `docs/SPEC.md` and the task files;
   for an existing repository it plants the runbook and carries it out.
 - **The runbook**, `skills/unities-project/UNITIES.md`: the procedure. It installs, in a
-  repository, the task record (`tasks/`), the gate and its tests, the Claude Code, git,
-  CI and Codex bindings, the changelog compiler and the record compiler. The bindings are
-  listings in its appendices (B, C, I, L); the scripts are files.
+  repository, the task record (`tasks/`), the gate and its tests, the Claude Code, git
+  and Codex bindings, the changelog compiler and the record compiler. The bindings are
+  listings in its appendices (B, C, L); the scripts are files. In adapted it says where
+  the gate and the record compiler run, before and after each merge, and not what runs
+  them.
+- **Running the gate**, `skills/unities-project/RUNNING-THE-GATE.md`: what is known about
+  running the gate and the record compiler in CI or a merging tool, with an Azure DevOps
+  listing. Not part of an adoption; read when someone asks for one built.
 - **The scripts**, `skills/unities-project/files/`: `check-unit.mjs` (the gate),
   `check-unit.test.mjs`, `compile-changelog.mjs`, `compile-record.mjs`, and
   `manifest.json` with their sha256 hashes and the plugin's version. They are planted by
@@ -49,7 +54,7 @@ What it does:
   Claude Code requires). The plugin's entry carries no version and no description; both
   are read from `plugin.json`.
 
-What it explicitly does not do, as of 0.6.20:
+What it explicitly does not do, as of 0.6.21:
 
 - The Codex binding has not been run under Codex (`tasks/verify-the-codex-binding.md`),
   and the gate has not been run on Windows outside WSL
@@ -100,7 +105,8 @@ with the manifest, and its values are in `.claude/hooks/unities.json`.
 
 **Roles here** (`rules` in that file): source is the scripts in
 `skills/unities-project/files/` other than the tests; test is the tests there; procedure
-is the runbook and the skill (`UNITIES.md`, `SKILL.md`); doc is `docs/` other than the
+is the runbook, the skill and the file on running the gate (`UNITIES.md`, `SKILL.md`,
+`RUNNING-THE-GATE.md`); doc is `docs/` other than the
 compiled `DECISIONS.md` and `PLAN.md`, and `README.md`, `CLAUDE.md`, `AGENTS.md`; task is `tasks/`; shared is `CHANGELOG.md`. Nothing is retired, and
 `.claude-plugin/plugin.json` and `manifest.json` are in no role. A script change requires
 a test, a doc and a task change; a change to the runbook or the skill, a doc and a task

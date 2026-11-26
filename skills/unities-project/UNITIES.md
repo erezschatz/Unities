@@ -1,4 +1,4 @@
-<!-- UNITIES.md 2026-11-26 · 0.6.20. Master copy: the unities-project skill folder (plugin `unities`). -->
+<!-- UNITIES.md 2026-11-26 · 0.6.21. Master copy: the unities-project skill folder (plugin `unities`). -->
 
 # UNITIES.md — adopting the Unities in a repository
 
@@ -127,7 +127,7 @@ difference is one value (`scene` in the configuration, Appendix A) and which bin
 | `Stop` hook (end of an agent turn) | advises once and never refuses, as in adapted: a turn may end to ask (above), and the commit refuses | advises once and never refuses (Claude Code: through `additionalContext`; Codex: one continuation of the turn, 4.10) |
 | `PreToolUse` on `git commit` | installed; blocks | not installed |
 | pre-commit hook (where commits happen outside the agent) | refuses | warns |
-| CI gate, `check-unit.mjs --pr` | optional backstop; install if there is CI | required; runs in CI or in the tool that merges (4.7) |
+| The gate at the pull request, `check-unit.mjs --pr` | optional backstop | required: it runs before each merge into `base`; what runs it is the person's (4.7) |
 | A half-finished scene | stays uncommitted until finished; reverted if the person abandons it | sits as an open PR |
 | `docs/DECISIONS.md`, `docs/PLAN.md` | the commit is also the merge: it carries the record compiler's output, and the gate refuses a commit where they are out of date | no pull request touches them; the merge man compiles them on the target after each merge (4.5) |
 | Release | compiler output committed from a shell with `--no-verify`, the one bypass | a release PR, which passes only because its changelog equals the compiler's output |
@@ -217,10 +217,11 @@ nothing.
   answer on record: ask once, and record it as a decision in the adoption task. A yes
   installs 4.10, and with it the git binding (4.3), because a second agent is a second
   place commits come from.
-- Who merges (adapted). Pull requests are merged by the CI service's merge button, by a
-  person, or by a tool that completes them through an API. This decides where the gate
-  (4.7) runs, and who the merge man is: where the record compiler runs after a merge
-  (4.5). Note the merge strategy in force; the table in §1 recommends squash.
+- Who merges (adapted). Pull requests are merged by the hosting service's merge button,
+  by a person, or by a tool that completes them through an API. Note it, and what if
+  anything already runs checks on pull requests: the report asks the person what will
+  run the gate (4.7) and the record compiler after a merge (4.5). Note the merge strategy
+  in force; the table in §1 recommends squash.
 - Definition-of-Done checklists in CLAUDE.md, PR templates or docs. These are what the
   gates replace; note them for retirement.
 - Work-item tracker. If tasks map to tracker items (Azure DevOps, Jira, GitHub issues),
@@ -265,9 +266,10 @@ Send the person, in this order:
    installed (yes if any commit can happen outside the agent; otherwise ask). Which
    agents work here, and so whether 4.10 is installed; where `CLAUDE.md` and `AGENTS.md`
    both exist with different content, that, as a question.
-7. Adapted: where the gate will run (4.7), the CI service or the merging tool; where the
-   record compiler will run after each merge (4.5) and under which identity it commits;
-   and the merge strategy in force.
+7. Adapted: what the person says will run the gate before each merge (4.7) and the
+   record compiler after it (4.5), with the identity it pushes under where it pushes to
+   the branch itself, or "a person, by pull request", or that it is not decided yet; that choice is theirs,
+   so ask, and do not propose one unless asked. And the merge strategy in force.
 8. The TODO → `tasks/` mapping, in full.
 9. The fresh-session gap: which of spec, decisions, plan are missing, and the knowledge
    each would have to capture, with where it lives today.
@@ -379,11 +381,11 @@ what is committed.
   committing; the compiled files ride in the same commit and the gate refuses a commit
   where they are out of date. Adapted: nobody's pull request touches the compiled files.
   After each merge into the branch in `base`, the compiler runs on that branch and its
-  output is committed there, by whichever of these the repo has, in this order of
-  preference: the tool that merges, as its next step after the merge; a CI job triggered
-  by a push to that branch, committing under an identity allowed to push to it (Appendix
-  I); or a person, through a pull request that contains nothing but the compiled files,
-  which the gate passes only if they equal the compiler's output (4.7). Between a merge
+  output is committed there; where something pushes it straight to that branch, it does
+  so under an identity allowed to push there. What does it is the person's choice, and
+  nothing for it is built unless they ask; until something does, a person compiles through a pull request
+  that contains nothing but the compiled files, which the gate passes only if they equal
+  the compiler's output (4.7). Between a merge
   and its compile the compiled files are behind by that one merge and the task files
   are not; a session that needs to be sure runs the compiler with `--check`.
 - **What is not compiled.** Whatever stands above the marker line in either file is its
@@ -408,15 +410,18 @@ every "CLAUDE.md" in this document means that file.
 
 ### 4.7 The gate (required in adapted; recommended backstop in strict)
 
-Add a CI job that runs `check-unit.mjs --pr <target>` on every pull request, against the
-commit the PR targets, and make it required for merging into the branch in `base`. Use
-whatever the repo's CI already is; Appendix I is an Azure DevOps example. The check
-passes while the target has no `check-unit.mjs`, so the pull request that carries this
-adoption — retired TODO files and all — is not held to it.
+In adapted the scene is judged at the merge: before a pull request merges into the branch
+in `base`, `check-unit.mjs --pr <target>` runs, and the merge goes ahead only on exit 0.
+What runs it there — a CI job, the tool that merges, a person checking the branch out
+and running it, anything else — is the person's choice, not this procedure's, and the
+agent builds nothing for it unless asked. The check passes while the target has no
+`check-unit.mjs`, so the pull request that carries this adoption — retired TODO files and
+all — is not held to it. If the person asks for something to run it, or to run the
+record compiler after a merge, what is known about building one (a CI job, a merging
+tool's step, an Azure DevOps listing) is in
+`${CLAUDE_PLUGIN_ROOT}/skills/unities-project/RUNNING-THE-GATE.md`; an adoption that is
+not asked reads none of it.
 
-If pull requests are merged by a tool through the CI service's API rather than by its
-merge button, run the check in that tool, before it merges, instead of as a CI job. A
-required CI policy applies to the tool's API merges too, so the two gates would collide.
 Run in a checkout, with the source tip checked out: `check-unit.mjs --pr <target>`. The
 script measures the scene from the merge base of target and `HEAD`, not from the target's
 tip, so a target that has moved on since the branch forked does not charge the branch
@@ -424,7 +429,9 @@ with the target's commits. The checkout therefore needs the history back to the 
 point; without it the script stops with an error instead of guessing. It stops the same
 way when the checkout does not know the target's name at all — a typo, or a branch that
 was never fetched — because only a target that exists and has no `check-unit.mjs` counts
-as one that has not adopted yet.
+as one that has not adopted yet. The release check compares a release from the last tag
+reachable from the target, so the checkout needs the target's tags; without them it
+compares from the first commit.
 
 **Shared files.** Three kinds are never edited by hand. `CHANGELOG.md` is *compiled* at
 release: the compiler is its only writer, and deleting it is refused like editing it.
@@ -527,7 +534,8 @@ under *Acceptance boxes*, above); that the verifier read the diff against each l
 this rule are left alone.
 
 In strict the gate is not required (every commit is already complete) but is cheap, and
-catches a bypassed hook; install it if there is CI.
+catches a bypassed hook; the person may run it at the pull request too, by whatever
+means they choose.
 
 ### 4.8 The developer's guide
 
@@ -694,7 +702,7 @@ the Claude Code bindings; under Codex the `Stop` continues the turn once instead
 | `Stop` hook | the agent finishes a turn | tells the agent once, in its own context, what the commit (S) or the PR (A) will still refuse, then tells the person; never refuses the turn, since a turn may end to ask (§1) | time |
 | `PreToolUse` on `git commit` (S) | the agent is about to commit | refuses a commit that is not a complete scene | time |
 | `pre-commit` | a person commits | S: refuses. A: warns | time, place |
-| CI check on the PR (A; backstop in S) | a pull request is opened or updated | refuses the merge of an incomplete scene; the one gate with teeth in the adapted staging | time |
+| `--pr` at the merge (A; backstop in S) | before a pull request merges, by whatever the person runs there | refuses the merge of an incomplete scene; the one gate with teeth in the adapted staging | time |
 | `shared` rule in the script | any mode | refuses a direct edit to `CHANGELOG.md` or a retired `TODO.md`; a release PR passes only if its changelog equals the compiler's output | action |
 | `onFailure: "block"` (S) | the script is missing or crashes | blocks the commit; a policy that fails open is not a policy | time |
 | manifest check in the script | a scene touches a planted script or the manifest | refuses a planted copy that differs from the plugin's, or is missing | action |
@@ -754,8 +762,8 @@ decision whose title begins `Left unchecked` (before 0.6.18, `Not admitted`), in
 - Hooks in `.claude/settings.json` run only after the person has trusted the folder, and
   cloud sessions do not read a machine's user settings. Committing the project settings
   is what makes the staging travel with the repository.
-- The PR gate's being required lives outside the repository (a branch policy, or the
-  merging tool's step). It is the one part of the staging that `git diff` cannot see, and
+- Whatever makes the merge wait on the gate lives outside the repository (a branch
+  policy, a merging tool's step, a person's own check). It is the one part of the staging that `git diff` cannot see, and
   the first thing to check when the gate seems to have stopped working.
 - The discard is not automated anywhere. A scene the person abandons is reverted (§1);
   the gate cannot tell an abandoned scene from one paused to ask, and leaves the
@@ -915,13 +923,13 @@ to adapted, unmarked to both.
    adoption they are not yet staged, and the check judges only a scene that touches
    them; `--staged`, because in adapted `--branch` says nothing while the target has not
    adopted.
-7. (A) Confirm the 4.7 gate exists, and say whether whatever makes it required — a branch
-   policy, or the merging tool's step — is in place; it usually lives outside the
-   repository. Confirm the release check: on a throwaway branch, run the compiler for a
+7. (A) Say what the person said will run the 4.7 gate before a merge, and whether it is
+   in place and makes the merge wait; it usually lives outside the repository, and where
+   nothing is decided yet, say that. Confirm the release check: on a throwaway branch, run the compiler for a
    fake version, commit only its output and the version bump, and run `--pr <target>` →
    must pass; then hand-edit one changelog line → must fail with a diff. Confirm the
-   merge man: name what runs the record compiler after a merge and under which identity
-   it commits; if that lives outside the repository and is not in place yet, say so —
+   merge man: name what runs the record compiler after a merge, and the identity it
+   pushes under where it pushes to the branch itself; if that lives outside the repository and is not in place yet, say so —
    until it is, the compiled files are compiled by a person, through a pull request of
    only those files.
 8. If 4.10 was installed: `.codex/hooks.json` parses, and `claude` started in the repo
@@ -948,7 +956,8 @@ sentences as the adoption task's record. Then tell the person:
   that the release PR passes the gate only if its changelog equals the compiler's output;
 - that decisions and plan changes are written in the task file and nowhere else, the one
   command that compiles them (`npm run record`), and who runs it: (S) whoever commits,
-  before the commit; (A) the merge man named in 4.5, after each merge;
+  before the commit; (A) whatever the person said will compile after each merge (3.4, item 7), or a
+  person through a pull request of only the compiled files where nothing does yet;
 - what remains manual: the reviewer before the record is committed (Appendix G); (A)
   whatever makes the 4.7 gate required; (S) the decision to abandon and revert a scene
   the `Stop` hook reports as incomplete;
@@ -1249,8 +1258,9 @@ section appended to the task file in `tasks/`, read cold against the diff by a r
 did not write it: code, test, document, review are one unit, and the pull request is
 opened with all four done. Commits on the way are free: a stage may be
 committed to keep one's place before its record exists. This is enforced at the pull
-request, not at the commit: the gate runs `.claude/hooks/check-unit.mjs --pr` — as a CI
-job, or in the tool that merges — and the PR cannot merge with an incomplete scene.
+request, not at the commit: the gate runs `.claude/hooks/check-unit.mjs --pr` before the
+merge, by whatever this repository runs there, and the PR cannot merge with an
+incomplete scene.
 `git commit` and the end of a turn only warn, naming what the PR will still fail on. If
 you are unsure, stop and ask; ending a turn to ask does not end the scene.
 `CHANGELOG.md` is compiled from task records at release (`npm run changelog -- <version>`)
@@ -1450,84 +1460,12 @@ Codex takes a separate `commandWindows` for the same handler; write it for the s
 Codex uses there and run step 8 of Phase 6 on that machine, because this document has
 not.
 
-## Appendix I — the gate in Azure DevOps
+## Appendix I — moved
 
-Azure Repos ignores `pr:` triggers in YAML. Register this pipeline as a Build Validation
-policy on the gated branch (Project settings → Repositories → Policies → the branch),
-required, so it runs on every pull request into it.
-
-```yaml
-trigger: none
-
-pool:
-  vmImage: ubuntu-latest
-
-steps:
-  # A PR build checks out the merge of the PR into its target: HEAD^1 is the target,
-  # so HEAD^1..HEAD is exactly what the PR would change. Depth 2 reaches it.
-  # This relies on the policy's default merge-commit checkout. If the policy is ever
-  # switched to a rebase or squash build, HEAD^1 is no longer the target; pass the
-  # target branch instead (`--pr origin/<target>`) with `fetchDepth: 0`, so the script
-  # can find where the branch forked (4.7).
-  - checkout: self
-    fetchDepth: 2
-    clean: true
-
-  - task: UseNode@1
-    inputs:
-      version: 22.x
-
-  - bash: |
-      set -euo pipefail
-      if [ "$BUILD_REASON" != "PullRequest" ]; then exit 0; fi
-      # The release check needs the last tag reachable from the target.
-      git fetch --quiet --tags --depth=1 origin || true
-      node .claude/hooks/check-unit.mjs --pr HEAD^1
-    displayName: Check the change carries its record
-```
-
-**The merge man.** A second pipeline, triggered by pushes to the gated branch, compiles
-the record after each merge and pushes the result. Its build identity needs *Contribute*
-and *Bypass policies when pushing* on that branch (Project settings → Repositories →
-Security), and nothing else does. `[skip ci]` keeps its own push from triggering it
-again. Leave this pipeline out where the tool that merges runs the compiler itself.
-
-```yaml
-trigger:
-  branches:
-    include: [main]
-
-pool:
-  vmImage: ubuntu-latest
-
-steps:
-  - checkout: self
-    persistCredentials: true
-    clean: true
-
-  - task: UseNode@1
-    inputs:
-      version: 22.x
-
-  - bash: |
-      set -euo pipefail
-      node scripts/compile-record.mjs
-      # docs/PLAN.md is named only while it carries the compiler's marker. With
-      # "plan": false (Appendix A) the compiler leaves it alone, or it is not there.
-      compiled="docs/DECISIONS.md"
-      if grep -q "Compiled from tasks/" docs/PLAN.md 2>/dev/null; then compiled="$compiled docs/PLAN.md"; fi
-      if git diff --quiet -- $compiled; then exit 0; fi
-      git config user.name "merge man"
-      git config user.email "merge-man@localhost"
-      git add $compiled
-      git commit -m "Compile the record [skip ci]"
-      git push origin HEAD:$(Build.SourceBranchName)
-    displayName: Compile decisions and plan from the task files
-```
-
-Two merges close together make two runs; the second push can be rejected because the
-first moved the branch. The compiler is idempotent, so the fix is to run the pipeline
-again, or to let the next merge's run pick both up.
+The Azure DevOps listing that stood here, and what is known about running the gate and
+the record compiler in CI or a merging tool, is in
+`${CLAUDE_PLUGIN_ROOT}/skills/unities-project/RUNNING-THE-GATE.md`. It is read only when
+the person asks for something to run them (4.7).
 
 ## Appendix J — `.claude/hooks/check-unit.test.mjs`
 

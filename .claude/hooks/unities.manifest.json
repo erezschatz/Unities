@@ -1,5 +1,5 @@
 {
-  "version": "0.6.20",
+  "version": "0.6.21",
   "files": {
     ".claude/hooks/check-unit.mjs": "6febfe38b1a825d4b5a78261c9cbeb972da5c0a3c00ec3fab9bb4107d405854d",
     ".claude/hooks/check-unit.test.mjs": "5ecf208e0273d654252373ed712562c66159283f35dd3ffe3e0024e643848475",
