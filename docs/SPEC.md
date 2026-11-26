@@ -39,10 +39,12 @@ What it does:
   `recorded, N boxes open` until then. The gate refuses a change held to a task change
   that adds no `## What was done` section: touching a task file is not recording. All three scripts read a file
   with CRLF line endings or a byte-order mark as they read it without. The gate's release
-  check and the changelog compiler set git's diff output back to its defaults (colour,
-  external tools and text conversion off, `a/` and `b/` prefixes, three lines of context,
-  rename detection, the default algorithm), and the compiler prints file names unquoted,
-  so a developer's own git settings for these do not change what they decide. The gate
+  check sets git's diff output back to its defaults (colour, external tools and text
+  conversion off, `a/` and `b/` prefixes, three lines of context, the default algorithm);
+  the changelog compiler reads no diff, but each task file as a commit and its parent
+  hold it, takes the records the commit added wherever in the file they stand, and prints
+  file names unquoted. So a developer's own git settings for these do not change what
+  either decides. The gate
   judges an open task's acceptance boxes by its rule as it is now; a task closed at the
   scene's base, and still closed in it, is judged only on the boxes the scene adds, edits
   or copies.
@@ -54,7 +56,7 @@ What it does:
   Claude Code requires). The plugin's entry carries no version and no description; both
   are read from `plugin.json`.
 
-What it explicitly does not do, as of 0.6.21:
+What it explicitly does not do, as of 0.7.0:
 
 - The Codex binding has not been run under Codex (`tasks/verify-the-codex-binding.md`),
   and the gate has not been run on Windows outside WSL

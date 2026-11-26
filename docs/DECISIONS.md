@@ -1558,3 +1558,47 @@ unchanged at 1.0.
 **Why** — A change to the procedure is a version (`docs/SPEC.md`, *Versions*).
 
 Source: [tasks/the-adopter-chooses-what-runs-the-gate.md](../tasks/the-adopter-chooses-what-runs-the-gate.md)
+
+## D107 · 2026-11-26 · The compiler reads a commit's records from the file's two versions
+
+**Decision** — `compile-changelog.mjs` no longer parses `git log -p`. For each commit since
+the release and each task file it adds, changes or renames, it reads the file as the
+commit holds it and as its parent held it (under the old name for a rename), splits each
+into its `## ` sections, and takes the `## What was done` sections. The commit added as
+many records as the file gained. Records are compared without trailing spaces on a line
+or trailing blank lines, as the gate reads sections, and compiled as they were written. The new ones are among those the
+parent did not hold so; where the commit also corrected old records, so that more differ
+than were added, each corrected old record is paired with the record most like it, by
+the share of their own words (not the heading, the `Reviewed by:` line or the
+punctuation) that both have, the closest pairs first, and the records left over are the
+new ones. A commit that only corrects a record adds none, as before.
+**Rejected** — Patching the diff reader for a heading that comes after its text, which
+any diff can line up with the old heading; the gate's half-the-words rule for
+corrections, which answers whether one changed section is a correction, where the
+compiler must pick the new ones among several; keeping the diff flags of the git-settings
+decision for the compiler, which now reads no diff.
+**Why** — A diff says which lines changed, not which record a line belongs to; the two
+versions of the file say which records there are. It also takes the compiler out of the
+reach of every diff setting. A commit that removes one record and adds another in the
+same file gains none, so it adds none here; a record is not removed once written, and
+the case is not built for. This replaces D97 for the compiler: the gate's release check
+still reads its diff with D97's flags, and the compiler still prints file names
+unquoted.
+Supersedes: D97
+
+Source: [tasks/a-record-inserted-above-another-compiles-empty.md](../tasks/a-record-inserted-above-another-compiles-empty.md)
+
+## D108 · 2026-11-26 · 0.7.0
+
+**Decision** — Ruled by the developer on 2026-11-26, in chat: "make it 0.7.0". The
+plugin is 0.7.0, not 0.6.22. It is the first version after 0.6.21, which changed what an
+adoption in the adapted staging is: the runbook states where the gate and the compile run
+and what they must do, and builds nothing to run them. Every 0.6 version, this one
+included, is taken by copying the new files and re-running the procedure; no repository
+needs converting. The form is unchanged at 1.0.
+**Rejected** — 0.6.22, leaving the change of 0.6.21 under a patch number; 0.8.0, for
+which nothing here calls; renumbering 0.6.21, which is pushed.
+**Why** — The minor number has marked a change in what an adoption is (0.6.0 shipped the
+scripts as files); 0.6.21 was one, and this is the first version after it.
+
+Source: [tasks/a-record-inserted-above-another-compiles-empty.md](../tasks/a-record-inserted-above-another-compiles-empty.md)

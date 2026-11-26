@@ -11,7 +11,7 @@ what is not in scope are set by decisions. All of it is compiled from `tasks/` a
 - [a-broken-configuration-is-refused-not-crashed](../tasks/a-broken-configuration-is-refused-not-crashed.md) — A broken configuration is refused, not crashed on · done
 - [a-check-is-admitted-from-what-happened](../tasks/a-check-is-admitted-from-what-happened.md) — A check enters the gate because something happened · done
 - [a-marketplace-file](../tasks/a-marketplace-file.md) — Let the plugin be installed from this repository by name · recorded, 1 box open
-- [a-record-inserted-above-another-compiles-empty](../tasks/a-record-inserted-above-another-compiles-empty.md) — A record inserted above another compiles as an empty entry
+- [a-record-inserted-above-another-compiles-empty](../tasks/a-record-inserted-above-another-compiles-empty.md) — A record inserted above another compiles as an empty entry · done
 - [a-turn-may-stop-to-discuss](../tasks/a-turn-may-stop-to-discuss.md) — A turn may stop to discuss · done
 - [acceptance-boxes-are-judged-where-the-scene-wrote](../tasks/acceptance-boxes-are-judged-where-the-scene-wrote.md) — Acceptance boxes are judged where the scene wrote them · done
 - [adopt-unities](../tasks/adopt-unities.md) — Adopt the Unities in this repository · done

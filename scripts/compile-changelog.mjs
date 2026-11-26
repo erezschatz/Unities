@@ -29,37 +29,96 @@ const lf = text => text.replace(/^\uFEFF/, "").replace(/\r\n/g, "\n");
 const lastTag = () => { try { return git(["describe", "--tags", "--abbrev=0"]); } catch { return ""; } };
 const since = sinceIdx >= 0 ? argv[sinceIdx + 1] : (lastTag() || git(["rev-list", "--max-parents=0", "HEAD"]));
 
-// The developer's git configuration can colour the diff, change its a/ and b/ prefixes,
-// hand it to another program, widen or merge its context, stop finding renames, or pick
-// another diff algorithm; these flags set each back to git's default.
-const PLAIN_DIFF = ["--no-color", "--no-ext-diff", "--no-textconv", "--src-prefix=a/", "--dst-prefix=b/",
-  "--unified=3", "--inter-hunk-context=0", "--find-renames", "--diff-algorithm=myers"];
-const raw = git(["log", "--no-merges", "--reverse", "--format=%x1e%h%x1f%as", "-p", ...PLAIN_DIFF, `${since}..HEAD`, "--", "tasks/"]);
+// A commit's records are read from the task file as it and its parent hold it, not from
+// the diff between them: a diff lines a new record's heading up with an old one's, so a
+// record written above another shows its text before its heading. Reading the two
+// versions also leaves the developer's diff settings out of it.
+// Trailing spaces on a line, and a section's trailing blank lines, are not what it says:
+// the file's last section has no blank lines after it, and has some once a record is
+// appended after it. The gate reads sections the same way. Records are compared by that
+// key and compiled as they were written, so a line's two trailing spaces, a Markdown
+// line break, reach the changelog.
+const records = text => lf(text).split(/^(?=## )/m).filter(s => /^## What was done/.test(s))
+  .map(s => ({ key: s.split("\n").map(l => l.trimEnd()).join("\n").trimEnd(), text: s }));
+// Every version needed is read by one git process, as `git cat-file --batch` answers a
+// list of "<rev>:<path>" in order; a version that does not exist (a root commit's parent)
+// is answered "missing" and read as empty.
+const filesAt = specs => {
+  if (!specs.length) return [];
+  const result = spawnSync("git", ["-c", "core.quotePath=false", "cat-file", "--batch"], { input: specs.join("\n") + "\n", stdio: ["pipe", "pipe", "ignore"], maxBuffer: 1 << 30 });
+  if (result.error) throw result.error;
+  if (result.status !== 0) throw new Error(`git cat-file --batch exited ${result.status}`);
+  const out = result.stdout, texts = [];
+  let at = 0;
+  for (let i = 0; i < specs.length; i++) {
+    const end = out.indexOf(10, at);
+    const header = out.subarray(at, end).toString("utf8");
+    at = end + 1;
+    const size = /^\S+ blob (\d+)$/.exec(header)?.[1];
+    if (size === undefined) { texts.push(""); continue; }
+    texts.push(out.subarray(at, at + Number(size)).toString("utf8"));
+    at += Number(size) + 1;
+  }
+  return texts;
+};
+// A record's own words: not its heading or its Reviewed by line, which every record
+// shares, and not its punctuation, which a correction often changes.
+const words = record => record.split("\n").slice(1).filter(l => !/^Reviewed by:/.test(l))
+  .join(" ").toLowerCase().split(/[^\p{L}\p{N}]+/u).filter(Boolean);
+// How alike two records are: the words they share, over the words either has. A record
+// the commit only corrected is far more like the one it was than a new record is.
+const likeness = (a, b) => {
+  const x = new Set(words(a)), y = new Set(words(b));
+  const all = new Set([...x, ...y]);
+  return all.size ? [...x].filter(w => y.has(w)).length / all.size : 1;
+};
+
+const log = git(["log", "--no-merges", "--reverse", "--format=%x1e%H%x1f%h%x1f%as", "--name-status", "-M", `${since}..HEAD`, "--", "tasks/"]);
 const entries = [];                       // { file, hash, date, lines[] }
 
-for (const chunk of raw.split("\x1e").filter(Boolean)) {
+const touched = [];                       // { commit, hash, date, status, from, file }
+for (const chunk of log.split("\x1e").filter(Boolean)) {
   const [head, ...rest] = chunk.split("\n");
-  const [hash, date] = head.split("\x1f");
-  // A file's header runs from "diff --git" to its first "@@"; only there is "+++" the
-  // header, so an added line that itself begins "++" is content.
-  let file = null, inHeader = false, inSection = false, current = null;
+  const [commit, hash, date] = head.split("\x1f");
   for (const line of rest) {
-    if (line.startsWith("diff --git ")) { file = null; inHeader = true; inSection = false; current = null; continue; }
-    if (inHeader) {
-      if (line.startsWith("+++ b/")) file = line.slice(6);
-      if (line.startsWith("@@")) inHeader = false;
-      continue;
-    }
-    if (!file || !file.startsWith("tasks/") || file.startsWith("tasks/_")) continue;
-    // A heading the scene did not change still ends the section above it, when the hunk
-    // reaches it as context.
-    if (line.startsWith(" ") && /^## /.test(line.slice(1))) { inSection = false; current = null; continue; }
-    if (!line.startsWith("+")) { if (line.startsWith("@@")) { inSection = false; current = null; } continue; }
-    const text = line.slice(1).replace(/^\uFEFF/, "").replace(/\r$/, "");
-    if (/^## What was done/.test(text)) { inSection = true; current = { file, hash, date, lines: [] }; entries.push(current); continue; }
-    if (/^## /.test(text)) { inSection = false; current = null; continue; }
-    if (inSection && current) current.lines.push(text);
+    const [status, from, to] = line.split("\t");
+    if (!status || status.startsWith("D")) continue;
+    const file = to ?? from;
+    if (!file.startsWith("tasks/") || file.startsWith("tasks/_")) continue;
+    touched.push({ commit, hash, date, status, from, file });
   }
+}
+const versions = filesAt(touched.flatMap(t => [`${t.commit}^:${t.from}`, `${t.commit}:${t.file}`]));
+for (let t = 0; t < touched.length; t++) {
+  const { hash, date, status, file } = touched[t];
+  const before = status.startsWith("A") ? [] : records(versions[2 * t]);
+  const after = records(versions[2 * t + 1]);
+  // The commit added as many records as the file gained. They are among the ones its
+  // parent did not hold word for word; where it also corrected old ones, each corrected
+  // old record is paired with the record most like it, the closest pairs first, and the
+  // records left over are the new ones.
+  const added = after.length - before.length;
+  if (added <= 0) continue;
+  const unmatched = before.map(r => r.key);
+  const fresh = after.filter(r => {
+    const i = unmatched.indexOf(r.key);
+    if (i < 0) return true;
+    unmatched.splice(i, 1);
+    return false;
+  });
+  const pairs = [];
+  fresh.forEach((f, i) => unmatched.forEach((u, j) => pairs.push({ i, j, score: likeness(f.key, u) })));
+  pairs.sort((a, b) => b.score - a.score || a.i - b.i || a.j - b.j);
+  const corrected = new Set(), used = new Set();
+  for (const { i, j } of pairs) {
+    if (corrected.size === fresh.length - added) break;
+    if (corrected.has(i) || used.has(j)) continue;
+    corrected.add(i);
+    used.add(j);
+  }
+  fresh.forEach((r, i) => {
+    if (!corrected.has(i)) entries.push({ file, hash, date, lines: r.text.split("\n").slice(1) });
+  });
 }
 
 // Task files get renamed (e.g. when a work item id is assigned). Records written

@@ -459,6 +459,56 @@ test("the release check and the compiler decide the same under the developer's g
   }
 });
 
+test("a record is compiled with its text wherever in the task file it was written; a correction is not a record", () => {
+  const record = text => `## What was done\n\n${text}\n\nReviewed by: a reader\n`;
+  const compile = (before, after) => {
+    const { dir, write, commit } = repo();
+    write(TASK, before);
+    commit("before");
+    write(TASK, after);
+    commit("after");
+    return execSync("node scripts/compile-changelog.mjs --dry-run --since HEAD~1", { cwd: dir, encoding: "utf8" });
+  };
+  const old = `# t\n\n${record("old work")}`;
+  const above = compile(old, `# t\n\n${record("new work")}\n${record("old work")}`);
+  assert.match(above, /^new work\n\nRecorded in/m, "inserted above an older record");
+  assert.doesNotMatch(above, /old work/);
+  const below = compile(old, `${old}\n${record("new work")}`);
+  assert.match(below, /^new work\n\nRecorded in/m, "appended after an older record");
+  assert.doesNotMatch(below, /old work/);
+  const both = compile(old, `# t\n\n${record("new work")}\n${record("old work, corrected")}`);
+  assert.match(both, /^new work\n\nRecorded in/m, "inserted above an older record that is corrected at once");
+  assert.doesNotMatch(both, /old work/);
+  const corrected = compile(old, `# t\n\n${record("old work, corrected")}`);
+  assert.match(corrected, /no task records since/, "a correction alone");
+  // An appended record whose words the last one already has, or that has none of its own,
+  // is still the new one: the last record is not changed by what comes after it.
+  const shared = compile(`# t\n\n${record("Recompiled the record and the plan.")}`, `# t\n\n${record("Recompiled the record and the plan.")}\n${record("Recompiled the plan.")}`);
+  assert.match(shared, /^Recompiled the plan\.\n\nRecorded in/m, "appended, its words all in the last record");
+  assert.doesNotMatch(shared, /record and the plan/);
+  const wordless = compile(old, `${old}\n${record("--")}`);
+  assert.match(wordless, /^--\n\nRecorded in/m, "appended, with no words");
+  const blank = compile(`${old}\n\n`, `${old}\n\n${record("old work")}`);
+  assert.match(blank, /^old work\n\nRecorded in/m, "appended after a file that ended in blank lines");
+  assert.equal(blank.match(/old work/g).length, 1);
+  const spaced = compile(old, old.replace("old work", "old work   ") + "\n\n");
+  assert.match(spaced, /no task records since/, "only trailing blanks changed");
+  // The same appended record, when the commit also touches the record above it.
+  const last = `# t\n\n${record("Recompiled the record and the plan.")}`;
+  for (const [touch, label] of [
+    [last.replace("the plan.", "the plan.   "), "the last record given trailing spaces"],
+    [last.replace("and the plan", "and plan"), "the last record corrected, losing a word"],
+    [last.replace("the plan.", "the plan and the notes."), "the last record corrected, gaining words"],
+  ]) {
+    const out = compile(last, `${touch}\n${record("Recompiled the plan.")}`);
+    assert.match(out, /^Recompiled the plan\.\n\nRecorded in/m, label);
+    assert.doesNotMatch(out, /record and|the notes/, label);
+  }
+  // Compared without trailing spaces, compiled with them: two of them are a line break.
+  const broken = compile(old, `${old}\n${record("First line with a hard break  \nsecond line")}`);
+  assert.match(broken, /^First line with a hard break  \nsecond line$/m, "a Markdown line break kept");
+});
+
 // ---- adapted staging: commits and turns warn ----
 
 test("adapted: a commit with an incomplete scene warns but is not refused", () => {
