@@ -1329,3 +1329,16 @@ one of them already meant for an acceptance box.
 **Why** — A change to the procedure is a version (`docs/SPEC.md`, *Versions*).
 
 Source: [tasks/a-box-never-waits-on-another-project.md](../tasks/a-box-never-waits-on-another-project.md)
+
+## D93 · 2026-11-26 · Not admitted, by Erez: an acceptance box that waits on another repository
+
+Supersedes: D88
+
+**Decision** — Not built. Erez ruled on 2026-11-26, in chat, after D88 was put to him: "Not
+admitted, record it as the user's ruling".
+**Rejected** — Adding repository words, or any other phrase, to `ACCEPTANCE_FORBIDDEN`.
+**Why** — Erez: "we cannot, at this moment, gate for words as there is no single phrase
+that can be qualified as 'correct' or incorrect. This isn't programming but prose and
+design."
+
+Source: [tasks/a-box-never-waits-on-another-project.md](../tasks/a-box-never-waits-on-another-project.md)

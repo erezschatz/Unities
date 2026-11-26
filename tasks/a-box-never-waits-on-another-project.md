@@ -108,6 +108,17 @@ unchanged at 1.0.
 one of them already meant for an acceptance box.
 **Why** — A change to the procedure is a version (`docs/SPEC.md`, *Versions*).
 
+### 2026-11-26 · Not admitted, by Erez: an acceptance box that waits on another repository
+
+Supersedes: D88
+
+**Decision** — Not built. Erez ruled on 2026-11-26, in chat, after D88 was put to him: "Not
+admitted, record it as the user's ruling".
+**Rejected** — Adding repository words, or any other phrase, to `ACCEPTANCE_FORBIDDEN`.
+**Why** — Erez: "we cannot, at this moment, gate for words as there is no single phrase
+that can be qualified as 'correct' or incorrect. This isn't programming but prose and
+design."
+
 ## What was done
 
 Runbook 4.7, *Acceptance boxes*, gains a paragraph: a box may run what the project ships
