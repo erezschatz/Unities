@@ -32,6 +32,7 @@ what is not in scope are set by decisions. All of it is compiled from `tasks/` a
 - [the-gate-runs-under-deno-without-a-shell](../tasks/the-gate-runs-under-deno-without-a-shell.md) — The gate runs under Deno without a shell · done
 - [the-plan-can-be-switched-off](../tasks/the-plan-can-be-switched-off.md) — A repository that compiles no plan can say so · recorded, 1 box open
 - [the-plan-says-when-boxes-are-open](../tasks/the-plan-says-when-boxes-are-open.md) — The plan says when a recorded task still has boxes open · done
+- [the-rules-name-a-role-not-a-person](../tasks/the-rules-name-a-role-not-a-person.md) — The rules name a role, not a person · done
 - [the-runbook-is-source](../tasks/the-runbook-is-source.md) — The runbook and the skill are source in this repository · done
 - [the-scripts-as-files](../tasks/the-scripts-as-files.md) — Ship the scripts as files, not as listings · done
 - [verify-the-codex-binding](../tasks/verify-the-codex-binding.md) — Verify the Codex binding under Codex

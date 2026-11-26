@@ -66,7 +66,7 @@ version changes with the work, not at a separate release step.
 
 **How the gate grows.** A check enters the gate because something happened: in a
 repository, or to something a task file or a test already promises. A case a reader
-constructed is recorded, left unchecked, until Erez lets it into the gate (`CLAUDE.md`,
+constructed is recorded, left unchecked, until the developer lets it into the gate (`CLAUDE.md`,
 *Code rules*).
 
 **The form's version.** The form is four statements quoted from the essay: the principle
@@ -74,14 +74,14 @@ and one for each unity. They are read, with the version, in the runbook's §0; t
 the version and points there. The form is at 1.0, since
 plugin 0.6.3 (2026-11-19), when it was first numbered. A change to the form is a change
 to one of the four statements. It is made only by a decision that names the new form
-version, in a task Erez opened for it, and §0 and the README then name the plugin
+version, in a task the developer opened for it, and §0 and the README then name the plugin
 version it arrived in. A staging says how much of the form a repository holds to and is
 not part of it. Everything else the plugin ships is tooling and moves the plugin's
 version only.
 
 **Releases.** The compiled `CHANGELOG.md` starts at the adoption; its boundary is the
 local tag `v0.5.5` on the last commit before it. A release is
-`node scripts/compile-changelog.mjs <version>`, run by Erez and committed from his shell
+`node scripts/compile-changelog.mjs <version>`, run by the developer and committed from their shell
 with `CHANGELOG.md` and `.claude-plugin/plugin.json` only. Nothing checks a shell commit
 here (there is no git hook); a release committed through Claude Code is refused as a
 hand edit of `CHANGELOG.md` (D8).
@@ -103,7 +103,7 @@ change.
 
 | Dependency | What it replaces | Why it is rote |
 | --- | --- | --- |
-| Node (built-ins only: `node:child_process`, `node:crypto`, `node:fs`, `node:path`, `node:url`; the tests add `node:test`, `node:assert/strict`, `node:os`) | — | Runs the gate, the compilers and the tests; Deno and Bun run the same files. The README says Node 22; Erez's machine has 26. |
+| Node (built-ins only: `node:child_process`, `node:crypto`, `node:fs`, `node:path`, `node:url`; the tests add `node:test`, `node:assert/strict`, `node:os`) | — | Runs the gate, the compilers and the tests; Deno and Bun run the same files. The README says Node 22; the developer's machine has 26. |
 | git | — | The gate reads the scene from git; the changelog compiler reads the record from history. |
 | Claude Code hooks (`Stop`, `PreToolUse`) | a Definition-of-Done checklist | The bindings that make the gate fire; documented by Claude Code. |
 

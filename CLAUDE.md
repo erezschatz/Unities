@@ -28,10 +28,10 @@ This is enforced, not
 requested: a `git commit` made through Claude Code refuses an incomplete scene, and a
 Stop hook says what a half-recorded change still lacks (`.claude/hooks/check-unit.mjs`). A commit from a shell is not checked here: there is no
 git hook (D5). `CHANGELOG.md` is compiled from task records at release
-(`node scripts/compile-changelog.mjs <version>`), by Erez, who commits the release from
-his shell; a commit through Claude Code that touches it is refused (D8). It is never
+(`node scripts/compile-changelog.mjs <version>`), by the developer, who commits the
+release from their shell; a commit through Claude Code that touches it is refused (D8). It is never
 edited by hand. A scene ends at its commit, not at the end of a turn: if you
-are unsure, stop and ask Erez, and leave the change uncommitted until it is finished. If
+are unsure, stop and ask the developer, and leave the change uncommitted until it is finished. If
 it is abandoned, revert it; do not leave it for later. Any choice with a rejected alternative gets
 a dated entry under `## Decisions` in the task file of the work that made it; a listed
 decision is not reopened quietly but by a new entry that supersedes it.
@@ -44,10 +44,10 @@ before it is built. Before committing, give the staged diff and the task file to
 that has not seen the work — a read-only subagent, never yourself — to carry out
 `docs/reviewer.md`; write what it finds into the task file and its name on the record's
 `Reviewed by:` line. The agent does not claim a build is green or a feature works where
-it runs; Erez does. A box you checked by reading the code or by a command whose output
-you report, or a review box the reader found to hold, you tick; do not ask Erez to tick
-it for you. A box that can only be checked by running the plugin in a repository you
-leave open and hand to him, those boxes alone, each with what to do and what should be
+it runs; the developer does. A box you checked by reading the code or by a command whose
+output you report, or a review box the reader found to hold, you tick; do not ask the
+developer to tick it for you. A box that can only be checked by running the plugin in a
+repository you leave open and hand to them, those boxes alone, each with what to do and what should be
 seen.
 
 ## Code rules
@@ -60,17 +60,17 @@ seen.
   regenerated so it carries it, in the same commit.
 - **The form has its own version** (1.0; the four statements are in the runbook's §0).
   No change to the tooling changes it. It moves only by a decision that names the new
-  form version, in a task Erez opened for that (`docs/SPEC.md`, *The form's version*).
+  form version, in a task the developer opened for that (`docs/SPEC.md`, *The form's version*).
 - **A check enters the gate because something happened.** This is about one kind of
   finding: one whose answer would make the gate refuse something it lets through, or
   handle a case it does not handle. Such a finding is not built on the reader's word.
-  Write it into the task file as a review item, as any finding, and say to Erez what
-  you would rule; he rules. He lets it into the gate when the case happened in a
+  Write it into the task file as a review item, as any finding, and say to the developer
+  what you would rule; they rule. They let it into the gate when the case happened in a
   repository, or when it breaks something a task file's promise or acceptance, or a
   test, already says. Until then it is left unchecked: the item's *Done when* reads
   `<case> → the gate is unchanged`, and a decision titled `Left unchecked: <the case>`
-  says why, so `docs/DECISIONS.md` lists what is known and not checked. His ruling to
-  keep it so is a decision titled `Left unchecked, by Erez: <the case>`. A finding about
+  says why, so `docs/DECISIONS.md` lists what is known and not checked. Their ruling to
+  keep it so is a decision titled `Left unchecked, by the developer: <the case>`. A finding about
   the record, the docs, or a fault in what the scene itself wrote is answered in the
   scene, as before. The reader's brief does not change; the reader still reports
   everything.
@@ -95,8 +95,9 @@ seen.
 - **Claude** edits the runbook, the skill, the README, the spec and the task files; runs
   the tests (`node --test` at the root, the master files), reporting the output as it
   came, not as a verdict on the plugin.
-- **Erez** owns the essay, judges the prose, runs the plugin in repositories (that
+- **The developer** judges the prose, runs the plugin in repositories (that
   is where it runs, and where it is verified; one set up for the check, since no task here
-  waits on another project's state: runbook 4.7, *Acceptance boxes*), decides versions, compiles and commits releases from his shell, and pushes.
-- Tests here run on whatever Node is installed (26 on Erez's machine); the README's
+  waits on another project's state: runbook 4.7, *Acceptance boxes*), decides versions, compiles and commits releases from their shell, and pushes.
+  The essay is its author's (*Code rules*).
+- Tests here run on whatever Node is installed (26 on the developer's machine); the README's
   claim is Node 22.

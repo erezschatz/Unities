@@ -1375,3 +1375,28 @@ Source: [tasks/left-unchecked-replaces-not-admitted.md](../tasks/left-unchecked-
 **Why** — A change to the procedure is a version (`docs/SPEC.md`, *Versions*).
 
 Source: [tasks/left-unchecked-replaces-not-admitted.md](../tasks/left-unchecked-replaces-not-admitted.md)
+
+## D96 · 2026-11-26 · The rules say "the developer"; the history keeps its names
+
+**Decision** — In `CLAUDE.md` and `docs/SPEC.md`, every sentence that said the developer, by name, does,
+decides or rules on something says the developer, with "they" for the pronoun. The
+ruling title in `CLAUDE.md` becomes `Left unchecked, by the developer: <the case>`.
+Records written from now on say "the developer" too, in a quote's attribution as
+anywhere else; a quote's words stay as they were said, the name among them
+if the speaker used it. The essay rule keeps the name, both as the essay's author and
+as the one whose request allows a change to it, as the copyright lines and the plugin's
+author and owner keep it; the developer's roles no longer include owning the essay. The
+handle `erezschatz` in the marketplace's and the repository's names is an identifier,
+not a role, and stays.
+**Rejected** — Rewriting the task files and `docs/DECISIONS.md`, which would edit
+decisions and Context that are not edited and break the rule that a decision is reversed
+only by a new entry; "the maintainer", which says less than the word the runbook already
+uses for the person in a scene; keeping the name in the rules as the developer's, which
+is what made the project read as needing one person; replacing the name inside a quote,
+since a quote is the speaker's words and the history keeps its names.
+**Why** — The developer: the rules read as if the project needs one named person to
+work. A role is
+something anyone can take; the history is a record of who did what, and stays true as
+written.
+
+Source: [tasks/the-rules-name-a-role-not-a-person.md](../tasks/the-rules-name-a-role-not-a-person.md)
