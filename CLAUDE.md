@@ -65,11 +65,12 @@ seen.
   finding: one whose answer would make the gate refuse something it lets through, or
   handle a case it does not handle. Such a finding is not built on the reader's word.
   Write it into the task file as a review item, as any finding, and say to Erez what
-  you would rule; he rules. He admits it when the case happened in a repository, or
-  when it breaks something a task file's promise or acceptance, or a test, already
-  says. Until he admits it, it is not admitted: the item's *Done when* reads
-  `<case> → the gate is unchanged`, and a decision titled `Not admitted: <the case>`
-  says why, so `docs/DECISIONS.md` lists what is known and not built. A finding about
+  you would rule; he rules. He lets it into the gate when the case happened in a
+  repository, or when it breaks something a task file's promise or acceptance, or a
+  test, already says. Until then it is left unchecked: the item's *Done when* reads
+  `<case> → the gate is unchanged`, and a decision titled `Left unchecked: <the case>`
+  says why, so `docs/DECISIONS.md` lists what is known and not checked. His ruling to
+  keep it so is a decision titled `Left unchecked, by Erez: <the case>`. A finding about
   the record, the docs, or a fault in what the scene itself wrote is answered in the
   scene, as before. The reader's brief does not change; the reader still reports
   everything.

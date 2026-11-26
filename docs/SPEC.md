@@ -42,7 +42,7 @@ What it does:
   Claude Code requires). The plugin's entry carries no version and no description; both
   are read from `plugin.json`.
 
-What it explicitly does not do, as of 0.6.17:
+What it explicitly does not do, as of 0.6.18:
 
 - The Codex binding has not been run under Codex (`tasks/verify-the-codex-binding.md`),
   and the gate has not been run on Windows outside WSL
@@ -66,7 +66,8 @@ version changes with the work, not at a separate release step.
 
 **How the gate grows.** A check enters the gate because something happened: in a
 repository, or to something a task file or a test already promises. A case a reader
-constructed is recorded and not built until Erez admits it (`CLAUDE.md`, *Code rules*).
+constructed is recorded, left unchecked, until Erez lets it into the gate (`CLAUDE.md`,
+*Code rules*).
 
 **The form's version.** The form is four statements quoted from the essay: the principle
 and one for each unity. They are read, with the version, in the runbook's §0; the README states

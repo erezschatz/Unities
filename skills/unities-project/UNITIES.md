@@ -1,4 +1,4 @@
-<!-- UNITIES.md 2026-11-26 · 0.6.17. Master copy: the unities-project skill folder (plugin `unities`). -->
+<!-- UNITIES.md 2026-11-26 · 0.6.18. Master copy: the unities-project skill folder (plugin `unities`). -->
 
 # UNITIES.md — adopting the Unities in a repository
 
@@ -722,7 +722,8 @@ not to be.
 **Limits.** This list is what a person adopting should know, not every case the gate
 has been read against. A case a reader constructed, which has not happened in a
 repository and was not built against, is recorded in the plugin's repository as a
-decision titled `Not admitted: …` (`docs/DECISIONS.md` there).
+decision whose title begins `Left unchecked` (before 0.6.18, `Not admitted`), in
+`docs/DECISIONS.md` there.
 
 - Presence is not truth. The gate is deliberately a presence test: a file in each role,
   nothing about whether `tests/parser.test.ts` really exercises `parser.ts`. Presence

@@ -1342,3 +1342,36 @@ that can be qualified as 'correct' or incorrect. This isn't programming but pros
 design."
 
 Source: [tasks/a-box-never-waits-on-another-project.md](../tasks/a-box-never-waits-on-another-project.md)
+
+## D94 · 2026-11-26 · "Left unchecked" replaces "Not admitted"
+
+**Decision** — A decision recording a case that the gate deliberately does not check is
+titled `Left unchecked: <the case>`. Erez's ruling to keep it so is titled
+`Left unchecked, by Erez: <the case>`. The rule in `CLAUDE.md` says that he "lets it
+into the gate" where it said "admits it". Decisions already compiled keep their titles,
+since a decision is not edited; runbook 4.11 names the old title beside the new one so
+that both are found. The title of the task that made the rule
+(`tasks/a-check-is-admitted-from-what-happened.md`) stays as it is too. A case let into
+the gate gets no set title: its decision says what the gate now checks, and supersedes
+the `Left unchecked` or `Not admitted` entry if there is one. D41, D42 and D43 are
+superseded for their wording only: D41's two grounds for letting a check in, D42's
+ruling by Erez, with the gate unchanged until he rules and the agent saying what it
+would rule, and D43's review item and decision in the
+task file, with 4.11 saying once where they are listed, all stand.
+**Rejected** — "Not gated", which Erez found worse; "Known gap", which suggests a hole
+waiting to be fixed; "Won't check", which sounds final; "Considered and left out", too
+long for a title repeated across entries; retitling the old decisions; renaming
+`Admitted:` to a set opposite of "Left unchecked", a second new term no one asked for.
+**Why** — "Not admitted" only makes sense to someone who knows the rule behind it. "Left
+unchecked" says in plain words that nothing checks the case and that someone chose that.
+Supersedes: D41, D42, D43
+
+Source: [tasks/left-unchecked-replaces-not-admitted.md](../tasks/left-unchecked-replaces-not-admitted.md)
+
+## D95 · 2026-11-26 · 0.6.18
+
+**Decision** — The runbook changes, so the plugin is 0.6.18. The form is unchanged at 1.0.
+**Rejected** — Leaving the runbook's 4.11 on the old term until another version.
+**Why** — A change to the procedure is a version (`docs/SPEC.md`, *Versions*).
+
+Source: [tasks/left-unchecked-replaces-not-admitted.md](../tasks/left-unchecked-replaces-not-admitted.md)
