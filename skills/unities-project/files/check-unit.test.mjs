@@ -348,6 +348,62 @@ test("the compiler leaves the Reviewed by line out of the changelog", () => {
   assert.doesNotMatch(out, /Reviewed by/);
 });
 
+test("the release check and the compiler decide the same under the developer's git configuration", () => {
+  // Each setting changes the text git diff and git log -p print; the repository's own
+  // configuration stands in for the developer's, since it outranks the global one.
+  const settings = [
+    [],
+    ["color.ui", "always"],
+    ["color.diff", "always"],
+    ["diff.noprefix", "true"],
+    ["diff.mnemonicPrefix", "true"],
+    ["diff.external", "node ext.mjs"],
+    ["diff.context", "10"],
+    ["diff.interHunkContext", "10"],
+    ["diff.renames", "false"],
+    ["diff.algorithm", "patience"],
+    ["core.quotePath", "true"],
+  ];
+  // An older release whose entry has a list line beginning "+"; a task file, already
+  // released, that the scene renames to a name git quotes, adds a record to above its
+  // review and ticks the review's box well below it.
+  const released = "# t\n\n## What was done\n\nold work\n\nReviewed by: a reader\n";
+  const review = "\n## Review · 2026-01-01\n\n### an item\n\n**Found** — here\n\n**Done when**\n\n- [ ] a case → an outcome\n\n**Not asked** — more\n";
+  const renamed = "tasks/1-renamed-café.md";
+  for (const setting of settings) {
+    const { dir, git, write, commit, read } = repo();
+    const label = setting.join("=") || "no setting";
+    write("ext.mjs", 'console.log("an external diff tool printed this");\n');
+    if (setting.length) git(`config ${setting[0]} "${setting[1]}"`);
+    write(SHARED, read(SHARED) + "\n## 0.9.0 — 2026-01-01\n\n### t\n\n+ first item\n+ second item\n\nRecorded in `0000000`.\n");
+    write(TASK, released + review);
+    commit("released");
+    git("tag v1");
+    git("checkout -q -b feature");
+    write(SOURCE, "changed\n");
+    write(TEST, "test\n");
+    write(DOC, "documented\n");
+    git(`mv ${TASK} ${renamed}`);
+    write(renamed, released + "\n## What was done\n\nnew work\n++ a line that begins with two plus signs\n\nReviewed by: a reader\n" + review.replace("- [ ]", "- [x]"));
+    commit("feature");
+    git("checkout -q main");
+    git("merge -q --no-ff -m merge feature");
+    git("checkout -q -b release");
+    const compiled = spawnSync("node", ["scripts/compile-changelog.mjs", "1.0.0", "--since", "v1"], { cwd: dir, encoding: "utf8" });
+    assert.equal(compiled.status, 0, `${label}: ${compiled.stderr}`);
+    const entry = read(SHARED).split("## 0.9.0")[0];
+    assert.match(entry, /^new work\n\+\+ a line that begins with two plus signs\n\nRecorded in/m, label);
+    assert.doesNotMatch(entry, /old work|Reviewed by|\[x\]/, label);
+    commit("release");
+    const ok = run(dir, ["--pr", "main"]);
+    assert.equal(ok.status, 0, `${label}: ${ok.stderr}`);
+    // A line added by hand to the compiled section, even one that begins "++", is refused.
+    write(SHARED, read(SHARED).replace("++ a line", "++ a hand-added line\n++ a line"));
+    commit("tamper");
+    assert.match(run(dir, ["--pr", "main"]).stderr, /does not equal the compiler's output/, label);
+  }
+});
+
 // ---- adapted staging: commits and turns warn ----
 
 test("adapted: a commit with an incomplete scene warns but is not refused", () => {

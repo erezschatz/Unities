@@ -1400,3 +1400,60 @@ something anyone can take; the history is a record of who did what, and stays tr
 written.
 
 Source: [tasks/the-rules-name-a-role-not-a-person.md](../tasks/the-rules-name-a-role-not-a-person.md)
+
+## D97 · 2026-11-26 · The release check and the compiler print git's diffs as git does by default
+
+**Decision** — Ruled by the developer on 2026-11-26, in chat: "ignore git settings", then,
+asked whether that meant building it in place of the ruling above, "Yes, build it". The
+gate's release check and `compile-changelog.mjs` call `git diff` and `git log -p` with
+`--no-color --no-ext-diff --no-textconv --src-prefix=a/ --dst-prefix=b/ --unified=3
+--inter-hunk-context=0 --diff-algorithm=myers`, and the compiler with `--find-renames`
+too. The compiler runs git with `-c core.quotePath=false`, so a task file whose name has
+a non-ASCII character has its record compiled under that name; the gate does not, since
+how it matches such a name against the roles is not a developer's setting (the review
+below). A file's header ends at its first `@@`, so an added line
+that begins `++` is content, and a line is tested for `+` before it is trimmed. In the
+compiler, a `## ` heading that reaches a hunk as context ends the section above it, as an
+added one does. These cover the settings named here and in the review below; a git
+setting that changes the diff in some other way is not covered by name.
+**Rejected** — Clearing the developer's configuration for every git call
+(`GIT_CONFIG_GLOBAL`), which reaches settings the scripts never read and misses a
+repository's own; overriding the diff settings by name with `-c`, which a more specific
+key such as `color.diff` outranks (`core.quotePath` has no more specific key, so it is
+set with `-c`); `core.quotePath=false` on every git call the gate makes, which changed what
+the gate refuses for any non-ASCII file name; `--unified=0`, under which an unchanged blank line inside a new record
+splits it into two hunks; keeping the ruling above until one of these configurations
+meets the gate.
+**Why** — A developer's own git settings are theirs to choose, and the record they keep
+is the same whatever git prints; the flags are the plain form of each diff, and command
+line flags outrank every level of configuration.
+Supersedes: D45
+
+Source: [tasks/diffs-are-read-under-any-git-config.md](../tasks/diffs-are-read-under-any-git-config.md)
+
+## D98 · 2026-11-26 · Left unchecked: the gate does not match a file name git quotes against the roles
+
+**Decision** — Not built. With `core.quotePath` on, as git ships it, the gate reads a file
+whose name has a non-ASCII character as a quoted, escaped name that no role's pattern
+matches: a scene whose only task file has such a name is refused as having no task
+change, and a source file with such a name is held to nothing. An unread record in such
+a task file, beside a read one in another, passes the gate; since this change the
+compiler reads the name, so that unread record is also compiled into the changelog,
+where on 0.6.18 it was dropped.
+**Rejected** — Running every git call of the gate with `-c core.quotePath=false`, built and
+taken back in this scene, which changes what the gate refuses in every mode.
+**Why** — It is not a developer's setting, so the ruling above does not reach it, and it
+has not happened in a repository. The developer has not ruled. What Claude would rule:
+left unchecked.
+
+Source: [tasks/diffs-are-read-under-any-git-config.md](../tasks/diffs-are-read-under-any-git-config.md)
+
+## D99 · 2026-11-26 · A record inserted above another becomes a task
+
+**Decision** — The second reading's case of a record inserted above an older one, which
+compiles as an empty entry, is `tasks/a-record-inserted-above-another-compiles-empty.md`.
+**Rejected** — Fixing it in this scene.
+**Why** — It happens with no git setting, on 0.6.18 too, so it is outside this task's
+promise, and it needs its own record.
+
+Source: [tasks/diffs-are-read-under-any-git-config.md](../tasks/diffs-are-read-under-any-git-config.md)

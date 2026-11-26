@@ -170,10 +170,10 @@ on 0.6.1.
 
 **Done when**
 
-- [ ] the release-PR and compiler tests under `color.ui=always`, `diff.noprefix`, `diff.mnemonicPrefix`, `diff.external` → pass
-- [ ] a changelog line beginning `++` → compared and compiled
-- [ ] "the compile after a merge…" under `core.autocrlf=true` → passes
-- [ ] the same with no special configuration → unchanged
+- [x] the release-PR and compiler tests under `color.ui=always`, `diff.noprefix`, `diff.mnemonicPrefix`, `diff.external` → pass
+- [x] a changelog line beginning `++` → compared and compiled
+- [x] "the compile after a merge…" under `core.autocrlf=true` → passes
+- [x] the same with no special configuration → unchanged
 
 **Not asked** — A change to the changelog format or to how a release PR is recognised.
 

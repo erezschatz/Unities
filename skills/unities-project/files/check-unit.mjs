@@ -122,8 +122,16 @@ let shared = files.filter(f => RULES.shared.test(f) || (RULES.retired.test(f) &&
 // A release PR: only RELEASE_FILES changed, and the changelog it adds is exactly
 // what the compiler produces from the record. The blob must equal compile(sources).
 if (mode === "--pr" && shared.length && files.every(f => RELEASE_FILES.test(f))) {
-  const added = lines(git(["diff", base, "HEAD", "--", "CHANGELOG.md"]))
-    .filter(l => l.startsWith("+") && !l.startsWith("+++")).map(l => l.slice(1).trim()).filter(Boolean);
+  // The developer's git configuration can colour the diff, change its a/ and b/ prefixes,
+  // hand it to another program, widen its context or pick another algorithm; the flags set
+  // each back to git's default. The header ends at the first "@@", so an added line that
+  // itself begins "++" is content; a line is tested before it is trimmed, so a context
+  // line whose text begins "+" is not taken for an added one.
+  const diff = git(["diff", "--no-color", "--no-ext-diff", "--no-textconv", "--src-prefix=a/", "--dst-prefix=b/",
+    "--unified=3", "--inter-hunk-context=0", "--diff-algorithm=myers", base, "HEAD", "--", "CHANGELOG.md"]).split("\n");
+  const firstHunk = diff.findIndex(l => l.startsWith("@@"));
+  const added = (firstHunk < 0 ? [] : diff.slice(firstHunk))
+    .filter(l => l.startsWith("+")).map(l => l.slice(1).trim()).filter(Boolean);
   let compiled, why;
   try {
     // The last release's tag, or the first commit where there has been no release.

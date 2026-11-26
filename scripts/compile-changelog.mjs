@@ -15,8 +15,10 @@ if (!version && !dry) { console.error("usage: compile-changelog <version> [--sin
 // git is started by name with a list of arguments, never through a shell: under Deno a
 // shell is one more program to allow, and allowing it allows any program. The buffer is
 // large because the log of a long-unreleased history is long.
+// core.quotePath, on by default, prints a file name with a non-ASCII character quoted
+// and escaped; off, it is printed as it is.
 const git = args => {
-  const result = spawnSync("git", args, { encoding: "utf8", stdio: ["ignore", "pipe", "ignore"], maxBuffer: 1 << 30 });
+  const result = spawnSync("git", ["-c", "core.quotePath=false", ...args], { encoding: "utf8", stdio: ["ignore", "pipe", "ignore"], maxBuffer: 1 << 30 });
   if (result.error) throw result.error;
   if (result.status !== 0) throw new Error(`git ${args.join(" ")} exited ${result.status}`);
   return result.stdout.trim();
@@ -27,17 +29,32 @@ const lf = text => text.replace(/^\uFEFF/, "").replace(/\r\n/g, "\n");
 const lastTag = () => { try { return git(["describe", "--tags", "--abbrev=0"]); } catch { return ""; } };
 const since = sinceIdx >= 0 ? argv[sinceIdx + 1] : (lastTag() || git(["rev-list", "--max-parents=0", "HEAD"]));
 
-const raw = git(["log", "--no-merges", "--reverse", "--format=%x1e%h%x1f%as", "-p", `${since}..HEAD`, "--", "tasks/"]);
+// The developer's git configuration can colour the diff, change its a/ and b/ prefixes,
+// hand it to another program, widen or merge its context, stop finding renames, or pick
+// another diff algorithm; these flags set each back to git's default.
+const PLAIN_DIFF = ["--no-color", "--no-ext-diff", "--no-textconv", "--src-prefix=a/", "--dst-prefix=b/",
+  "--unified=3", "--inter-hunk-context=0", "--find-renames", "--diff-algorithm=myers"];
+const raw = git(["log", "--no-merges", "--reverse", "--format=%x1e%h%x1f%as", "-p", ...PLAIN_DIFF, `${since}..HEAD`, "--", "tasks/"]);
 const entries = [];                       // { file, hash, date, lines[] }
 
 for (const chunk of raw.split("\x1e").filter(Boolean)) {
   const [head, ...rest] = chunk.split("\n");
   const [hash, date] = head.split("\x1f");
-  let file = null, inSection = false, current = null;
+  // A file's header runs from "diff --git" to its first "@@"; only there is "+++" the
+  // header, so an added line that itself begins "++" is content.
+  let file = null, inHeader = false, inSection = false, current = null;
   for (const line of rest) {
-    if (line.startsWith("+++ b/")) { file = line.slice(6); inSection = false; current = null; continue; }
+    if (line.startsWith("diff --git ")) { file = null; inHeader = true; inSection = false; current = null; continue; }
+    if (inHeader) {
+      if (line.startsWith("+++ b/")) file = line.slice(6);
+      if (line.startsWith("@@")) inHeader = false;
+      continue;
+    }
     if (!file || !file.startsWith("tasks/") || file.startsWith("tasks/_")) continue;
-    if (!line.startsWith("+") || line.startsWith("+++")) { if (line.startsWith("@@")) { inSection = false; current = null; } continue; }
+    // A heading the scene did not change still ends the section above it, when the hunk
+    // reaches it as context.
+    if (line.startsWith(" ") && /^## /.test(line.slice(1))) { inSection = false; current = null; continue; }
+    if (!line.startsWith("+")) { if (line.startsWith("@@")) { inSection = false; current = null; } continue; }
     const text = line.slice(1).replace(/^\uFEFF/, "").replace(/\r$/, "");
     if (/^## What was done/.test(text)) { inSection = true; current = { file, hash, date, lines: [] }; entries.push(current); continue; }
     if (/^## /.test(text)) { inSection = false; current = null; continue; }
